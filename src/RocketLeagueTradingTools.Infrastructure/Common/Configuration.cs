@@ -15,5 +15,9 @@ public class Configuration : Core.Application.Contracts.IConfiguration
     public int ScrapIntervalInSecondsMin => config.GetValue<int>("ScrapIntervalInSecondsMin");
     public int ScrapIntervalInSecondsMax => config.GetValue<int>("ScrapIntervalInSecondsMax");
     public int HttpTimeoutInSeconds => config.GetValue<int>("HttpTimeoutInSeconds");
-    public int CacheExpirationInMinutes => config.GetValue<int>("CacheExpirationInMinutes");
+    public string HttpDefaultRequestUserAgent => config.GetValue<string>("HttpDefaultRequestUserAgent");
+    public string HttpDefaultRequestCookie => config.GetValue<string>("HttpDefaultRequestCookie");
+    public int AlertOfferMaxAgeInMinutes => config.GetValue<int>("AlertOfferMaxAgeInMinutes");
+    public int NotificationsPageSize => config.GetValue<int>("NotificationsPageSize", 50);
+    public int NotificationsExpirationInHours => config.GetValue<int>("NotificationsExpirationInHours", 48);
 }

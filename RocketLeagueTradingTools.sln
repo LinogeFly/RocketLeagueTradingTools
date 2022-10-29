@@ -17,7 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RocketLeagueTradingTools.Co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RocketLeagueTradingTools.Infrastructure.UnitTests", "tests\RocketLeagueTradingTools.Infrastructure.UnitTests\RocketLeagueTradingTools.Infrastructure.UnitTests.csproj", "{883769B0-EB23-4151-B4C0-CF4294A3C560}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RocketLeagueTradingTools.Infrastructure.IntegrationTests", "tests\RocketLeagueTradingTools.Infrastructure.IntegrationTests\RocketLeagueTradingTools.Infrastructure.IntegrationTests.csproj", "{E0076B4C-DEA7-494A-8D51-07B2FCA86987}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RocketLeagueTradingTools.Infrastructure.IntegrationTests", "tests\RocketLeagueTradingTools.Infrastructure.IntegrationTests\RocketLeagueTradingTools.Infrastructure.IntegrationTests.csproj", "{E0076B4C-DEA7-494A-8D51-07B2FCA86987}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RocketLeagueTradingTools.Web", "src\RocketLeagueTradingTools.Web\RocketLeagueTradingTools.Web.csproj", "{7F2165CD-8EAD-4515-8A48-236C43EAF81D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,6 +51,10 @@ Global
 		{E0076B4C-DEA7-494A-8D51-07B2FCA86987}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E0076B4C-DEA7-494A-8D51-07B2FCA86987}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E0076B4C-DEA7-494A-8D51-07B2FCA86987}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F2165CD-8EAD-4515-8A48-236C43EAF81D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F2165CD-8EAD-4515-8A48-236C43EAF81D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F2165CD-8EAD-4515-8A48-236C43EAF81D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F2165CD-8EAD-4515-8A48-236C43EAF81D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -60,6 +66,7 @@ Global
 		{F8BC4646-3893-48B4-B11A-F8727EAEBA31} = {EB8BB5A4-F53D-427D-BCCC-B98FD31377A8}
 		{883769B0-EB23-4151-B4C0-CF4294A3C560} = {EB8BB5A4-F53D-427D-BCCC-B98FD31377A8}
 		{E0076B4C-DEA7-494A-8D51-07B2FCA86987} = {EB8BB5A4-F53D-427D-BCCC-B98FD31377A8}
+		{7F2165CD-8EAD-4515-8A48-236C43EAF81D} = {16ABC5ED-950D-43AF-85A5-E7A82C643417}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {22F53B5A-81CF-4883-999B-E833A69E8654}

@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+__name='rltt'
+__scraper_directory='/media/storage/Projects/coding/RocketLeagueTradingTools/src/RocketLeagueTradingTools.Scraper/bin/Debug/net6.0/publish'
+__web_directory='/media/storage/Projects/coding/RocketLeagueTradingTools/src/RocketLeagueTradingTools.Web/bin/Debug/net6.0/publish'
+
+function show_usage() {
+    cat <<EOF
+Usage:
+    $__name <COMMAND> [ -h | --help ]
+
+Commands:
+    scrap
+        Starts scraping CLI.
+
+    web
+        Starts UI web application.
+
+Options:
+    -h, --help
+        Print synopsis.
+EOF
+}
+
+function start_scraper() {
+    (cd "$__scraper_directory"; dotnet RocketLeagueTradingTools.Scraper.dll)
+}
+
+function start_web() {
+    (cd "$__web_directory"; dotnet RocketLeagueTradingTools.Web.dll --urls http://localhost:7070/)
+}
+
+function main() {
+    # No arguments given
+    if [[ $# -eq 0 ]] ; then
+        show_usage
+        exit 0
+    fi
+
+    # First argument given
+    case $1 in
+        -h | --help)
+            show_usage
+            exit 0
+            ;;
+        scrap)
+            start_scraper
+            exit 0
+            ;;
+        web)
+            start_web
+            exit 0
+            ;;
+    esac
+}
+
+main "$@"

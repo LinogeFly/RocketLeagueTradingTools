@@ -6,5 +6,9 @@ public interface IConfiguration
     int ScrapIntervalInSecondsMin { get; }
     int ScrapIntervalInSecondsMax { get; }
     int HttpTimeoutInSeconds { get; }
-    int CacheExpirationInMinutes { get; }
+    string HttpDefaultRequestUserAgent { get; }
+    string HttpDefaultRequestCookie { get; }
+    int AlertOfferMaxAgeInMinutes { get; }
+    int NotificationsPageSize { get; }
+    int NotificationsExpirationInHours { get; }
 }

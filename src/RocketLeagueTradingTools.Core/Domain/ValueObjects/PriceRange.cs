@@ -2,28 +2,28 @@ namespace RocketLeagueTradingTools.Core.Domain.ValueObjects;
 
 public sealed class PriceRange
 {
-    public int PriceFrom { get; } = 0;
-    private int PriceTo { get; }
+    public int From { get; }
+    public int To { get; }
 
-    public PriceRange(int priceTo)
+    public PriceRange(int to)
     {
-        if (priceTo <= 0)
-            throw new ArgumentException($"{nameof(PriceTo)} has to be more than 0.");
+        if (to <= 0)
+            throw new ArgumentException($"{nameof(To)} has to be more than 0.");
 
-        PriceTo = priceTo;
+        To = to;
     }
 
-    public PriceRange(int priceFrom, int priceTo) : this(priceTo)
+    public PriceRange(int from, int priceTo) : this(priceTo)
     {
-        if (priceFrom <= 0)
-            throw new ArgumentException($"{nameof(PriceFrom)} has to be more than 0.");
+        if (from < 0)
+            throw new ArgumentException($"{nameof(From)} has to be more or equal 0.");
 
         if (priceTo <= 0)
-            throw new ArgumentException($"{nameof(PriceTo)} has to be more than 0.");
+            throw new ArgumentException($"{nameof(To)} has to be more than 0.");
 
-        if (priceFrom >= priceTo)
-            throw new ArgumentException($"{nameof(PriceFrom)} has to be less than {nameof(PriceTo)}.");
+        if (from >= priceTo)
+            throw new ArgumentException($"{nameof(From)} has to be less than {nameof(To)}.");
 
-        PriceFrom = priceFrom;
+        From = from;
     }
 }

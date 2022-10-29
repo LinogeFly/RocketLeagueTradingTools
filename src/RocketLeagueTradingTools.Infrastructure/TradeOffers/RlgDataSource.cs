@@ -16,42 +16,48 @@ public class RlgDataSource
 
     private readonly IHttp client;
     private readonly ILog log;
+    private readonly IDateTime dateTime;
 
     public RlgDataSource(
         IHttp client,
-        ILog log
-    )
+        ILog log,
+        IDateTime dateTime)
     {
         this.client = client;
         this.log = log;
+        this.dateTime = dateTime;
     }
 
     public async Task<TradeOffersPage> GetTradeOffersPage(CancellationToken cancellationToken)
     {
-        var tradesDocument = new HtmlDocument();
+        // Download the latest trades page
         var tradesResponse = await client.GetStringAsync(PageUrl, cancellationToken);
 
+        var tradesDocument = new HtmlDocument();
         tradesDocument.LoadHtml(tradesResponse);
 
         var tradeElements = tradesDocument.QuerySelectorAll("#trading-trades .rlg-trade");
 
         // If no trades are found it usually means that RLG website is responding with the error page
         if (tradeElements.Count == 0)
-            throw new TradingDataSourceIsDownException("RLG");
+            throw new TradingDataServiceIsNotAvailableException("RLG");
 
         var filteredTradeOfferElements = tradeElements
             .Where(ContainsOnlyOneForOneTypeOfOffers)
-            .Where(HasNoItemOrItemTypeOfOffers);
+            .Where(HasNoItemOrItemTypeOfOffers)
+            .ToList();
 
         return new TradeOffersPage
         {
             BuyOffers = filteredTradeOfferElements
                 .SelectMany(MapBuyOffersFromTradeNode)
                 .Where(ContainsOnlySupportedItem)
+                .Distinct()
                 .ToList(),
             SellOffers = filteredTradeOfferElements
                 .SelectMany(MapSellOffersFromTradeNode)
                 .Where(ContainsOnlySupportedItem)
+                .Distinct()
                 .ToList()
         };
     }
@@ -72,12 +78,12 @@ public class RlgDataSource
             if (IsNotOneItemTradeItemElement(wantsItemElement))
                 continue;
 
-            yield return new TradeOffer
+            yield return new TradeOffer(GetTradeItemFromTradeItemElement(wantsItemElement))
             {
                 SourceId = GetIdFromTradeElement(tradeNode),
                 Link = GetLinkFromTradeElement(tradeNode),
-                Item = GetTradeItemFromTradeItemElement(wantsItemElement),
-                Price = GetPriceFromTradeItemElement(hasItemElement)
+                Price = GetPriceFromTradeItemElement(hasItemElement),
+                ScrapedDate = dateTime.Now
             };
         }
     }
@@ -98,12 +104,12 @@ public class RlgDataSource
             if (IsNotCreditsTradeItemElement(wantsItemElement))
                 continue;
 
-            yield return new TradeOffer
+            yield return new TradeOffer(GetTradeItemFromTradeItemElement(hasItemElement))
             {
                 SourceId = GetIdFromTradeElement(tradeNode),
                 Link = GetLinkFromTradeElement(tradeNode),
-                Item = GetTradeItemFromTradeItemElement(hasItemElement),
-                Price = GetPriceFromTradeItemElement(wantsItemElement)
+                Price = GetPriceFromTradeItemElement(wantsItemElement),
+                ScrapedDate = dateTime.Now
             };
         }
     }

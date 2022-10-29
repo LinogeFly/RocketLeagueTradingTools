@@ -1,34 +1,37 @@
-﻿using Microsoft.Extensions.Logging;
-using RocketLeagueTradingTools.Core.Domain.Entities;
+﻿using RocketLeagueTradingTools.Core.Domain.Entities;
 using RocketLeagueTradingTools.Core.Application.Contracts;
 using RocketLeagueTradingTools.Core.Domain.Exceptions;
+using System.Diagnostics;
 
 namespace RocketLeagueTradingTools.Core.Application;
 
 public class ScrapApplication
 {
     private readonly ITradeOfferRepository tradeOfferRepository;
-    private readonly IPersistenceRepository persistenceRepository;
+    private readonly IPersistenceRepository persistence;
     private readonly ILog log;
     private readonly IConfiguration config;
+
     private static int numberOfFailedTries;
     private static IList<TradeOffer> previousScrapBuyOffers = new List<TradeOffer>();
     private static IList<TradeOffer> previousScrapSellOffers = new List<TradeOffer>();
 
     public ScrapApplication(
         ITradeOfferRepository tradeOfferRepository,
-        IPersistenceRepository persistenceRepository,
+        IPersistenceRepository persistence,
         ILog log,
         IConfiguration config)
     {
         this.tradeOfferRepository = tradeOfferRepository;
-        this.persistenceRepository = persistenceRepository;
+        this.persistence = persistence;
         this.log = log;
         this.config = config;
     }
 
     public async Task ScrapPageAsync(CancellationToken cancellationToken)
     {
+        var scrapingWatch = Stopwatch.StartNew();
+
         try
         {
             log.Trace("Downloading of trade offers started.");
@@ -41,25 +44,39 @@ public class ScrapApplication
 
             // Not passing the cancellation token here as we don't want to terminate the persistence operation.
             // We want only to terminate the scraping when requested.
-            await persistenceRepository.AddBuyOffers(newBuyOffers);
-            await persistenceRepository.AddSellOffers(newSellOffers);
+            await persistence.AddBuyOffers(newBuyOffers);
+            await persistence.AddSellOffers(newSellOffers);
 
-            if (IsNotFirstRun() && !HasOverlapWithPreviousScrap(latestOffers, newBuyOffers, newSellOffers))
+            if (IsNotFirstRun() && LastRunDidNotFail() && !HasOverlapWithPreviousScrap(latestOffers, newBuyOffers, newSellOffers))
                 log.Warn("No offers overlap between scraps. Scraping interval can be decreased.");
 
             previousScrapBuyOffers = latestOffers.BuyOffers;
             previousScrapSellOffers = latestOffers.SellOffers;
             numberOfFailedTries = 0;
+
+            log.Info($"Scraped {newBuyOffers.Count + newSellOffers.Count} new offers in {scrapingWatch.ElapsedMilliseconds} ms.");
         }
-        catch (TradingDataSourceIsDownException ex)
+        catch (TradingDataServiceIsNotAvailableException ex)
         {
             numberOfFailedTries++;
-            log.Error($"'{ex.DataSourceName}' trading website is down. Retry attempt {numberOfFailedTries} of {config.ScrapRetryMaxAttempts}.");
+            log.Error($"'{ex.DataServiceName}' website is not available. Retry attempt {numberOfFailedTries} of {config.ScrapRetryMaxAttempts}.");
+        }
+        catch (OperationCanceledException)
+        {
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
+            numberOfFailedTries++;
+            log.Error($"Scraping has timed out. Retry attempt {numberOfFailedTries} of {config.ScrapRetryMaxAttempts}.");
         }
         catch (HttpRequestException)
         {
             numberOfFailedTries++;
-            log.Error($"Connection issue has occurred. Retry attempt {numberOfFailedTries} of {config.ScrapRetryMaxAttempts}.");
+            log.Error($"Connectivity issue has occurred. Retry attempt {numberOfFailedTries} of {config.ScrapRetryMaxAttempts}.");
+        }
+        finally
+        {
+            scrapingWatch.Stop();
         }
 
         if (numberOfFailedTries == config.ScrapRetryMaxAttempts)
@@ -75,6 +92,11 @@ public class ScrapApplication
             return true;
 
         return false;
+    }
+
+    private bool LastRunDidNotFail()
+    {
+        return numberOfFailedTries == 0;
     }
 
     private bool HasOverlapWithPreviousScrap(TradeOffersPage latestOffers, List<TradeOffer> newBuyOffers, List<TradeOffer> newSellOffers)
