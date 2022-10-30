@@ -301,9 +301,10 @@ public class PersistenceRepositoryTests
         offers.Count.Should().Be(shouldMatch ? 1 : 0);
     }
 
-    [TestCase(PersistedAlertOfferType.Buy, 150, 10000, 150, true)]
-    [TestCase(PersistedAlertOfferType.Buy, 150, 10000, 160, true)]
-    [TestCase(PersistedAlertOfferType.Buy, 150, 10000, 140, false)]
+    [TestCase(PersistedAlertOfferType.Buy, 150, 200, 150, true)]
+    [TestCase(PersistedAlertOfferType.Buy, 150, 200, 160, true)]
+    [TestCase(PersistedAlertOfferType.Buy, 150, 200, 140, false)]
+    [TestCase(PersistedAlertOfferType.Buy, 150, 200, 210, false)]
     [TestCase(PersistedAlertOfferType.Sell, 0, 100, 100, true)]
     [TestCase(PersistedAlertOfferType.Sell, 0, 100, 90, true)]
     [TestCase(PersistedAlertOfferType.Sell, 0, 100, 110, false)]
@@ -473,6 +474,58 @@ public class PersistenceRepositoryTests
                 o.ScrapedDate = DateTime.UtcNow;
             })
         );
+        await dbContext.SaveChangesAsync();
+
+        var offers = await sut.FindAlertMatchingOffers(20);
+
+        offers.Count.Should().Be(0);
+    }
+
+    [Test]
+    public async Task FindAlertMatchingOffers_should_not_return_buy_offer_matches_for_sell_offer_type_alerts()
+    {
+        dbContext.AddRange(new PersistedAlert
+        {
+            OfferType = PersistedAlertOfferType.Sell,
+            ItemName = "Hellfire",
+            PriceFrom = 0,
+            PriceTo = 100,
+        });
+        dbContext.AddRange(Build.PersistedOffer(PersistedAlertOfferType.Buy)
+            .With(o =>
+            {
+                o.Name = "Hellfire";
+                o.Price = 90;
+                o.ScrapedDate = DateTime.UtcNow;
+            })
+        );
+
+        await dbContext.SaveChangesAsync();
+
+        var offers = await sut.FindAlertMatchingOffers(20);
+
+        offers.Count.Should().Be(0);
+    }
+
+    [Test]
+    public async Task FindAlertMatchingOffers_should_not_return_sell_offer_matches_for_buy_offer_type_alerts()
+    {
+        dbContext.AddRange(new PersistedAlert
+        {
+            OfferType = PersistedAlertOfferType.Buy,
+            ItemName = "Hellfire",
+            PriceFrom = 150,
+            PriceTo = 10000,
+        });
+        dbContext.AddRange(Build.PersistedOffer(PersistedAlertOfferType.Sell)
+            .With(o =>
+            {
+                o.Name = "Hellfire";
+                o.Price = 160;
+                o.ScrapedDate = DateTime.UtcNow;
+            })
+        );
+
         await dbContext.SaveChangesAsync();
 
         var offers = await sut.FindAlertMatchingOffers(20);

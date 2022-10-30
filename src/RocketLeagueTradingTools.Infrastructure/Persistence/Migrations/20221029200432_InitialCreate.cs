@@ -89,14 +89,24 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_BuyOffers_Id_ScrapedDate_Name_Price_Color_Certification",
-                table: "BuyOffers",
-                columns: new[] { "Id", "ScrapedDate", "Name", "Price", "Color", "Certification" });
+                name: "IX_Alerts_Id_ItemName_Disabled_OfferType_PriceFrom_PriceTo_Color_Certification",
+                table: "Alerts",
+                columns: new[] { "Id", "ItemName", "Disabled", "OfferType", "PriceFrom", "PriceTo", "Color", "Certification" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_SellOffers_Id_ScrapedDate_Name_Price_Color_Certification",
+                name: "IX_BuyOffers_Id_Name_ScrapedDate_Price_Color_Certification",
+                table: "BuyOffers",
+                columns: new[] { "Id", "Name", "ScrapedDate", "Price", "Color", "Certification" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_Id_CreatedDate_TradeOfferScrapedDate",
+                table: "Notifications",
+                columns: new[] { "Id", "CreatedDate", "TradeOfferScrapedDate" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SellOffers_Id_Name_ScrapedDate_Price_Color_Certification",
                 table: "SellOffers",
-                columns: new[] { "Id", "ScrapedDate", "Name", "Price", "Color", "Certification" });
+                columns: new[] { "Id", "Name", "ScrapedDate", "Price", "Color", "Certification" });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

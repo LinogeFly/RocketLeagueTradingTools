@@ -19,14 +19,12 @@ public class RlgDataSourceTests
     [SetUp]
     public void Setup()
     {
-        cancellationToken = new CancellationToken();
-        log = new Mock<ILog>();
-
         dateTime = new Mock<IDateTime>();
         dateTime.SetupGet(d => d.Now).Returns(DateTime.UtcNow);
 
+        cancellationToken = new CancellationToken();
         config = new Mock<IConfiguration>();
-
+        log = new Mock<ILog>();
         http = new Http(config.Object);
 
         sut = new RlgDataSource(http, log.Object, dateTime.Object);

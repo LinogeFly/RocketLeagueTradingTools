@@ -44,8 +44,8 @@ public class NotificationApplication
 
     private async Task<IEnumerable<Notification>> GetAlertMatchingOfferNotifications()
     {
-        var alertOffers = await persistence.FindAlertMatchingOffers(config.AlertOfferMaxAgeInMinutes);
+        var offers = await persistence.FindAlertMatchingOffers(config.AlertOfferMaxAgeInMinutes);
 
-        return alertOffers.Select(offer => new Notification(offer));
+        return offers.Select(offer => new Notification(offer));
     }
 }

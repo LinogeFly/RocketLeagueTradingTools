@@ -11,7 +11,7 @@ using RocketLeagueTradingTools.Infrastructure.Persistence;
 namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(PersistenceDbContext))]
-    [Migration("20221024154811_InitialCreate")]
+    [Migration("20221029200432_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -54,6 +54,8 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Id", "ItemName", "Disabled", "OfferType", "PriceFrom", "PriceTo", "Color", "Certification");
+
                     b.ToTable("Alerts", (string)null);
                 });
 
@@ -91,7 +93,7 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Id", "ScrapedDate", "Name", "Price", "Color", "Certification");
+                    b.HasIndex("Id", "Name", "ScrapedDate", "Price", "Color", "Certification");
 
                     b.ToTable("BuyOffers", (string)null);
                 });
@@ -136,6 +138,8 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Id", "CreatedDate", "TradeOfferScrapedDate");
+
                     b.ToTable("Notifications", (string)null);
                 });
 
@@ -173,7 +177,7 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Id", "ScrapedDate", "Name", "Price", "Color", "Certification");
+                    b.HasIndex("Id", "Name", "ScrapedDate", "Price", "Color", "Certification");
 
                     b.ToTable("SellOffers", (string)null);
                 });

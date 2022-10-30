@@ -35,16 +35,12 @@ public class PersistenceRepository : IPersistenceRepository
 
     public async Task<IList<TradeOffer>> FindAlertMatchingOffers(int alertOfferMaxAgeInMinutes)
     {
-        var result = new List<TradeOffer>();
+        var buyOffers = await GetAlertMatchingOffersQuery(dbContext.BuyOffers, alertOfferMaxAgeInMinutes).ToListAsync();
+        var sellOffers = await GetAlertMatchingOffersQuery(dbContext.SellOffers, alertOfferMaxAgeInMinutes).ToListAsync();
 
-        var alerts = await dbContext.Alerts
-            .Where(a => !a.Disabled)
-            .ToListAsync();
-
-        foreach (var alert in alerts)
-            result.AddRange(await GetMatchingOffersForAlert(alert, alertOfferMaxAgeInMinutes));
-
-        return result;
+        return buyOffers.Select(Map)
+            .Union(sellOffers.Select(Map))
+            .ToList();
     }
 
     public async Task<IList<Alert>> GetAlerts()
@@ -166,29 +162,30 @@ public class PersistenceRepository : IPersistenceRepository
         await dbContext.SaveChangesAsync();
     }
 
-    private async Task<IEnumerable<TradeOffer>> GetMatchingOffersForAlert(PersistedAlert alert, int alertOfferMaxAgeInMinutes)
+    public IQueryable<T> GetAlertMatchingOffersQuery<T>(DbSet<T> offers, int maxAgeInMinutes) where T : PersistedTradeOffer
     {
-        if (alert.OfferType == PersistedAlertOfferType.Buy)
-        {
-            var offers = await dbContext.BuyOffers
-                .WhereMatchingAlert(alert)
-                .WhereNotOlderThan(alertOfferMaxAgeInMinutes, dateTime.Now)
-                .ToListAsync();
+        return
+            from o in offers
+            join a in dbContext.Alerts on o.Name.ToLower() equals a.ItemName.ToLower()
+            where
+                a.Disabled == false &&
+                a.OfferType == GetAlertOfferType<T>() &&
+                o.ScrapedDate.AddMinutes(maxAgeInMinutes) >= dateTime.Now &&
+                o.Price >= a.PriceFrom &&
+                o.Price <= a.PriceTo &&
+                (a.Color == "*" || o.Color.ToLower() == a.Color.ToLower()) &&
+                (a.Certification == "*" || o.Certification.ToLower() == a.Certification.ToLower())
+            select o;
+    }
 
-            return offers.Select(Map);
-        }
+    private PersistedAlertOfferType GetAlertOfferType<T>() where T : PersistedTradeOffer
+    {
+        if (typeof(T) == typeof(PersistedBuyOffer))
+            return PersistedAlertOfferType.Buy;
+        if (typeof(T) == typeof(PersistedSellOffer))
+            return PersistedAlertOfferType.Sell;
 
-        if (alert.OfferType == PersistedAlertOfferType.Sell)
-        {
-            var offers = await dbContext.SellOffers
-                .WhereMatchingAlert(alert)
-                .WhereNotOlderThan(alertOfferMaxAgeInMinutes, dateTime.Now)
-                .ToListAsync();
-
-            return offers.Select(Map);
-        }
-
-        throw new NotSupportedException($"Unknown offer type '{alert.OfferType}'.");
+        throw new InvalidOperationException($"Unknown offer type '{typeof(T).FullName}'.");
     }
 
     private T Map<T>(TradeOffer offer) where T : PersistedTradeOffer, new()

@@ -21,8 +21,8 @@ public class PersistenceDbContext : DbContext
             .HasIndex(p => new
             {
                 p.Id,
-                p.ScrapedDate,
                 p.Name,
+                p.ScrapedDate,
                 p.Price,
                 p.Color,
                 p.Certification
@@ -33,17 +33,34 @@ public class PersistenceDbContext : DbContext
             .HasIndex(p => new
             {
                 p.Id,
-                p.ScrapedDate,
                 p.Name,
+                p.ScrapedDate,
                 p.Price,
                 p.Color,
                 p.Certification
             });
 
         modelBuilder.Entity<PersistedAlert>()
-            .ToTable("Alerts");
+            .ToTable("Alerts")
+            .HasIndex(p => new
+            {
+                p.Id,
+                p.ItemName,
+                p.Disabled,
+                p.OfferType,
+                p.PriceFrom,
+                p.PriceTo,
+                p.Color,
+                p.Certification
+            });
 
         modelBuilder.Entity<PersistedNotification>()
-            .ToTable("Notifications");
+            .ToTable("Notifications")
+            .HasIndex(p => new
+            {
+                p.Id,
+                p.CreatedDate,
+                p.TradeOfferScrapedDate
+            });
     }
 }
