@@ -32,11 +32,21 @@ const showNotificationPopup = () => {
     return new Notification("RLTT", { "body": "New trade item alert." });
 }
 
+const updateDocumentTitle = (newNotificationsCount: number, defaultDocumentTitle: string) => {
+    if (newNotificationsCount > 0)
+        document.title = `(${newNotificationsCount}) ${defaultDocumentTitle}`;
+    else
+        document.title = defaultDocumentTitle;
+}
+
 function NotificationsPage() {
     const [fetchingEnabled, setFetchingEnabled] = useState<boolean>(false);
     const [notifications, setNotifications] = useState<NotificationViewModel[]>([]);
+    const [defaultDocumentTitle, setDefaultDocumentTitle] = useState<string>();
 
     useEffect(() => {
+        setDefaultDocumentTitle(document.title);
+
         ensureNotificationPopupPermissionGranted()
             .then(() => setFetchingEnabled(true))
             .catch((reason) => console.error(reason));
@@ -57,6 +67,8 @@ function NotificationsPage() {
 
             if (newNotifications.length > 0)
                 showNotificationPopup();
+
+            updateDocumentTitle(newNotifications.length, defaultDocumentTitle!)
 
             setNotifications(data.map(n => ({
                 id: n.id,
