@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RocketLeagueTradingTools.Core.Application;
 using RocketLeagueTradingTools.Core.Application.Contracts;
+using RocketLeagueTradingTools.Application.Common;
 using RocketLeagueTradingTools.Infrastructure.Common;
 using RocketLeagueTradingTools.Infrastructure.Persistence;
 using RocketLeagueTradingTools.Infrastructure.TradeOffers;
@@ -16,6 +17,7 @@ static class HostConfiguration
             .ConfigureServices(services =>
             {
                 services.AddSingleton(typeof(ILogger), typeof(Logger<Program>));
+                services.AddSingleton(typeof(SessionStorage.ScrapApplication));
                 services.AddSingleton<ILog, Log>();
                 services.AddSingleton<IHttp, Http>();
                 services.AddSingleton<IDateTime, SystemDateTime>();
