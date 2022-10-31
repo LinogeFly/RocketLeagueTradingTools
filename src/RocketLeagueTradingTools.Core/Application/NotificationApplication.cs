@@ -29,7 +29,7 @@ public class NotificationApplication
 
     public async Task RefreshNotifications()
     {
-        var oldNotifications = await persistence.GetNotifications(TimeSpan.FromHours(config.NotificationsExpirationInHours));
+        var oldNotifications = await persistence.GetNotifications(config.NotificationsExpiration);
         var alertMatchingOfferNotifications = await GetAlertMatchingOfferNotifications();
         var newNotifications = alertMatchingOfferNotifications.Except(oldNotifications).ToList();
 
@@ -44,7 +44,7 @@ public class NotificationApplication
 
     private async Task<IEnumerable<Notification>> GetAlertMatchingOfferNotifications()
     {
-        var offers = await persistence.FindAlertMatchingOffers(config.AlertOfferMaxAgeInMinutes);
+        var offers = await persistence.FindAlertMatchingOffers(config.AlertOfferMaxAge);
 
         return offers.Select(offer => new Notification(offer));
     }

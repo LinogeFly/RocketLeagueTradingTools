@@ -33,10 +33,10 @@ public class PersistenceRepository : IPersistenceRepository
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task<IList<TradeOffer>> FindAlertMatchingOffers(int alertOfferMaxAgeInMinutes)
+    public async Task<IList<TradeOffer>> FindAlertMatchingOffers(TimeSpan alertOfferMaxAge)
     {
-        var buyOffers = await GetAlertMatchingOffersQuery(dbContext.BuyOffers, alertOfferMaxAgeInMinutes).ToListAsync();
-        var sellOffers = await GetAlertMatchingOffersQuery(dbContext.SellOffers, alertOfferMaxAgeInMinutes).ToListAsync();
+        var buyOffers = await GetAlertMatchingOffersQuery(dbContext.BuyOffers, alertOfferMaxAge).ToListAsync();
+        var sellOffers = await GetAlertMatchingOffersQuery(dbContext.SellOffers, alertOfferMaxAge).ToListAsync();
 
         return buyOffers.Select(Map)
             .Union(sellOffers.Select(Map))
@@ -162,15 +162,15 @@ public class PersistenceRepository : IPersistenceRepository
         await dbContext.SaveChangesAsync();
     }
 
-    public IQueryable<T> GetAlertMatchingOffersQuery<T>(DbSet<T> offers, int maxAgeInMinutes) where T : PersistedTradeOffer
+    public IQueryable<T> GetAlertMatchingOffersQuery<T>(DbSet<T> offers, TimeSpan alertOfferMaxAge) where T : PersistedTradeOffer
     {
         return
             from o in offers
             join a in dbContext.Alerts on o.Name.ToLower() equals a.ItemName.ToLower()
             where
                 a.Disabled == false &&
-                a.OfferType == GetAlertOfferType<T>() &&
-                o.ScrapedDate.AddMinutes(maxAgeInMinutes) >= dateTime.Now &&
+                a.OfferType == GetAlertOfferTypeFor(typeof(T)) &&
+                o.ScrapedDate >= dateTime.Now.Add(-alertOfferMaxAge) &&
                 o.Price >= a.PriceFrom &&
                 o.Price <= a.PriceTo &&
                 (a.Color == "*" || o.Color.ToLower() == a.Color.ToLower()) &&
@@ -178,14 +178,14 @@ public class PersistenceRepository : IPersistenceRepository
             select o;
     }
 
-    private PersistedAlertOfferType GetAlertOfferType<T>() where T : PersistedTradeOffer
+    private PersistedAlertOfferType GetAlertOfferTypeFor(Type tradeOfferType)
     {
-        if (typeof(T) == typeof(PersistedBuyOffer))
+        if (tradeOfferType == typeof(PersistedBuyOffer))
             return PersistedAlertOfferType.Buy;
-        if (typeof(T) == typeof(PersistedSellOffer))
+        if (tradeOfferType == typeof(PersistedSellOffer))
             return PersistedAlertOfferType.Sell;
 
-        throw new InvalidOperationException($"Unknown offer type '{typeof(T).FullName}'.");
+        throw new InvalidOperationException($"Invalid offer type '{tradeOfferType.FullName}'.");
     }
 
     private T Map<T>(TradeOffer offer) where T : PersistedTradeOffer, new()
@@ -243,7 +243,7 @@ public class PersistenceRepository : IPersistenceRepository
             case PersistedAlertOfferType.Sell:
                 return AlertOfferType.Sell;
             default:
-                throw new InvalidOperationException($"Unknown offer type '{offerType}'.");
+                throw new InvalidOperationException($"Invalid offer type '{offerType}'.");
         }
     }
 
@@ -256,7 +256,7 @@ public class PersistenceRepository : IPersistenceRepository
             case AlertOfferType.Sell:
                 return PersistedAlertOfferType.Sell;
             default:
-                throw new InvalidOperationException($"Unknown offer type '{offerType}'.");
+                throw new InvalidOperationException($"Invalid offer type '{offerType}'.");
         }
     }
 

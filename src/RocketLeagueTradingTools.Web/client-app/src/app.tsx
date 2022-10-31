@@ -5,8 +5,13 @@ import NotFoundPage from './components/pages/notFoundPage';
 import NotificationsPage from './components/pages/notificationsPage';
 import styles from './app.module.css';
 import Navigation from './components/navigation';
+import { config } from './services/config';
 
 export default class App extends Component {
+  componentDidMount(): void {
+    document.title = config.defaultTitle;
+  }
+
   render() {
     return (
       <div className={styles.app}>

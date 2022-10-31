@@ -21,8 +21,7 @@ public class Http : IHttp
         if (!string.IsNullOrEmpty(config.HttpDefaultRequestCookie))
             httpClient.DefaultRequestHeaders.Add("cookie", config.HttpDefaultRequestCookie);
 
-        if (config.HttpTimeoutInSeconds != 0)
-            httpClient.Timeout = TimeSpan.FromMinutes(config.HttpTimeoutInSeconds);
+        httpClient.Timeout = config.HttpTimeout;
     }
 
     public Task<string> GetStringAsync(string? requestUri, CancellationToken cancellationToken)

@@ -6,7 +6,7 @@ public interface IPersistenceRepository
 {
     Task AddBuyOffers(IList<TradeOffer> offers);
     Task AddSellOffers(IList<TradeOffer> offers);
-    Task<IList<TradeOffer>> FindAlertMatchingOffers(int alertOfferMaxAgeInMinutes);
+    Task<IList<TradeOffer>> FindAlertMatchingOffers(TimeSpan alertOfferMaxAge);
 
     Task<IList<Alert>> GetAlerts();
     Task<Alert?> GetAlert(int id);

@@ -22,8 +22,11 @@ public class RlgDataSourceTests
         dateTime = new Mock<IDateTime>();
         dateTime.SetupGet(d => d.Now).Returns(DateTime.UtcNow);
 
-        cancellationToken = new CancellationToken();
         config = new Mock<IConfiguration>();
+        config.SetupGet(c => c.HttpTimeout).Returns(TimeSpan.FromSeconds(30));
+        config.SetupGet(c => c.HttpDefaultRequestUserAgent).Returns("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36");
+
+        cancellationToken = new CancellationToken();
         log = new Mock<ILog>();
         http = new Http(config.Object);
 

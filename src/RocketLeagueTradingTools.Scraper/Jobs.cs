@@ -39,7 +39,7 @@ class Jobs
                 }
 
                 // Wait before scraping again
-                var scrapTimeout = new Random().Next(config.ScrapIntervalInSecondsMin * 1000, config.ScrapIntervalInSecondsMax * 1000);
+                var scrapTimeout = new Random().Next((int)config.ScrapIntervalMin.TotalMilliseconds, (int)config.ScrapIntervalMax.TotalMilliseconds);
                 var delay = scrapTimeout - (int)scrapingWatch.ElapsedMilliseconds;
                 await WaitFor(delay, token);
 

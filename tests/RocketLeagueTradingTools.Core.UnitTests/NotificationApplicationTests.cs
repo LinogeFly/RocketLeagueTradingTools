@@ -27,7 +27,7 @@ public class NotificationApplicationTests
 
         config = new Mock<IConfiguration>();
         config.SetupGet(c => c.NotificationsPageSize).Returns(50);
-        config.SetupGet(c => c.NotificationsExpirationInHours).Returns(24);
+        config.SetupGet(c => c.NotificationsExpiration).Returns(TimeSpan.FromDays(1));
 
         sut = new NotificationApplication(persistence.Object, dateTime.Object, config.Object, log.Object);
     }
@@ -51,7 +51,7 @@ public class NotificationApplicationTests
         var tradeOffer = new TradeOffer(Build.TradeItem("Hellfire"));
 
         persistence.Setup(p => p.GetNotifications(It.IsAny<TimeSpan>())).ReturnsAsync(new List<Notification>());
-        persistence.Setup(p => p.FindAlertMatchingOffers(It.IsAny<int>())).ReturnsAsync(new List<TradeOffer> { tradeOffer });
+        persistence.Setup(p => p.FindAlertMatchingOffers(It.IsAny<TimeSpan>())).ReturnsAsync(new List<TradeOffer> { tradeOffer });
 
         await sut.RefreshNotifications();
 
@@ -65,7 +65,7 @@ public class NotificationApplicationTests
         {
             new(oldNotificationOffer)
         });
-        persistence.Setup(p => p.FindAlertMatchingOffers(It.IsAny<int>())).ReturnsAsync(new List<TradeOffer>
+        persistence.Setup(p => p.FindAlertMatchingOffers(It.IsAny<TimeSpan>())).ReturnsAsync(new List<TradeOffer>
         {
             alertMatchingOffer
         });
@@ -82,7 +82,7 @@ public class NotificationApplicationTests
         {
             new(oldNotificationOffer)
         });
-        persistence.Setup(p => p.FindAlertMatchingOffers(It.IsAny<int>())).ReturnsAsync(new List<TradeOffer>
+        persistence.Setup(p => p.FindAlertMatchingOffers(It.IsAny<TimeSpan>())).ReturnsAsync(new List<TradeOffer>
         {
             alertMatchingOffer
         });

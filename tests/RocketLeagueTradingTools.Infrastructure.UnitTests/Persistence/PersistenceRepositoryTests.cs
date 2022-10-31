@@ -141,7 +141,7 @@ public class PersistenceRepositoryTests
         );
         await dbContext.SaveChangesAsync();
 
-        var offers = await sut.FindAlertMatchingOffers(20);
+        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
 
         offers.Single().SourceId.Should().Be(expectedSourceId);
     }
@@ -170,7 +170,7 @@ public class PersistenceRepositoryTests
         );
         await dbContext.SaveChangesAsync();
 
-        var offers = await sut.FindAlertMatchingOffers(20);
+        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
 
         offers.Single().Link.Should().Be(expectedLink);
     }
@@ -204,7 +204,7 @@ public class PersistenceRepositoryTests
         );
         await dbContext.SaveChangesAsync();
 
-        var offers = await sut.FindAlertMatchingOffers(20);
+        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
 
         offers.Single().Item.Name.Should().Be(expectedItemName);
         offers.Single().Item.Color.Should().Be(expectedItemColor);
@@ -234,7 +234,7 @@ public class PersistenceRepositoryTests
         );
         await dbContext.SaveChangesAsync();
 
-        var offers = await sut.FindAlertMatchingOffers(20);
+        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
 
         offers.Single().Price.Should().Be(expectedPrice);
     }
@@ -262,7 +262,7 @@ public class PersistenceRepositoryTests
         );
         await dbContext.SaveChangesAsync();
 
-        var offers = await sut.FindAlertMatchingOffers(20);
+        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
 
         offers.Single().ScrapedDate.Should().Be(expectedDate);
     }
@@ -296,7 +296,7 @@ public class PersistenceRepositoryTests
         );
         await dbContext.SaveChangesAsync();
 
-        var offers = await sut.FindAlertMatchingOffers(20);
+        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
 
         offers.Count.Should().Be(shouldMatch ? 1 : 0);
     }
@@ -327,7 +327,7 @@ public class PersistenceRepositoryTests
         );
         await dbContext.SaveChangesAsync();
 
-        var offers = await sut.FindAlertMatchingOffers(20);
+        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
 
         offers.Count.Should().Be(shouldMatch ? 1 : 0);
     }
@@ -373,7 +373,7 @@ public class PersistenceRepositoryTests
         );
         await dbContext.SaveChangesAsync();
 
-        var offers = await sut.FindAlertMatchingOffers(20);
+        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
 
         offers.Count.Should().Be(shouldMatch ? 1 : 0);
     }
@@ -419,7 +419,7 @@ public class PersistenceRepositoryTests
         );
         await dbContext.SaveChangesAsync();
 
-        var offers = await sut.FindAlertMatchingOffers(20);
+        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
 
         offers.Count.Should().Be(shouldMatch ? 1 : 0);
     }
@@ -449,7 +449,7 @@ public class PersistenceRepositoryTests
         );
         await dbContext.SaveChangesAsync();
 
-        var offers = await sut.FindAlertMatchingOffers(20);
+        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
 
         offers.Count.Should().Be(0);
     }
@@ -476,7 +476,7 @@ public class PersistenceRepositoryTests
         );
         await dbContext.SaveChangesAsync();
 
-        var offers = await sut.FindAlertMatchingOffers(20);
+        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
 
         offers.Count.Should().Be(0);
     }
@@ -502,7 +502,7 @@ public class PersistenceRepositoryTests
 
         await dbContext.SaveChangesAsync();
 
-        var offers = await sut.FindAlertMatchingOffers(20);
+        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
 
         offers.Count.Should().Be(0);
     }
@@ -528,7 +528,7 @@ public class PersistenceRepositoryTests
 
         await dbContext.SaveChangesAsync();
 
-        var offers = await sut.FindAlertMatchingOffers(20);
+        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
 
         offers.Count.Should().Be(0);
     }
