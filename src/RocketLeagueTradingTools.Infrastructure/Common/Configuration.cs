@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using RocketLeagueTradingTools.Core.Common;
 
 namespace RocketLeagueTradingTools.Infrastructure.Common;
 

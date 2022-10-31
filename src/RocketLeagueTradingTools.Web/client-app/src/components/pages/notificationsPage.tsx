@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from 'axios';
 import { NotificationDto } from "../../models/api/notification";
 import { logError } from "../../services/logger";
@@ -33,9 +33,18 @@ const showNotificationPopup = () => {
     return new Notification("RLTT", { "body": "New trade item alert." });
 }
 
+const playNotificationSound = (audioRef: React.RefObject<HTMLAudioElement>) => {
+    if (!audioRef.current)
+        return;
+
+    audioRef.current.volume = config.notificationSoundEffectVolume;
+    audioRef.current.play();
+}
+
 function NotificationsPage() {
     const [fetchingEnabled, setFetchingEnabled] = useState<boolean>(false);
     const [notifications, setNotifications] = useState<NotificationViewModel[]>([]);
+    const notificationAudioRef = useRef<HTMLAudioElement>(null);
 
     useEffect(() => {
         ensureNotificationPopupPermissionGranted()
@@ -56,8 +65,10 @@ function NotificationsPage() {
                 .filter(d => d.isNew)
                 .filter(d => !notifications.some(c => c.id === d.id));
 
-            if (newNotifications.length > 0)
+            if (newNotifications.length > 0) {
                 showNotificationPopup();
+                playNotificationSound(notificationAudioRef);
+            }
 
             setNotifications(data.map(n => ({
                 id: n.id,
@@ -143,6 +154,7 @@ function NotificationsPage() {
                     )
                 })}
             </ol>
+            <audio ref={notificationAudioRef} src={config.notificationSoundEffectSource} preload="none"></audio>
         </>
     );
 }
