@@ -1,6 +1,6 @@
 using HtmlAgilityPack;
 using HtmlAgilityPack.CssSelectors.NetCore;
-using RocketLeagueTradingTools.Core.Application.Contracts;
+using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Core.Domain.Entities;
 using RocketLeagueTradingTools.Core.Domain.Exceptions;
 using RocketLeagueTradingTools.Infrastructure.Common;
@@ -78,13 +78,14 @@ public class RlgDataSource
             if (IsNotOneItemTradeItemElement(wantsItemElement))
                 continue;
 
-            yield return new TradeOffer(GetTradeItemFromTradeItemElement(wantsItemElement))
-            {
-                SourceId = GetIdFromTradeElement(tradeNode),
-                Link = GetLinkFromTradeElement(tradeNode),
-                Price = GetPriceFromTradeItemElement(hasItemElement),
-                ScrapedDate = dateTime.Now
-            };
+            yield return new TradeOffer
+            (
+                GetTradeItemFromTradeItemElement(wantsItemElement),
+                GetPriceFromTradeItemElement(hasItemElement),
+                dateTime.Now,
+                GetIdFromTradeElement(tradeNode),
+                GetLinkFromTradeElement(tradeNode)
+            );
         }
     }
 
@@ -104,13 +105,14 @@ public class RlgDataSource
             if (IsNotCreditsTradeItemElement(wantsItemElement))
                 continue;
 
-            yield return new TradeOffer(GetTradeItemFromTradeItemElement(hasItemElement))
-            {
-                SourceId = GetIdFromTradeElement(tradeNode),
-                Link = GetLinkFromTradeElement(tradeNode),
-                Price = GetPriceFromTradeItemElement(wantsItemElement),
-                ScrapedDate = dateTime.Now
-            };
+            yield return new TradeOffer
+            (
+                GetTradeItemFromTradeItemElement(hasItemElement),
+                GetPriceFromTradeItemElement(wantsItemElement),
+                dateTime.Now,
+                GetIdFromTradeElement(tradeNode),
+                GetLinkFromTradeElement(tradeNode)
+            );
         }
     }
 
@@ -119,6 +121,11 @@ public class RlgDataSource
         var name = GetNameFromTradeItemElement(tradeItemNode);
 
         if (name.ToLower() != "credits")
+            return true;
+
+        // Credits element but without specified amount, which is parsed to 1.
+        // Such offers can't be considered as valid price ones.
+        if (GetAmountFromTradeItemElement(tradeItemNode) == 1)
             return true;
 
         return false;

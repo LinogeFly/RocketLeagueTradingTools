@@ -1,4 +1,4 @@
-using RocketLeagueTradingTools.Core.Application.Contracts;
+using RocketLeagueTradingTools.Core.Application.Interfaces;
 
 using var host = Host
     .CreateDefaultBuilder(args)
@@ -7,8 +7,6 @@ using var host = Host
 var log = host.Services.GetRequiredService<ILog>();
 var tokenSource = new CancellationTokenSource();
 var token = tokenSource.Token;
-
-Console.WriteLine("Scraping has started. Press Q to stop.");
 
 // Waiting for exit button keypress in a separate background thread. Once the exit button is pressed,
 // the thread will initiate the cancellation request to the cancellation token.
@@ -20,6 +18,11 @@ var waitForExitKeyPressTask = Task.Run(() =>
 
 try
 {
+    Console.Write("Cleaning old data...");
+    await Jobs.DeleteOldData(host);
+    Console.WriteLine("done.");
+
+    Console.WriteLine("Scraping has started. Press Q to stop.");
     await Jobs.ContinuousScraping(host, token);
 }
 catch (Exception ex)

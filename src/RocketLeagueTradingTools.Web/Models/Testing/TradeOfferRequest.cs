@@ -4,7 +4,7 @@ public sealed class TradeOfferRequest
 {
     public OfferTypeRequest OfferType { get; set; }
     public int Amount { get; set; }
-    public int AgeInMinutes { get; set; }
+    public string Age { get; set; } = "";
     public string Name { get; set; } = "";
     public string Color { get; set; } = "";
     public string Certification { get; set; } = "";

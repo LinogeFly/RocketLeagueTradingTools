@@ -1,5 +1,8 @@
 using System.Diagnostics;
+using RocketLeagueTradingTools.Infrastructure.Common;
+using RocketLeagueTradingTools.Core.Common;
 using RocketLeagueTradingTools.Core.Application;
+using RocketLeagueTradingTools.Core.Application.Scraping;
 using RocketLeagueTradingTools.Core.Domain.Exceptions;
 
 class Jobs
@@ -15,7 +18,9 @@ class Jobs
 
     public static async Task ContinuousScraping(IHost host, CancellationToken token)
     {
-        var config = host.Services.GetRequiredService<RocketLeagueTradingTools.Core.Application.Contracts.IConfiguration>();
+        var config = host.Services.GetRequiredService<IConfiguration>();
+        var scrapIntervalMin = config.GetRequiredValue<string>("ScrapIntervalMin").ToTimeSpan();
+        var scrapIntervalMax = config.GetRequiredValue<string>("ScrapIntervalMax").ToTimeSpan();
 
         while (true)
         {
@@ -39,7 +44,7 @@ class Jobs
                 }
 
                 // Wait before scraping again
-                var scrapTimeout = new Random().Next((int)config.ScrapIntervalMin.TotalMilliseconds, (int)config.ScrapIntervalMax.TotalMilliseconds);
+                var scrapTimeout = new Random().Next((int)scrapIntervalMin.TotalMilliseconds, (int)scrapIntervalMax.TotalMilliseconds);
                 var delay = scrapTimeout - (int)scrapingWatch.ElapsedMilliseconds;
                 await WaitFor(delay, token);
 
@@ -47,6 +52,24 @@ class Jobs
                 if (token.IsCancellationRequested)
                     return;
             }
+        }
+    }
+
+    public static async Task DeleteOldData(IHost host)
+    {
+        var config = host.Services.GetRequiredService<IConfiguration>();
+        var offersMaxAge = config.GetRequiredValue<string>("DataRetentionRules:DeleteTradeOffersAfter").ToTimeSpan();
+        var notificationsMaxAge = GetNotificationsMaxAge(config);
+
+        using (var scope = host.Services.CreateScope())
+        {
+            var retentionApp = scope.ServiceProvider.GetRequiredService<DataRetentionApplication>();
+
+            await retentionApp.DeleteOldTradeOffers(offersMaxAge);
+
+            // Notifications retention policy rule is optional. If it's not set, we don't clean notifications.
+            if (notificationsMaxAge != null)
+                await retentionApp.DeleteOldNotifications(notificationsMaxAge.Value);
         }
     }
 
@@ -64,5 +87,15 @@ class Jobs
             if (!token.IsCancellationRequested)
                 throw;
         }
+    }
+
+    private static TimeSpan? GetNotificationsMaxAge(IConfiguration config)
+    {
+        var maxAgeValue = config.GetValue<string>("DataRetentionRules:DeleteNotificationsAfter", "");
+
+        if (string.IsNullOrEmpty(maxAgeValue))
+            return null;
+
+        return maxAgeValue.ToTimeSpan();
     }
 }

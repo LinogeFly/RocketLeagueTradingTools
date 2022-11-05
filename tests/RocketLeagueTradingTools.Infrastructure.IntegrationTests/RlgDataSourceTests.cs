@@ -2,7 +2,7 @@ using RocketLeagueTradingTools.Infrastructure.TradeOffers;
 using RocketLeagueTradingTools.Infrastructure.Common;
 using Moq;
 using FluentAssertions;
-using RocketLeagueTradingTools.Core.Application.Contracts;
+using RocketLeagueTradingTools.Core.Application.Interfaces;
 
 namespace RocketLeagueTradingTools.Infrastructure.IntegrationTests;
 
@@ -13,7 +13,6 @@ public class RlgDataSourceTests
     private CancellationToken cancellationToken;
     private IHttp http = null!;
     private Mock<ILog> log = null!;
-    private Mock<IConfiguration> config = null!;
     private Mock<IDateTime> dateTime = null!;
 
     [SetUp]
@@ -22,13 +21,15 @@ public class RlgDataSourceTests
         dateTime = new Mock<IDateTime>();
         dateTime.SetupGet(d => d.Now).Returns(DateTime.UtcNow);
 
-        config = new Mock<IConfiguration>();
-        config.SetupGet(c => c.HttpTimeout).Returns(TimeSpan.FromSeconds(30));
-        config.SetupGet(c => c.HttpDefaultRequestUserAgent).Returns("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36");
+        http = new Http
+        {
+            Timeout = TimeSpan.FromSeconds(30),
+            DefaultRequestUserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
+        };
 
         cancellationToken = new CancellationToken();
         log = new Mock<ILog>();
-        http = new Http(config.Object);
+
 
         sut = new RlgDataSource(http, log.Object, dateTime.Object);
     }

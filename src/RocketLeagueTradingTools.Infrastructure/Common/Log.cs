@@ -1,4 +1,4 @@
-using RocketLeagueTradingTools.Core.Application.Contracts;
+using RocketLeagueTradingTools.Core.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace RocketLeagueTradingTools.Infrastructure.Common;

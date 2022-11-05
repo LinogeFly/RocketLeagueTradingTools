@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Moq;
-using RocketLeagueTradingTools.Core.Application;
-using RocketLeagueTradingTools.Core.Application.Contracts;
+using RocketLeagueTradingTools.Core.Application.Interfaces;
+using RocketLeagueTradingTools.Core.Application.Notifications;
 using RocketLeagueTradingTools.Core.Domain.Entities;
 using RocketLeagueTradingTools.Core.UnitTests.Support;
 
@@ -14,7 +14,7 @@ public class NotificationApplicationTests
     private Mock<ILog> log = null!;
     private Mock<IPersistenceRepository> persistence = null!;
     private Mock<IDateTime> dateTime = null!;
-    private Mock<IConfiguration> config = null!;
+    private Mock<INotificationApplicationSettings> config = null!;
 
     [SetUp]
     public void Setup()
@@ -25,8 +25,7 @@ public class NotificationApplicationTests
         dateTime = new Mock<IDateTime>();
         dateTime.SetupGet(d => d.Now).Returns(DateTime.UtcNow);
 
-        config = new Mock<IConfiguration>();
-        config.SetupGet(c => c.NotificationsPageSize).Returns(50);
+        config = new Mock<INotificationApplicationSettings>();
         config.SetupGet(c => c.NotificationsExpiration).Returns(TimeSpan.FromDays(1));
 
         sut = new NotificationApplication(persistence.Object, dateTime.Object, config.Object, log.Object);
@@ -35,12 +34,16 @@ public class NotificationApplicationTests
     [Test]
     public async Task GetNotifications_should_return_old_notifications()
     {
+        var tradeOffer = new TradeOfferBuilder()
+            .WithTradeItem(Build.TradeItem("Hellfire"))
+            .Build();
+
         persistence.Setup(p => p.GetNotifications(It.IsAny<int>())).ReturnsAsync(new List<Notification>
         {
-            new(new TradeOffer(Build.TradeItem("Hellfire")))
+            new(tradeOffer)
         });
 
-        var notifications = await sut.GetNotifications();
+        var notifications = await sut.GetNotifications(20);
 
         notifications.Count.Should().Be(1);
     }
@@ -48,7 +51,9 @@ public class NotificationApplicationTests
     [Test]
     public async Task RefreshNotifications_should_create_new_notifications()
     {
-        var tradeOffer = new TradeOffer(Build.TradeItem("Hellfire"));
+        var tradeOffer = new TradeOfferBuilder()
+            .WithTradeItem(Build.TradeItem("Hellfire"))
+            .Build();
 
         persistence.Setup(p => p.GetNotifications(It.IsAny<TimeSpan>())).ReturnsAsync(new List<Notification>());
         persistence.Setup(p => p.FindAlertMatchingOffers(It.IsAny<TimeSpan>())).ReturnsAsync(new List<TradeOffer> { tradeOffer });
@@ -100,63 +105,59 @@ public class NotificationApplicationTests
             {
                 yield return new object[]
                 {
-                    new TradeOffer(Build.TradeItem("Vortex"))
-                    {
-                        SourceId = "1",
-                        Link = "https://rocket-league.com/trade/1",
-                        Price = 100
-                    },
-                    new TradeOffer(Build.TradeItem("Vortex"))
-                    {
-                        SourceId = "2",
-                        Link = "https://rocket-league.com/trade/2",
-                        Price = 100
-                    }
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Vortex"))
+                        .WithRlgId("1")
+                        .WithPrice(100)
+                        .Build()
+                    ,
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Vortex"))
+                        .WithRlgId("2")
+                        .WithPrice(100)
+                        .Build()
                 };
                 yield return new object[]
                 {
-                    new TradeOffer(Build.TradeItem("Vortex"))
-                    {
-                        SourceId = "1",
-                        Link = "https://rocket-league.com/trade/1",
-                        Price = 100
-                    },
-                    new TradeOffer(Build.TradeItem("Vortex"))
-                    {
-                        SourceId = "1",
-                        Link = "https://rocket-league.com/trade/1",
-                        Price = 110
-                    }
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Vortex"))
+                        .WithRlgId("1")
+                        .WithPrice(100)
+                        .Build()
+                    ,
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Vortex"))
+                        .WithRlgId("1")
+                        .WithPrice(110)
+                        .Build()
                 };
                 yield return new object[]
                 {
-                    new TradeOffer(Build.TradeItem("Vortex"))
-                    {
-                        SourceId = "1",
-                        Link = "https://rocket-league.com/trade/1",
-                        Price = 100
-                    },
-                    new TradeOffer(Build.TradeItem("Vortex").WithColor("Orange"))
-                    {
-                        SourceId = "1",
-                        Link = "https://rocket-league.com/trade/1",
-                        Price = 100
-                    }
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Vortex"))
+                        .WithRlgId("1")
+                        .WithPrice(100)
+                        .Build()
+                    ,
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Vortex").WithColor("Orange"))
+                        .WithRlgId("1")
+                        .WithPrice(100)
+                        .Build()
                 };
                 yield return new object[]
                 {
-                    new TradeOffer(Build.TradeItem("Vortex"))
-                    {
-                        SourceId = "1",
-                        Link = "https://rocket-league.com/trade/1",
-                        Price = 100
-                    },
-                    new TradeOffer(Build.TradeItem("Vortex").WithCertification("Sniper"))
-                    {
-                        SourceId = "1",
-                        Link = "https://rocket-league.com/trade/1",
-                        Price = 100
-                    }
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Vortex"))
+                        .WithRlgId("1")
+                        .WithPrice(100)
+                        .Build()
+                    ,
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Vortex").WithCertification("Sniper"))
+                        .WithRlgId("1")
+                        .WithPrice(100)
+                        .Build()
                 };
             }
         }
@@ -167,48 +168,45 @@ public class NotificationApplicationTests
             {
                 yield return new object[]
                 {
-                    new TradeOffer(Build.TradeItem("Vortex"))
-                    {
-                        SourceId = "1",
-                        Link = "https://rocket-league.com/trade/1",
-                        Price = 100
-                    },
-                    new TradeOffer(Build.TradeItem("Vortex"))
-                    {
-                        SourceId = "1",
-                        Link = "https://rocket-league.com/trade/1",
-                        Price = 100
-                    }
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Vortex"))
+                        .WithRlgId("1")
+                        .WithPrice(100)
+                        .Build()
+                    ,
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Vortex"))
+                        .WithRlgId("1")
+                        .WithPrice(100)
+                        .Build()
                 };
                 yield return new object[]
                 {
-                    new TradeOffer(Build.TradeItem("Vortex").WithColor("Orange"))
-                    {
-                        SourceId = "1",
-                        Link = "https://rocket-league.com/trade/1",
-                        Price = 100
-                    },
-                    new TradeOffer(Build.TradeItem("Vortex").WithColor("Orange"))
-                    {
-                        SourceId = "1",
-                        Link = "https://rocket-league.com/trade/1",
-                        Price = 100
-                    }
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Vortex").WithColor("Orange"))
+                        .WithRlgId("1")
+                        .WithPrice(100)
+                        .Build()
+                    ,
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Vortex").WithColor("Orange"))
+                        .WithRlgId("1")
+                        .WithPrice(100)
+                        .Build()
                 };
                 yield return new object[]
                 {
-                    new TradeOffer(Build.TradeItem("Vortex").WithCertification("Sniper"))
-                    {
-                        SourceId = "1",
-                        Link = "https://rocket-league.com/trade/1",
-                        Price = 100
-                    },
-                    new TradeOffer(Build.TradeItem("Vortex").WithCertification("Sniper"))
-                    {
-                        SourceId = "1",
-                        Link = "https://rocket-league.com/trade/1",
-                        Price = 100
-                    }
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Vortex").WithCertification("Sniper"))
+                        .WithRlgId("1")
+                        .WithPrice(100)
+                        .Build()
+                    ,
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Vortex").WithCertification("Sniper"))
+                        .WithRlgId("1")
+                        .WithPrice(100)
+                        .Build()
                 };
             }
         }

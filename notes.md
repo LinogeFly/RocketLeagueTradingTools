@@ -4,22 +4,19 @@
 
 ### Core
 
-- Filter 1 credit offers.
-- Split `IConfiguration` interface into more specialized groups. Them pass them to the classes so they get the only settings they need.
-- Add retention policy for offers so they get cleaned away. For example, after 1 day.
-- Add retention policy for notifications so they get cleaned away. For example, after 7 days.
-- Fix to-dos in the code.
+- Move `.sln` file to `src` folder.
+- Move `StringExtensions` class to a separate project called SharedKernel.
+- Scrap item type because some items have the same name and it's impossible to tell them apart. For example, an item called Shattered. There is a goal explosion and a banner called Shattered. Or Reaper. There is a goal explosion as well as wheels called like that.
 
 ### Web
 
-- When publishing, make sure that appsettings.json doesn't override existing file if not newer.
-- "Loading..." text doesn't show up if navigating back to Notifications page from another page.
+- Fix the issue with notifications becoming "new" right after they are marked as seen by clicking "Mark as seen" link.
 - Show offer type in notification boxes.
-
-### Bash script
-
-- Add `-s` option for the commands which will open appsettings.json file in the default editor.
 - Implement paging or infinite scroll for notifications.
+
+### ScrapApplication that performs continuous scrapping
+
+- Move `ScrapRetryMaxAttempts`, `ScrapIntervalMin` and `ScrapIntervalMax` configurations here.
 
 ### Keep the following concept naming in the solution
   

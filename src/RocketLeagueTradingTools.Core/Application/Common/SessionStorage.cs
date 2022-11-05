@@ -1,10 +1,10 @@
 using RocketLeagueTradingTools.Core.Domain.Entities;
 
-namespace RocketLeagueTradingTools.Application.Common;
+namespace RocketLeagueTradingTools.Core.Application.Common;
 
 public abstract class SessionStorage
 {
-    private Dictionary<string, object> storage = new Dictionary<string, object>();
+    private readonly Dictionary<string, object> storage = new();
 
     protected void SetOrAdd<T>(string key, T value)
     {
@@ -42,38 +42,20 @@ public abstract class SessionStorage
 
         public int NumberOfFailedTries
         {
-            get
-            {
-                return Get<int>(nameof(NumberOfFailedTries));
-            }
-            set
-            {
-                SetOrAdd(nameof(NumberOfFailedTries), value);
-            }
+            get => Get<int>(nameof(NumberOfFailedTries));
+            set => SetOrAdd(nameof(NumberOfFailedTries), value);
         }
 
         public IList<TradeOffer> PreviousScrapBuyOffers
         {
-            get
-            {
-                return Get<IList<TradeOffer>>(nameof(PreviousScrapBuyOffers));
-            }
-            set
-            {
-                SetOrAdd(nameof(PreviousScrapBuyOffers), value);
-            }
+            get => Get<IList<TradeOffer>>(nameof(PreviousScrapBuyOffers));
+            set => SetOrAdd(nameof(PreviousScrapBuyOffers), value);
         }
 
         public IList<TradeOffer> PreviousScrapSellOffers
         {
-            get
-            {
-                return Get<IList<TradeOffer>>(nameof(PreviousScrapSellOffers));
-            }
-            set
-            {
-                SetOrAdd(nameof(PreviousScrapSellOffers), value);
-            }
+            get => Get<IList<TradeOffer>>(nameof(PreviousScrapSellOffers));
+            set => SetOrAdd(nameof(PreviousScrapSellOffers), value);
         }
     }
 }

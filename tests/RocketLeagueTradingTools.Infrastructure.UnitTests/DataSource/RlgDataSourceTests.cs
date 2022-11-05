@@ -1,6 +1,6 @@
 using FluentAssertions;
 using Moq;
-using RocketLeagueTradingTools.Core.Application.Contracts;
+using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Infrastructure.Common;
 using RocketLeagueTradingTools.Infrastructure.TradeOffers;
 using RocketLeagueTradingTools.Infrastructure.UnitTests.DataSource.Support.Rlg;
@@ -673,6 +673,42 @@ public class RlgDataSourceTests
         offers.SellOffers.Count.Should().Be(1);
         offers.SellOffers.Single().Item.Name.Should().Be("Fennec");
         offers.SellOffers.Single().Price.Should().Be(350);
+    }
+
+    [Test]
+    public async Task ScrapPageAsync_should_filter_has_credits_without_amount_offers()
+    {
+        var page = new RlgPageBuilder();
+
+        page.AddTrade()
+            .WithHasItem(Build.Credits(0))
+            .WithWantsItem(Build.RlgItem("Supernova III"));
+
+        httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => page.Build());
+
+        var offers = await sut.GetTradeOffersPage(cancellationToken);
+
+        offers.BuyOffers.Should().BeEmpty();
+        offers.SellOffers.Should().BeEmpty();
+    }
+
+    [Test]
+    public async Task ScrapPageAsync_should_filter_wants_credits_without_amount_offers()
+    {
+        var page = new RlgPageBuilder();
+
+        page.AddTrade()
+            .WithHasItem(Build.RlgItem("Supernova III"))
+            .WithWantsItem(Build.Credits(0));
+
+        httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => page.Build());
+
+        var offers = await sut.GetTradeOffersPage(cancellationToken);
+
+        offers.BuyOffers.Should().BeEmpty();
+        offers.SellOffers.Should().BeEmpty();
     }
 
     [Test]

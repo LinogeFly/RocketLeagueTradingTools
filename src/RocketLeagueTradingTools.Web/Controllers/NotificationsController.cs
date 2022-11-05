@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
-using RocketLeagueTradingTools.Core.Application;
 using RocketLeagueTradingTools.Web.Models.Notification;
+using RocketLeagueTradingTools.Core.Application.Notifications;
 
 namespace RocketLeagueTradingTools.Web.Controllers;
 
@@ -21,11 +21,11 @@ public class NotificationsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IList<NotificationDto>>> Get()
+    public async Task<ActionResult<IList<NotificationDto>>> Get(int pageSize = 20)
     {
         await notificationApplication.RefreshNotifications();
 
-        var notifications = await notificationApplication.GetNotifications();
+        var notifications = await notificationApplication.GetNotifications(pageSize);
 
         return Ok(mapper.Map<List<NotificationDto>>(notifications));
     }

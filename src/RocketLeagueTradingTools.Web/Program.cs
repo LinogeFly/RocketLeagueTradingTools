@@ -2,10 +2,12 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using RocketLeagueTradingTools.Core.Application;
-using RocketLeagueTradingTools.Core.Application.Contracts;
+using RocketLeagueTradingTools.Core.Application.Notifications;
+using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Infrastructure.Common;
 using RocketLeagueTradingTools.Infrastructure.Persistence;
 using RocketLeagueTradingTools.Web.Mapping;
+using RocketLeagueTradingTools.Web.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,7 +32,7 @@ builder.Services.AddSQLiteDbContext();
 builder.Services.AddSingleton(typeof(ILogger), typeof(Logger<Program>));
 builder.Services.AddSingleton<ILog, Log>();
 builder.Services.AddSingleton<IDateTime, SystemDateTime>();
-builder.Services.AddSingleton<RocketLeagueTradingTools.Core.Application.Contracts.IConfiguration, Configuration>();
+builder.Services.AddSingleton<INotificationApplicationSettings, NotificationApplicationSettings>();
 builder.Services.AddScoped<IPersistenceRepository, PersistenceRepository>();
 builder.Services.AddScoped<AlertApplication>();
 builder.Services.AddScoped<NotificationApplication>();

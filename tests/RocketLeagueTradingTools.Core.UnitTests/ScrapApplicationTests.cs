@@ -1,8 +1,8 @@
 using FluentAssertions;
 using Moq;
-using RocketLeagueTradingTools.Application.Common;
-using RocketLeagueTradingTools.Core.Application;
-using RocketLeagueTradingTools.Core.Application.Contracts;
+using RocketLeagueTradingTools.Core.Application.Scraping;
+using RocketLeagueTradingTools.Core.Application.Common;
+using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Core.Domain.Entities;
 using RocketLeagueTradingTools.Core.Domain.Exceptions;
 using RocketLeagueTradingTools.Core.UnitTests.Support;
@@ -14,7 +14,7 @@ public class ScrapApplicationTests
 {
     private ScrapApplication sut = null!;
     private CancellationToken cancellationToken;
-    private Mock<IConfiguration> config = null!;
+    private Mock<IScrapApplicationSettings> config = null!;
     private Mock<ILog> log = null!;
     private Mock<ITradeOfferRepository> repository = null!;
     private Mock<IPersistenceRepository> persistence = null!;
@@ -23,7 +23,7 @@ public class ScrapApplicationTests
     public void Setup()
     {
         cancellationToken = new CancellationToken();
-        config = new Mock<IConfiguration>();
+        config = new Mock<IScrapApplicationSettings>();
         log = new Mock<ILog>();
         repository = new Mock<ITradeOfferRepository>();
         persistence = new Mock<IPersistenceRepository>();
@@ -58,19 +58,16 @@ public class ScrapApplicationTests
     public async Task GetTradeOffersPage_should_not_persist_buy_offers_from_previous_page_scrap()
     {
         var session = new SessionStorage.ScrapApplication();
-        var firstOffer = new TradeOffer(Build.TradeItem("Fennec"))
-        {
-            SourceId = "1",
-            Link = "https://rocket-league.com/trade/1",
-            Price = 300,
-        };
-
-        var secondOffer = new TradeOffer(Build.TradeItem("Hellfire"))
-        {
-            SourceId = "2",
-            Link = "https://rocket-league.com/trade/2",
-            Price = 100,
-        };
+        var firstOffer = new TradeOfferBuilder()
+            .WithTradeItem(Build.TradeItem("Fennec"))
+            .WithRlgId("1")
+            .WithPrice(300)
+            .Build();
+        var secondOffer = new TradeOfferBuilder()
+            .WithTradeItem(Build.TradeItem("Hellfire"))
+            .WithRlgId("2")
+            .WithPrice(100)
+            .Build();
 
         config.Setup(c => c.ScrapRetryMaxAttempts).Returns(3);
         repository.SetupSequence(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()))
@@ -92,19 +89,16 @@ public class ScrapApplicationTests
     public async Task GetTradeOffersPage_should_not_persist_sell_offers_from_previous_page_scrap()
     {
         var session = new SessionStorage.ScrapApplication();
-        var firstOffer = new TradeOffer(Build.TradeItem("Fennec"))
-        {
-            SourceId = "1",
-            Link = "https://rocket-league.com/trade/1",
-            Price = 350,
-        };
-
-        var secondOffer = new TradeOffer(Build.TradeItem("Hellfire"))
-        {
-            SourceId = "2",
-            Link = "https://rocket-league.com/trade/2",
-            Price = 150,
-        };
+        var firstOffer = new TradeOfferBuilder()
+            .WithTradeItem(Build.TradeItem("Fennec"))
+            .WithRlgId("1")
+            .WithPrice(350)
+            .Build();
+        var secondOffer = new TradeOfferBuilder()
+            .WithTradeItem(Build.TradeItem("Hellfire"))
+            .WithRlgId("2")
+            .WithPrice(150)
+            .Build();
 
         config.Setup(c => c.ScrapRetryMaxAttempts).Returns(3);
         repository.SetupSequence(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()))
@@ -135,46 +129,42 @@ public class ScrapApplicationTests
             {
                 BuyOffers = new[]
                 {
-                    new TradeOffer(Build.TradeItem("Fennec"))
-                    {
-                        SourceId = "1",
-                        Link = "https://rocket-league.com/trade/1",
-                        Price = 300,
-                        ScrapedDate = firstScrapDate
-                    },
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Fennec"))
+                        .WithRlgId("1")
+                        .WithPrice(300)
+                        .WithScrapedDate(firstScrapDate)
+                        .Build()
                 },
                 SellOffers = new[]
                 {
-                    new TradeOffer(Build.TradeItem("Hellfire"))
-                    {
-                        SourceId = "2",
-                        Link = "https://rocket-league.com/trade/2",
-                        Price = 150,
-                        ScrapedDate = firstScrapDate
-                    },
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Hellfire"))
+                        .WithRlgId("1")
+                        .WithPrice(150)
+                        .WithScrapedDate(firstScrapDate)
+                        .Build()
                 }
             })
             .ReturnsAsync(new TradeOffersPage
             {
                 BuyOffers = new[]
                 {
-                    new TradeOffer(Build.TradeItem("Dueling Dragons"))
-                    {
-                        SourceId = "3",
-                        Link = "https://rocket-league.com/trade/3",
-                        Price = 500,
-                        ScrapedDate = secondScrapDate
-                    },
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Dueling Dragons"))
+                        .WithRlgId("3")
+                        .WithPrice(500)
+                        .WithScrapedDate(secondScrapDate)
+                        .Build()
                 },
                 SellOffers = new[]
                 {
-                    new TradeOffer(Build.TradeItem("Supernova III"))
-                    {
-                        SourceId = "4",
-                        Link = "https://rocket-league.com/trade/4",
-                        Price = 100,
-                        ScrapedDate = secondScrapDate
-                    },
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Supernova III"))
+                        .WithRlgId("4")
+                        .WithPrice(100)
+                        .WithScrapedDate(secondScrapDate)
+                        .Build()
                 }
             });
 
@@ -201,46 +191,42 @@ public class ScrapApplicationTests
             {
                 BuyOffers = new[]
                 {
-                    new TradeOffer(Build.TradeItem("Fennec"))
-                    {
-                        SourceId = "1",
-                        Link = "https://rocket-league.com/trade/1",
-                        Price = 300,
-                        ScrapedDate = firstScrapDate
-                    },
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Fennec"))
+                        .WithRlgId("1")
+                        .WithPrice(300)
+                        .WithScrapedDate(firstScrapDate)
+                        .Build()
                 },
                 SellOffers = new[]
                 {
-                    new TradeOffer(Build.TradeItem("Hellfire"))
-                    {
-                        SourceId = "2",
-                        Link = "https://rocket-league.com/trade/2",
-                        Price = 150,
-                        ScrapedDate = firstScrapDate
-                    },
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Hellfire"))
+                        .WithRlgId("2")
+                        .WithPrice(150)
+                        .WithScrapedDate(firstScrapDate)
+                        .Build()
                 }
             })
             .ReturnsAsync(new TradeOffersPage
             {
                 BuyOffers = new[]
                 {
-                    new TradeOffer(Build.TradeItem("Fennec"))
-                    {
-                        SourceId = "1",
-                        Link = "https://rocket-league.com/trade/1",
-                        Price = 300,
-                        ScrapedDate = secondScrapDate
-                    },
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Fennec"))
+                        .WithRlgId("1")
+                        .WithPrice(300)
+                        .WithScrapedDate(secondScrapDate)
+                        .Build()
                 },
                 SellOffers = new[]
                 {
-                    new TradeOffer(Build.TradeItem("Hellfire"))
-                    {
-                        SourceId = "2",
-                        Link = "https://rocket-league.com/trade/2",
-                        Price = 150,
-                        ScrapedDate = secondScrapDate
-                    },
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Hellfire"))
+                        .WithRlgId("2")
+                        .WithPrice(150)
+                        .WithScrapedDate(secondScrapDate)
+                        .Build()
                 }
             });
 
@@ -267,46 +253,42 @@ public class ScrapApplicationTests
             {
                 BuyOffers = new[]
                 {
-                    new TradeOffer(Build.TradeItem("Fennec"))
-                    {
-                        SourceId = "1",
-                        Link = "https://rocket-league.com/trade/1",
-                        Price = 300,
-                        ScrapedDate = firstScrapDate
-                    },
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Fennec"))
+                        .WithRlgId("1")
+                        .WithPrice(300)
+                        .WithScrapedDate(firstScrapDate)
+                        .Build()
                 },
                 SellOffers = new[]
                 {
-                    new TradeOffer(Build.TradeItem("Hellfire"))
-                    {
-                        SourceId = "2",
-                        Link = "https://rocket-league.com/trade/2",
-                        Price = 150,
-                        ScrapedDate = firstScrapDate
-                    },
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Hellfire"))
+                        .WithRlgId("2")
+                        .WithPrice(150)
+                        .WithScrapedDate(firstScrapDate)
+                        .Build()
                 }
             })
             .ReturnsAsync(new TradeOffersPage
             {
                 BuyOffers = new[]
                 {
-                    new TradeOffer(Build.TradeItem("Fennec"))
-                    {
-                        SourceId = "1",
-                        Link = "https://rocket-league.com/trade/1",
-                        Price = 300,
-                        ScrapedDate = secondScrapDate
-                    },
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Fennec"))
+                        .WithRlgId("1")
+                        .WithPrice(300)
+                        .WithScrapedDate(secondScrapDate)
+                        .Build()
                 },
                 SellOffers = new[]
                 {
-                    new TradeOffer(Build.TradeItem("Supernova III"))
-                    {
-                        SourceId = "3",
-                        Link = "https://rocket-league.com/trade/3",
-                        Price = 100,
-                        ScrapedDate = secondScrapDate
-                    },
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Supernova III"))
+                        .WithRlgId("3")
+                        .WithPrice(100)
+                        .WithScrapedDate(secondScrapDate)
+                        .Build()
                 }
             });
 
@@ -333,46 +315,42 @@ public class ScrapApplicationTests
             {
                 BuyOffers = new[]
                 {
-                    new TradeOffer(Build.TradeItem("Fennec"))
-                    {
-                        SourceId = "1",
-                        Link = "https://rocket-league.com/trade/1",
-                        Price = 300,
-                        ScrapedDate = firstScrapDate
-                    },
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Fennec"))
+                        .WithRlgId("1")
+                        .WithPrice(300)
+                        .WithScrapedDate(firstScrapDate)
+                        .Build()
                 },
                 SellOffers = new[]
                 {
-                    new TradeOffer(Build.TradeItem("Hellfire"))
-                    {
-                        SourceId = "2",
-                        Link = "https://rocket-league.com/trade/2",
-                        Price = 150,
-                        ScrapedDate = firstScrapDate
-                    },
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Hellfire"))
+                        .WithRlgId("2")
+                        .WithPrice(150)
+                        .WithScrapedDate(firstScrapDate)
+                        .Build()
                 }
             })
             .ReturnsAsync(new TradeOffersPage
             {
                 BuyOffers = new[]
                 {
-                    new TradeOffer(Build.TradeItem("Dueling Dragons"))
-                    {
-                        SourceId = "3",
-                        Link = "https://rocket-league.com/trade/3",
-                        Price = 500,
-                        ScrapedDate = secondScrapDate
-                    },
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Dueling Dragons"))
+                        .WithRlgId("3")
+                        .WithPrice(500)
+                        .WithScrapedDate(secondScrapDate)
+                        .Build()
                 },
                 SellOffers = new[]
                 {
-                    new TradeOffer(Build.TradeItem("Hellfire"))
-                    {
-                        SourceId = "2",
-                        Link = "https://rocket-league.com/trade/2",
-                        Price = 150,
-                        ScrapedDate = secondScrapDate
-                    },
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Hellfire"))
+                        .WithRlgId("2")
+                        .WithPrice(150)
+                        .WithScrapedDate(secondScrapDate)
+                        .Build()
                 }
             });
 
@@ -399,23 +377,21 @@ public class ScrapApplicationTests
             {
                 BuyOffers = new[]
                 {
-                    new TradeOffer(Build.TradeItem("Fennec"))
-                    {
-                        SourceId = "1",
-                        Link = "https://rocket-league.com/trade/1",
-                        Price = 300,
-                        ScrapedDate = firstScrapDate
-                    },
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Fennec"))
+                        .WithRlgId("1")
+                        .WithPrice(300)
+                        .WithScrapedDate(firstScrapDate)
+                        .Build()
                 },
                 SellOffers = new[]
                 {
-                    new TradeOffer(Build.TradeItem("Hellfire"))
-                    {
-                        SourceId = "2",
-                        Link = "https://rocket-league.com/trade/2",
-                        Price = 150,
-                        ScrapedDate = firstScrapDate
-                    },
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Hellfire"))
+                        .WithRlgId("2")
+                        .WithPrice(150)
+                        .WithScrapedDate(firstScrapDate)
+                        .Build()
                 }
             })
             .ThrowsAsync(new HttpRequestException())
@@ -423,23 +399,21 @@ public class ScrapApplicationTests
             {
                 BuyOffers = new[]
                 {
-                    new TradeOffer(Build.TradeItem("Dueling Dragons"))
-                    {
-                        SourceId = "3",
-                        Link = "https://rocket-league.com/trade/3",
-                        Price = 500,
-                        ScrapedDate = secondScrapDate
-                    },
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Dueling Dragons"))
+                        .WithRlgId("3")
+                        .WithPrice(500)
+                        .WithScrapedDate(secondScrapDate)
+                        .Build()
                 },
                 SellOffers = new[]
                 {
-                    new TradeOffer(Build.TradeItem("Supernova III"))
-                    {
-                        SourceId = "4",
-                        Link = "https://rocket-league.com/trade/4",
-                        Price = 100,
-                        ScrapedDate = secondScrapDate
-                    },
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Supernova III"))
+                        .WithRlgId("4")
+                        .WithPrice(100)
+                        .WithScrapedDate(secondScrapDate)
+                        .Build()
                 }
             });
 
@@ -466,10 +440,10 @@ public class ScrapApplicationTests
         private ITradeOfferRepository repository;
         private IPersistenceRepository persistence;
         private ILog log;
-        private IConfiguration config;
+        private IScrapApplicationSettings config;
         private SessionStorage.ScrapApplication session = new SessionStorage.ScrapApplication();
 
-        public SutBuilder(ITradeOfferRepository repository, IPersistenceRepository persistence, ILog log, IConfiguration config)
+        public SutBuilder(ITradeOfferRepository repository, IPersistenceRepository persistence, ILog log, IScrapApplicationSettings config)
         {
             this.repository = repository;
             this.persistence = persistence;

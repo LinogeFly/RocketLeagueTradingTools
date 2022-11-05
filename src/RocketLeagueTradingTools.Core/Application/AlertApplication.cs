@@ -1,4 +1,4 @@
-﻿using RocketLeagueTradingTools.Core.Application.Contracts;
+﻿using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Core.Domain.Entities;
 
 namespace RocketLeagueTradingTools.Core.Application;

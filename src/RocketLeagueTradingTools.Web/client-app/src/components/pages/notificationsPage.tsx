@@ -53,10 +53,11 @@ function NotificationsPage() {
     }, []);
 
     const { status } = useQuery(["notifications"], (context) => {
-        return axios.get<NotificationDto[]>('/api/notifications', { signal: context.signal })
+        return axios.get<NotificationDto[]>(`/api/notifications?pageSize=${config.notificationsPageSize}`, { signal: context.signal })
             .then(response => response.data);
     }, {
         enabled: fetchingEnabled,
+        cacheTime: 0,
         refetchIntervalInBackground: true,
         refetchOnWindowFocus: false,
         refetchInterval: config.notificationsRefreshInterval,

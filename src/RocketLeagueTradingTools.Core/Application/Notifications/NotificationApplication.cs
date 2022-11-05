@@ -1,19 +1,19 @@
-using RocketLeagueTradingTools.Core.Application.Contracts;
+using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Core.Domain.Entities;
 
-namespace RocketLeagueTradingTools.Core.Application;
+namespace RocketLeagueTradingTools.Core.Application.Notifications;
 
 public class NotificationApplication
 {
     private readonly ILog log;
     private readonly IPersistenceRepository persistence;
     private readonly IDateTime dateTime;
-    private readonly IConfiguration config;
+    private readonly INotificationApplicationSettings config;
 
     public NotificationApplication(
         IPersistenceRepository persistence,
         IDateTime dateTime,
-        IConfiguration config,
+        INotificationApplicationSettings config,
         ILog log)
     {
         this.persistence = persistence;
@@ -22,16 +22,16 @@ public class NotificationApplication
         this.log = log;
     }
 
-    public async Task<IList<Notification>> GetNotifications()
+    public async Task<IList<Notification>> GetNotifications(int pageSize)
     {
-        return await persistence.GetNotifications(config.NotificationsPageSize);
+        return await persistence.GetNotifications(pageSize);
     }
 
     public async Task RefreshNotifications()
     {
         var oldNotifications = await persistence.GetNotifications(config.NotificationsExpiration);
         var alertMatchingOfferNotifications = await GetAlertMatchingOfferNotifications();
-        var newNotifications = alertMatchingOfferNotifications.Except(oldNotifications).ToList();
+        var newNotifications = alertMatchingOfferNotifications.Except(oldNotifications, new TradeOfferEqualityComparer()).ToList();
 
         if (newNotifications.Count > 0)
             await persistence.AddNotifications(newNotifications);

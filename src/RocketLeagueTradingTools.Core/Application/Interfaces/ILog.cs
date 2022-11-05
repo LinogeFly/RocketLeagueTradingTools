@@ -1,4 +1,4 @@
-namespace RocketLeagueTradingTools.Core.Application.Contracts;
+namespace RocketLeagueTradingTools.Core.Application.Interfaces;
 
 public interface ILog
 {

@@ -2,7 +2,7 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using RocketLeagueTradingTools.Core.Application.Contracts;
+using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Infrastructure.Persistence;
 using RocketLeagueTradingTools.Infrastructure.Persistence.PersistedTypes;
 using RocketLeagueTradingTools.Infrastructure.UnitTests.Persistence.Support;

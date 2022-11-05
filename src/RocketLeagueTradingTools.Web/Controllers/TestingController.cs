@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RocketLeagueTradingTools.Core.Domain.Entities;
 using RocketLeagueTradingTools.Web.Models.Testing;
-using RocketLeagueTradingTools.Core.Application.Contracts;
+using RocketLeagueTradingTools.Core.Application.Interfaces;
+using RocketLeagueTradingTools.Core.Common;
 
 namespace RocketLeagueTradingTools.Web.Controllers;
 
@@ -26,24 +27,26 @@ public class TestingController : ControllerBase
         if (request.Amount == 0)
             throw new ArgumentException(nameof(request.Amount));
 
-        if (request.AgeInMinutes == 0)
-            throw new ArgumentException(nameof(request.AgeInMinutes));
+        if (string.IsNullOrEmpty(request.Age))
+            throw new ArgumentException(nameof(request.Age));
 
         if (request.OfferType == OfferTypeRequest.None)
             throw new ArgumentException(nameof(request.OfferType));
 
+        var age = request.Age.ToTimeSpan();
         var offers = new List<TradeOffer>();
 
         for (int i = 0; i < request.Amount; i++)
         {
             var id = Guid.NewGuid().ToString();
-            var offer = new TradeOffer(Map(request))
-            {
-                Link = $"https://rocket-league.com/trade/{id}",
-                SourceId = id,
-                Price = request.Price,
-                ScrapedDate = dateTime.Now.AddMinutes(-request.AgeInMinutes)
-            };
+            var offer = new TradeOffer
+            (
+                Map(request),
+                request.Price,
+                dateTime.Now.Add(-age),
+                id,
+                $"https://rocket-league.com/trade/{id}"
+            );
 
             offers.Add(offer);
         }

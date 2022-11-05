@@ -1,6 +1,6 @@
 using RocketLeagueTradingTools.Core.Domain.Entities;
 
-namespace RocketLeagueTradingTools.Core.Application.Contracts;
+namespace RocketLeagueTradingTools.Core.Application.Interfaces;
 
 public interface ITradeOfferRepository
 {

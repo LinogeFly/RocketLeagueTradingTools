@@ -1,10 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RocketLeagueTradingTools.Core.Application;
-using RocketLeagueTradingTools.Core.Application.Contracts;
-using RocketLeagueTradingTools.Application.Common;
+using RocketLeagueTradingTools.Core.Application.Scraping;
+using RocketLeagueTradingTools.Core.Application.Common;
+using RocketLeagueTradingTools.Core.Application.Interfaces;
+using RocketLeagueTradingTools.Core.Common;
 using RocketLeagueTradingTools.Infrastructure.Common;
 using RocketLeagueTradingTools.Infrastructure.Persistence;
 using RocketLeagueTradingTools.Infrastructure.TradeOffers;
+using RocketLeagueTradingTools.Scraper.Infrastructure;
 
 static class HostConfiguration
 {
@@ -21,11 +24,12 @@ static class HostConfiguration
                 services.AddSingleton<ILog, Log>();
                 services.AddSingleton<IHttp, Http>();
                 services.AddSingleton<IDateTime, SystemDateTime>();
-                services.AddSingleton<RocketLeagueTradingTools.Core.Application.Contracts.IConfiguration, Configuration>();
+                services.AddSingleton<IScrapApplicationSettings, ScrapApplicationSettings>();
 
                 services.AddSQLiteDbContext();
 
                 services.AddScoped<ScrapApplication>();
+                services.AddScoped<DataRetentionApplication>();
                 services.AddScoped<RlgDataSource>();
                 services.AddScoped<ITradeOfferRepository, TradeOfferRepository>();
                 services.AddScoped<IPersistenceRepository, PersistenceRepository>();
@@ -41,7 +45,13 @@ static class HostConfiguration
             .UseConsoleLifetime()
             .Build();
 
-        var config = host.Services.GetRequiredService<RocketLeagueTradingTools.Core.Application.Contracts.IConfiguration>();
+        var config = host.Services.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>();
+
+        // Configure HTTP client
+        var http = host.Services.GetRequiredService<IHttp>();
+        http.Timeout = config.GetRequiredValue<string>("HttpSettings:Timeout").ToTimeSpan();
+        http.DefaultRequestUserAgent = config.GetRequiredValue<string>("HttpSettings:DefaultRequestUserAgent");
+        http.DefaultRequestCookie = config.GetValue<string>("HttpSettings:DefaultRequestCookie", "");
 
         // Apply Entity Framework migrations
         using (var scope = host.Services.CreateScope())

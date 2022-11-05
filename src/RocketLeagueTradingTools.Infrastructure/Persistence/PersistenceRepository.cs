@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using RocketLeagueTradingTools.Core.Application.Contracts;
+using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Core.Domain.Entities;
 using RocketLeagueTradingTools.Core.Domain.ValueObjects;
 using RocketLeagueTradingTools.Infrastructure.Persistence.PersistedTypes;
@@ -41,6 +41,17 @@ public class PersistenceRepository : IPersistenceRepository
         return buyOffers.Select(Map)
             .Union(sellOffers.Select(Map))
             .ToList();
+    }
+
+    public async Task DeleteOldOffers(TimeSpan maxAge)
+    {
+        var sellOffersToDelete = dbContext.SellOffers.Where(o => o.ScrapedDate < dateTime.Now.Add(-maxAge));
+        var buyOffersToDelete = dbContext.BuyOffers.Where(o => o.ScrapedDate < dateTime.Now.Add(-maxAge));
+
+        dbContext.SellOffers.RemoveRange(sellOffersToDelete);
+        dbContext.BuyOffers.RemoveRange(buyOffersToDelete);
+
+        await dbContext.SaveChangesAsync();
     }
 
     public async Task<IList<Alert>> GetAlerts()
@@ -162,7 +173,16 @@ public class PersistenceRepository : IPersistenceRepository
         await dbContext.SaveChangesAsync();
     }
 
-    public IQueryable<T> GetAlertMatchingOffersQuery<T>(DbSet<T> offers, TimeSpan alertOfferMaxAge) where T : PersistedTradeOffer
+    public async Task DeleteOldNotifications(TimeSpan maxAge)
+    {
+        var notificationsToDelete = dbContext.Notifications.Where(o => o.CreatedDate < dateTime.Now.Add(-maxAge));
+
+        dbContext.Notifications.RemoveRange(notificationsToDelete);
+
+        await dbContext.SaveChangesAsync();
+    }
+
+    private IQueryable<T> GetAlertMatchingOffersQuery<T>(DbSet<T> offers, TimeSpan alertOfferMaxAge) where T : PersistedTradeOffer
     {
         return
             from o in offers
@@ -210,13 +230,14 @@ public class PersistenceRepository : IPersistenceRepository
             Certification = offer.Certification
         };
 
-        return new TradeOffer(tradeItem)
-        {
-            SourceId = offer.SourceId,
-            Link = offer.Link,
-            ScrapedDate = offer.ScrapedDate,
-            Price = offer.Price
-        };
+        return new TradeOffer
+        (
+            tradeItem,
+            offer.Price,
+            offer.ScrapedDate,
+            offer.SourceId,
+            offer.Link
+        );
     }
 
     private Alert Map(PersistedAlert alert)
@@ -268,13 +289,14 @@ public class PersistenceRepository : IPersistenceRepository
             Certification = notification.TradeItemCertification
         };
 
-        var tradeOffer = new TradeOffer(tradeItem)
-        {
-            SourceId = notification.TradeOfferSourceId,
-            Link = notification.TradeOfferLink,
-            Price = notification.TradeOfferPrice,
-            ScrapedDate = notification.TradeOfferScrapedDate
-        };
+        var tradeOffer = new TradeOffer
+        (
+            tradeItem,
+            notification.TradeOfferPrice,
+            notification.TradeOfferScrapedDate,
+            notification.TradeOfferSourceId,
+            notification.TradeOfferLink
+        );
 
         return new Notification(tradeOffer)
         {

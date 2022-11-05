@@ -1,10 +1,10 @@
 ﻿using RocketLeagueTradingTools.Core.Domain.Entities;
-using RocketLeagueTradingTools.Core.Application.Contracts;
+using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Core.Domain.Exceptions;
-using RocketLeagueTradingTools.Application.Common;
 using System.Diagnostics;
+using RocketLeagueTradingTools.Core.Application.Common;
 
-namespace RocketLeagueTradingTools.Core.Application;
+namespace RocketLeagueTradingTools.Core.Application.Scraping;
 
 public class ScrapApplication
 {
@@ -12,14 +12,14 @@ public class ScrapApplication
     private readonly IPersistenceRepository persistence;
     private readonly SessionStorage.ScrapApplication session;
     private readonly ILog log;
-    private readonly IConfiguration config;
+    private readonly IScrapApplicationSettings config;
 
     public ScrapApplication(
         ITradeOfferRepository tradeOfferRepository,
         IPersistenceRepository persistence,
         SessionStorage.ScrapApplication session,
         ILog log,
-        IConfiguration config)
+        IScrapApplicationSettings config)
     {
         this.tradeOfferRepository = tradeOfferRepository;
         this.persistence = persistence;

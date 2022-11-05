@@ -2,7 +2,7 @@
 using RocketLeagueTradingTools.Web.Models.Common;
 using RocketLeagueTradingTools.Web.Models.Alert;
 using RocketLeagueTradingTools.Web.Models.Notification;
-using RocketLeagueTradingTools.Core.Application.Contracts;
+using RocketLeagueTradingTools.Core.Application.Interfaces;
 
 namespace RocketLeagueTradingTools.Web.Mapping;
 

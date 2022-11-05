@@ -1,31 +1,57 @@
-using RocketLeagueTradingTools.Core.Application.Contracts;
-
 namespace RocketLeagueTradingTools.Infrastructure.Common;
 
 public interface IHttp
 {
     Task<string> GetStringAsync(string? requestUri, CancellationToken cancellationToken);
+    TimeSpan Timeout { set; }
+    string DefaultRequestUserAgent { set; }
+    string DefaultRequestCookie { set; }
 }
 
 public class Http : IHttp
 {
     private readonly HttpClient httpClient;
 
-    public Http(IConfiguration config)
+    public Http()
     {
         httpClient = new HttpClient();
-
-        if (!string.IsNullOrEmpty(config.HttpDefaultRequestUserAgent))
-            httpClient.DefaultRequestHeaders.Add("user-agent", config.HttpDefaultRequestUserAgent);
-
-        if (!string.IsNullOrEmpty(config.HttpDefaultRequestCookie))
-            httpClient.DefaultRequestHeaders.Add("cookie", config.HttpDefaultRequestCookie);
-
-        httpClient.Timeout = config.HttpTimeout;
     }
 
     public Task<string> GetStringAsync(string? requestUri, CancellationToken cancellationToken)
     {
         return httpClient.GetStringAsync(requestUri, cancellationToken);
+    }
+
+    public TimeSpan Timeout
+    {
+        set => httpClient.Timeout = value;
+    }
+
+    public string DefaultRequestUserAgent
+    {
+        set
+        {
+            if (string.IsNullOrEmpty(value))
+                return;
+
+            if (httpClient.DefaultRequestHeaders.Contains("user-agent"))
+                httpClient.DefaultRequestHeaders.Remove("user-agent");
+
+            httpClient.DefaultRequestHeaders.Add("user-agent", value);
+        }
+    }
+
+    public string DefaultRequestCookie
+    {
+        set
+        {
+            if (string.IsNullOrEmpty(value))
+                return;
+
+            if (httpClient.DefaultRequestHeaders.Contains("cookie"))
+                httpClient.DefaultRequestHeaders.Remove("cookie");
+
+            httpClient.DefaultRequestHeaders.Add("cookie", value);
+        }
     }
 }
