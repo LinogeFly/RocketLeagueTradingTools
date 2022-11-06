@@ -8,6 +8,7 @@ class RlgItemBuilder : IHtmlBuilder
     private readonly int quantity = 1;
     private string color = "";
     private string certification = "";
+    private string itemDetailsLink = "";
 
     public RlgItemBuilder(string name)
     {
@@ -29,6 +30,13 @@ class RlgItemBuilder : IHtmlBuilder
     public RlgItemBuilder WithCertification(string certification)
     {
         this.certification = certification;
+
+        return this;
+    }
+
+    public RlgItemBuilder WithItemDetailsLink(string link)
+    {
+        this.itemDetailsLink = link;
 
         return this;
     }
@@ -58,6 +66,14 @@ class RlgItemBuilder : IHtmlBuilder
         // Quantity
         if (quantity > 1)
             result.AppendLine($"<div class=\"rlg-item__quantity\"> {quantity} </div>");
+
+        // Links
+        if (!string.IsNullOrEmpty(itemDetailsLink))
+        {
+            result.AppendLine($"<div class=\"rlg-item-links\">");
+            result.AppendLine($"<a class=\"rlg-btn-primary --small\" href=\"{itemDetailsLink}\">Item details</a>");
+            result.AppendLine("</div>");
+        }
 
         result.AppendLine("</div>");
 

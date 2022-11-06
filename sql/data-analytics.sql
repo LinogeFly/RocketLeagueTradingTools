@@ -20,10 +20,10 @@ LIMIT 50
 -- Unique offers of a certain item
 SELECT
 	Name, Color, Price, SourceId
-FROM BuyOffers
+FROM SellOffers
 WHERE
-	ScrapedDate > datetime('now', '-7 days')
-	AND Name = "Fennec"
+	ScrapedDate > datetime('now', '-5 days')
+	AND Name = "Intrudium"
 	AND Color = ""
 GROUP BY
 	Name, Color, SourceId, Price

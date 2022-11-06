@@ -9,6 +9,13 @@ static class Build
         return new TradeItem(itemName);
     }
 
+    public static TradeItem WithType(this TradeItem item, TradeItemType type)
+    {
+        item.ItemType = type;
+
+        return item;
+    }
+
     public static TradeItem WithColor(this TradeItem item, string color)
     {
         item.Color = color;

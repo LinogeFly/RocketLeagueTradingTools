@@ -6,15 +6,26 @@ public sealed class AlertDto
 {
     public int Id { get; set; }
     public string ItemName { get; set; } = "";
-    public AlertOfferTypeDto OfferType { get; set; }
-    public PriceRangeDto Price { get; set; } = new ();
+    public OfferTypeDto OfferType { get; set; }
+    public PriceRangeDto Price { get; set; } = new();
+    public AlertItemTypeDto ItemType { get; set; }
     public string Color { get; set; } = "";
     public string Certification { get; set; } = "";
-    public bool Disabled { get; set; }
+    public bool Enabled { get; set; } = true;
 }
 
-public enum AlertOfferTypeDto
+public enum AlertItemTypeDto
 {
-    Buy,
-    Sell
+    Any,
+    Body,
+    Decal,
+    PaintFinish,
+    Wheels,
+    RocketBoost,
+    Topper,
+    Antenna,
+    GoalExplosion,
+    Trail,
+    Banner,
+    AvatarBorder
 }

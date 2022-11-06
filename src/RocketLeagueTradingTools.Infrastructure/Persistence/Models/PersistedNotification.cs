@@ -1,9 +1,10 @@
-namespace RocketLeagueTradingTools.Infrastructure.Persistence.PersistedTypes;
+namespace RocketLeagueTradingTools.Infrastructure.Persistence.Models;
 
 public sealed class PersistedNotification
 {
     public int Id { get; set; }
     public string TradeItemName { get; set; } = "";
+    public string TradeItemType { get; set; } = "";
     public string TradeItemColor { get; set; } = "";
     public string TradeItemCertification { get; set; } = "";
     public int TradeOfferPrice { get; set; }

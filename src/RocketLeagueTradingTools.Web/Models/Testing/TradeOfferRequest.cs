@@ -1,19 +1,26 @@
+using RocketLeagueTradingTools.Web.Models.Common;
+using System.ComponentModel.DataAnnotations;
+
 namespace RocketLeagueTradingTools.Web.Models.Testing;
 
 public sealed class TradeOfferRequest
 {
-    public OfferTypeRequest OfferType { get; set; }
+    [Required]
+    public OfferTypeDto OfferType { get; set; }
+
+    [Required]
+    public string Age { get; set; } = null!;
+
+    [Required]
+    public string Name { get; set; } = null!;
+
+    [Range(1, int.MaxValue)]
     public int Amount { get; set; }
-    public string Age { get; set; } = "";
-    public string Name { get; set; } = "";
+
+    [Required]
+    public int Price { get; set; }
+
+    public OfferItemTypeDto ItemType { get; set; }
     public string Color { get; set; } = "";
     public string Certification { get; set; } = "";
-    public int Price { get; set; }
-}
-
-public enum OfferTypeRequest
-{
-    None,
-    Buy,
-    Sell
 }

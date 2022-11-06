@@ -103,7 +103,7 @@ public class NotificationApplicationTests
         {
             get
             {
-                yield return new object[]
+                yield return new object[] // Id
                 {
                     new TradeOfferBuilder()
                         .WithTradeItem(Build.TradeItem("Vortex"))
@@ -117,7 +117,7 @@ public class NotificationApplicationTests
                         .WithPrice(100)
                         .Build()
                 };
-                yield return new object[]
+                yield return new object[] // Price
                 {
                     new TradeOfferBuilder()
                         .WithTradeItem(Build.TradeItem("Vortex"))
@@ -131,7 +131,7 @@ public class NotificationApplicationTests
                         .WithPrice(110)
                         .Build()
                 };
-                yield return new object[]
+                yield return new object[] // Color
                 {
                     new TradeOfferBuilder()
                         .WithTradeItem(Build.TradeItem("Vortex"))
@@ -145,7 +145,7 @@ public class NotificationApplicationTests
                         .WithPrice(100)
                         .Build()
                 };
-                yield return new object[]
+                yield return new object[] // Certification
                 {
                     new TradeOfferBuilder()
                         .WithTradeItem(Build.TradeItem("Vortex"))
@@ -157,6 +157,20 @@ public class NotificationApplicationTests
                         .WithTradeItem(Build.TradeItem("Vortex").WithCertification("Sniper"))
                         .WithRlgId("1")
                         .WithPrice(100)
+                        .Build()
+                };
+                yield return new object[] // Item type
+                {
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Nomster").WithType(TradeItemType.GoalExplosion))
+                        .WithRlgId("1")
+                        .WithPrice(50)
+                        .Build()
+                    ,
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Nomster").WithType(TradeItemType.Wheels))
+                        .WithRlgId("1")
+                        .WithPrice(50)
                         .Build()
                 };
             }
@@ -166,7 +180,7 @@ public class NotificationApplicationTests
         {
             get
             {
-                yield return new object[]
+                yield return new object[] // Id, Price
                 {
                     new TradeOfferBuilder()
                         .WithTradeItem(Build.TradeItem("Vortex"))
@@ -180,7 +194,7 @@ public class NotificationApplicationTests
                         .WithPrice(100)
                         .Build()
                 };
-                yield return new object[]
+                yield return new object[] // Color
                 {
                     new TradeOfferBuilder()
                         .WithTradeItem(Build.TradeItem("Vortex").WithColor("Orange"))
@@ -194,7 +208,7 @@ public class NotificationApplicationTests
                         .WithPrice(100)
                         .Build()
                 };
-                yield return new object[]
+                yield return new object[] // Certification
                 {
                     new TradeOfferBuilder()
                         .WithTradeItem(Build.TradeItem("Vortex").WithCertification("Sniper"))
@@ -204,6 +218,20 @@ public class NotificationApplicationTests
                     ,
                     new TradeOfferBuilder()
                         .WithTradeItem(Build.TradeItem("Vortex").WithCertification("Sniper"))
+                        .WithRlgId("1")
+                        .WithPrice(100)
+                        .Build()
+                };
+                yield return new object[] // Item type
+                {
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Nomster").WithType(TradeItemType.GoalExplosion))
+                        .WithRlgId("1")
+                        .WithPrice(100)
+                        .Build()
+                    ,
+                    new TradeOfferBuilder()
+                        .WithTradeItem(Build.TradeItem("Nomster").WithType(TradeItemType.GoalExplosion))
                         .WithRlgId("1")
                         .WithPrice(100)
                         .Build()

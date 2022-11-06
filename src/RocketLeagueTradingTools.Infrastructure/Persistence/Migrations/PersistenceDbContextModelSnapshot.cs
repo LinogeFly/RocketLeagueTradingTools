@@ -17,7 +17,7 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.9");
 
-            modelBuilder.Entity("RocketLeagueTradingTools.Infrastructure.Persistence.PersistedTypes.PersistedAlert", b =>
+            modelBuilder.Entity("RocketLeagueTradingTools.Infrastructure.Persistence.Models.PersistedAlert", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -34,15 +34,21 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("Disabled")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("Enabled")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("ItemName")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("OfferType")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("ItemType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OfferType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("PriceFrom")
                         .HasColumnType("INTEGER");
@@ -52,12 +58,12 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Id", "ItemName", "Disabled", "OfferType", "PriceFrom", "PriceTo", "Color", "Certification");
+                    b.HasIndex("Id", "ItemName", "Enabled", "OfferType", "PriceFrom", "PriceTo", "ItemType", "Color", "Certification");
 
                     b.ToTable("Alerts", (string)null);
                 });
 
-            modelBuilder.Entity("RocketLeagueTradingTools.Infrastructure.Persistence.PersistedTypes.PersistedBuyOffer", b =>
+            modelBuilder.Entity("RocketLeagueTradingTools.Infrastructure.Persistence.Models.PersistedBuyOffer", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -68,6 +74,10 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ItemType")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -91,12 +101,12 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Id", "Name", "ScrapedDate", "Price", "Color", "Certification");
+                    b.HasIndex("Id", "Name", "ScrapedDate", "Price", "ItemType", "Color", "Certification");
 
                     b.ToTable("BuyOffers", (string)null);
                 });
 
-            modelBuilder.Entity("RocketLeagueTradingTools.Infrastructure.Persistence.PersistedTypes.PersistedNotification", b =>
+            modelBuilder.Entity("RocketLeagueTradingTools.Infrastructure.Persistence.Models.PersistedNotification", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -117,6 +127,10 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("TradeItemName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TradeItemType")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -141,7 +155,7 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                     b.ToTable("Notifications", (string)null);
                 });
 
-            modelBuilder.Entity("RocketLeagueTradingTools.Infrastructure.Persistence.PersistedTypes.PersistedSellOffer", b =>
+            modelBuilder.Entity("RocketLeagueTradingTools.Infrastructure.Persistence.Models.PersistedSellOffer", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -152,6 +166,10 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ItemType")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -175,7 +193,7 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Id", "Name", "ScrapedDate", "Price", "Color", "Certification");
+                    b.HasIndex("Id", "Name", "ScrapedDate", "Price", "ItemType", "Color", "Certification");
 
                     b.ToTable("SellOffers", (string)null);
                 });

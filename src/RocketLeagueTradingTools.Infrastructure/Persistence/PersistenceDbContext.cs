@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using RocketLeagueTradingTools.Infrastructure.Persistence.PersistedTypes;
+using RocketLeagueTradingTools.Infrastructure.Persistence.Models;
 
 namespace RocketLeagueTradingTools.Infrastructure.Persistence;
 
@@ -24,6 +24,7 @@ public class PersistenceDbContext : DbContext
                 p.Name,
                 p.ScrapedDate,
                 p.Price,
+                p.ItemType,
                 p.Color,
                 p.Certification
             });
@@ -36,6 +37,7 @@ public class PersistenceDbContext : DbContext
                 p.Name,
                 p.ScrapedDate,
                 p.Price,
+                p.ItemType,
                 p.Color,
                 p.Certification
             });
@@ -46,10 +48,11 @@ public class PersistenceDbContext : DbContext
             {
                 p.Id,
                 p.ItemName,
-                p.Disabled,
+                p.Enabled,
                 p.OfferType,
                 p.PriceFrom,
                 p.PriceTo,
+                p.ItemType,
                 p.Color,
                 p.Certification
             });

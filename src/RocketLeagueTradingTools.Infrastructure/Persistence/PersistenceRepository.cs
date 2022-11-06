@@ -2,7 +2,7 @@
 using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Core.Domain.Entities;
 using RocketLeagueTradingTools.Core.Domain.ValueObjects;
-using RocketLeagueTradingTools.Infrastructure.Persistence.PersistedTypes;
+using RocketLeagueTradingTools.Infrastructure.Persistence.Models;
 
 namespace RocketLeagueTradingTools.Infrastructure.Persistence;
 
@@ -78,9 +78,10 @@ public class PersistenceRepository : IPersistenceRepository
         {
             CreatedDate = dateTime.Now,
             ItemName = alert.ItemName,
-            OfferType = Map(alert.OfferType),
+            OfferType = MapAlertOfferType(alert.OfferType),
             PriceFrom = alert.Price.From,
             PriceTo = alert.Price.To,
+            ItemType = MapAlertItemType(alert.ItemType),
             Color = alert.Color,
             Certification = alert.Certification,
         });
@@ -96,12 +97,13 @@ public class PersistenceRepository : IPersistenceRepository
             throw new InvalidOperationException("Alert not found.");
 
         persistedAlert.ItemName = alert.ItemName;
-        persistedAlert.OfferType = Map(alert.OfferType);
+        persistedAlert.OfferType = MapAlertOfferType(alert.OfferType);
+        persistedAlert.ItemType = MapAlertItemType(alert.ItemType);
         persistedAlert.PriceFrom = alert.Price.From;
         persistedAlert.PriceTo = alert.Price.To;
         persistedAlert.Color = alert.Color;
         persistedAlert.Certification = alert.Certification;
-        persistedAlert.Disabled = alert.Disabled;
+        persistedAlert.Enabled = BoolToString(alert.Enabled);
 
         await dbContext.SaveChangesAsync();
 
@@ -145,6 +147,7 @@ public class PersistenceRepository : IPersistenceRepository
             new PersistedNotification
             {
                 TradeItemName = n.TradeOffer.Item.Name,
+                TradeItemType = MapTradeItemType(n.TradeOffer.Item.ItemType),
                 TradeItemColor = n.TradeOffer.Item.Color,
                 TradeItemCertification = n.TradeOffer.Item.Certification,
                 TradeOfferSourceId = n.TradeOffer.SourceId,
@@ -188,22 +191,23 @@ public class PersistenceRepository : IPersistenceRepository
             from o in offers
             join a in dbContext.Alerts on o.Name.ToLower() equals a.ItemName.ToLower()
             where
-                a.Disabled == false &&
+                a.Enabled == BoolToString(true) &&
                 a.OfferType == GetAlertOfferTypeFor(typeof(T)) &&
                 o.ScrapedDate >= dateTime.Now.Add(-alertOfferMaxAge) &&
                 o.Price >= a.PriceFrom &&
                 o.Price <= a.PriceTo &&
+                (a.ItemType == "*" || o.ItemType.ToLower() == a.ItemType.ToLower()) &&
                 (a.Color == "*" || o.Color.ToLower() == a.Color.ToLower()) &&
                 (a.Certification == "*" || o.Certification.ToLower() == a.Certification.ToLower())
             select o;
     }
 
-    private PersistedAlertOfferType GetAlertOfferTypeFor(Type tradeOfferType)
+    private string GetAlertOfferTypeFor(Type tradeOfferType)
     {
         if (tradeOfferType == typeof(PersistedBuyOffer))
-            return PersistedAlertOfferType.Buy;
+            return "Buy";
         if (tradeOfferType == typeof(PersistedSellOffer))
-            return PersistedAlertOfferType.Sell;
+            return "Sell";
 
         throw new InvalidOperationException($"Invalid offer type '{tradeOfferType.FullName}'.");
     }
@@ -215,8 +219,9 @@ public class PersistenceRepository : IPersistenceRepository
             SourceId = offer.SourceId,
             Link = offer.Link,
             ScrapedDate = offer.ScrapedDate,
-            Price = offer.Price,
             Name = offer.Item.Name,
+            Price = offer.Price,
+            ItemType = MapTradeItemType(offer.Item.ItemType),
             Color = offer.Item.Color,
             Certification = offer.Item.Certification
         };
@@ -226,6 +231,7 @@ public class PersistenceRepository : IPersistenceRepository
     {
         var tradeItem = new TradeItem(offer.Name)
         {
+            ItemType = MapTradeItemType(offer.ItemType),
             Color = offer.Color,
             Certification = offer.Certification
         };
@@ -247,44 +253,20 @@ public class PersistenceRepository : IPersistenceRepository
             Id = alert.Id,
             CreatedDate = alert.CreatedDate,
             ItemName = alert.ItemName,
-            OfferType = Map(alert.OfferType),
+            OfferType = MapAlertOfferType(alert.OfferType),
             Price = new PriceRange(alert.PriceFrom, alert.PriceTo),
+            ItemType = MapAlertItemType(alert.ItemType),
             Color = alert.Color,
             Certification = alert.Certification,
-            Disabled = alert.Disabled
+            Enabled = StringToBool(alert.Enabled)
         };
-    }
-
-    private AlertOfferType Map(PersistedAlertOfferType offerType)
-    {
-        switch (offerType)
-        {
-            case PersistedAlertOfferType.Buy:
-                return AlertOfferType.Buy;
-            case PersistedAlertOfferType.Sell:
-                return AlertOfferType.Sell;
-            default:
-                throw new InvalidOperationException($"Invalid offer type '{offerType}'.");
-        }
-    }
-
-    private PersistedAlertOfferType Map(AlertOfferType offerType)
-    {
-        switch (offerType)
-        {
-            case AlertOfferType.Buy:
-                return PersistedAlertOfferType.Buy;
-            case AlertOfferType.Sell:
-                return PersistedAlertOfferType.Sell;
-            default:
-                throw new InvalidOperationException($"Invalid offer type '{offerType}'.");
-        }
     }
 
     private Notification Map(PersistedNotification notification)
     {
         var tradeItem = new TradeItem(notification.TradeItemName)
         {
+            ItemType = MapTradeItemType(notification.TradeItemType),
             Color = notification.TradeItemColor,
             Certification = notification.TradeItemCertification
         };
@@ -303,5 +285,177 @@ public class PersistenceRepository : IPersistenceRepository
             Id = notification.Id,
             SeenDate = notification.SeenDate
         };
+    }
+
+    private string MapTradeItemType(TradeItemType itemType)
+    {
+        switch (itemType)
+        {
+            case TradeItemType.Body:
+                return "Body";
+            case TradeItemType.Decal:
+                return "Decal";
+            case TradeItemType.PaintFinish:
+                return "Paint Finish";
+            case TradeItemType.Wheels:
+                return "Wheels";
+            case TradeItemType.RocketBoost:
+                return "Boost";
+            case TradeItemType.Topper:
+                return "Topper";
+            case TradeItemType.Antenna:
+                return "Antenna";
+            case TradeItemType.GoalExplosion:
+                return "Goal Explosion";
+            case TradeItemType.Trail:
+                return "Trail";
+            case TradeItemType.Banner:
+                return "Banner";
+            case TradeItemType.AvatarBorder:
+                return "Avatar Border";
+            case TradeItemType.Unknown:
+            default:
+                return "";
+        }
+    }
+
+    private TradeItemType MapTradeItemType(string itemType)
+    {
+        switch (itemType.ToLower())
+        {
+            case "body":
+                return TradeItemType.Body;
+            case "decal":
+                return TradeItemType.Decal;
+            case "paint finish":
+                return TradeItemType.PaintFinish;
+            case "wheels":
+                return TradeItemType.Wheels;
+            case "boost":
+                return TradeItemType.RocketBoost;
+            case "topper":
+                return TradeItemType.Topper;
+            case "antenna":
+                return TradeItemType.Antenna;
+            case "goal explosion":
+                return TradeItemType.GoalExplosion;
+            case "trail":
+                return TradeItemType.Trail;
+            case "banner":
+                return TradeItemType.Banner;
+            case "avatar border":
+                return TradeItemType.AvatarBorder;
+            case "":
+            default:
+                return TradeItemType.Unknown;
+        }
+    }
+
+    private string MapAlertItemType(AlertItemType itemType)
+    {
+        switch (itemType)
+        {
+            case AlertItemType.Body:
+                return "Body";
+            case AlertItemType.Decal:
+                return "Decal";
+            case AlertItemType.PaintFinish:
+                return "Paint Finish";
+            case AlertItemType.Wheels:
+                return "Wheels";
+            case AlertItemType.RocketBoost:
+                return "Boost";
+            case AlertItemType.Topper:
+                return "Topper";
+            case AlertItemType.Antenna:
+                return "Antenna";
+            case AlertItemType.GoalExplosion:
+                return "Goal Explosion";
+            case AlertItemType.Trail:
+                return "Trail";
+            case AlertItemType.Banner:
+                return "Banner";
+            case AlertItemType.AvatarBorder:
+                return "Avatar Border";
+            case AlertItemType.Any:
+            default:
+                return "*";
+        }
+    }
+
+    private AlertItemType MapAlertItemType(string itemType)
+    {
+        switch (itemType.ToLower())
+        {
+            case "body":
+                return AlertItemType.Body;
+            case "decal":
+                return AlertItemType.Decal;
+            case "paint finish":
+                return AlertItemType.PaintFinish;
+            case "wheels":
+                return AlertItemType.Wheels;
+            case "boost":
+                return AlertItemType.RocketBoost;
+            case "topper":
+                return AlertItemType.Topper;
+            case "antenna":
+                return AlertItemType.Antenna;
+            case "goal explosion":
+                return AlertItemType.GoalExplosion;
+            case "trail":
+                return AlertItemType.Trail;
+            case "banner":
+                return AlertItemType.Banner;
+            case "avatar border":
+                return AlertItemType.AvatarBorder;
+            case "*":
+            default:
+                return AlertItemType.Any;
+        }
+    }
+
+    private AlertOfferType MapAlertOfferType(string offerType)
+    {
+        switch (offerType.ToLower())
+        {
+            case "buy":
+                return AlertOfferType.Buy;
+            case "sell":
+                return AlertOfferType.Sell;
+            default:
+                throw new InvalidOperationException($"Unable to map '{offerType}' to alert offer type.");
+        }
+    }
+
+    private string MapAlertOfferType(AlertOfferType offerType)
+    {
+        switch (offerType)
+        {
+            case AlertOfferType.Buy:
+                return "Buy";
+            case AlertOfferType.Sell:
+                return "Sell";
+            default:
+                throw new InvalidOperationException($"Invalid offer type '{offerType}'.");
+        }
+    }
+
+    private bool StringToBool(string value)
+    {
+        switch (value.ToLower())
+        {
+            case "yes":
+                return true;
+            case "no":
+                return false;
+            default:
+                throw new InvalidOperationException($"Unable to map '{value}' to boolean.");
+        }
+    }
+
+    private string BoolToString(bool value)
+    {
+        return value ? "Yes" : "No";
     }
 }

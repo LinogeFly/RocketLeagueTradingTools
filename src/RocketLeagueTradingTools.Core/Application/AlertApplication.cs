@@ -36,14 +36,14 @@ public class AlertApplication
         await persistence.DeleteAlert(id);
     }
 
-    public async Task UpdateAlertEnabledState(int id, bool isDisabled)
+    public async Task UpdateAlertEnabledState(int id, bool isEnabled)
     {
         var alert = await persistence.GetAlert(id);
 
         if (alert == null)
             throw new InvalidOperationException("Alert not found.");
 
-        alert.Disabled = isDisabled;
+        alert.Enabled = isEnabled;
 
         await persistence.UpdateAlert(alert);
     }

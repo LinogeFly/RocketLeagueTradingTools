@@ -3,6 +3,8 @@ using RocketLeagueTradingTools.Core.Domain.Entities;
 using RocketLeagueTradingTools.Web.Models.Testing;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Core.Common;
+using AutoMapper;
+using RocketLeagueTradingTools.Web.Models.Common;
 
 namespace RocketLeagueTradingTools.Web.Controllers;
 
@@ -12,26 +14,23 @@ public class TestingController : ControllerBase
 {
     private readonly IPersistenceRepository persistence;
     private readonly IDateTime dateTime;
+    private readonly IMapper mapper;
 
     public TestingController(
         IPersistenceRepository persistence,
-        IDateTime dateTime)
+        IDateTime dateTime,
+        IMapper mapper)
     {
         this.persistence = persistence;
         this.dateTime = dateTime;
+        this.mapper = mapper;
     }
 
     [HttpPost("offers/seed")]
     public async Task<ActionResult> OffersSeed(TradeOfferRequest request)
     {
-        if (request.Amount == 0)
-            throw new ArgumentException(nameof(request.Amount));
-
-        if (string.IsNullOrEmpty(request.Age))
-            throw new ArgumentException(nameof(request.Age));
-
-        if (request.OfferType == OfferTypeRequest.None)
-            throw new ArgumentException(nameof(request.OfferType));
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
         var age = request.Age.ToTimeSpan();
         var offers = new List<TradeOffer>();
@@ -51,9 +50,9 @@ public class TestingController : ControllerBase
             offers.Add(offer);
         }
 
-        if (request.OfferType == OfferTypeRequest.Buy)
+        if (request.OfferType == OfferTypeDto.Buy)
             await persistence.AddBuyOffers(offers);
-        if (request.OfferType == OfferTypeRequest.Sell)
+        if (request.OfferType == OfferTypeDto.Sell)
             await persistence.AddSellOffers(offers);
 
         return Ok();
@@ -262,9 +261,9 @@ public class TestingController : ControllerBase
     {
         return new TradeItem(request.Name)
         {
+            ItemType = mapper.Map<TradeItemType>(request.ItemType),
             Color = request.Color,
             Certification = request.Certification
         };
     }
-
 }

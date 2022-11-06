@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Moq;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
+using RocketLeagueTradingTools.Core.Domain.Entities;
 using RocketLeagueTradingTools.Infrastructure.Common;
 using RocketLeagueTradingTools.Infrastructure.TradeOffers;
 using RocketLeagueTradingTools.Infrastructure.UnitTests.DataSource.Support.Rlg;
@@ -162,6 +163,43 @@ public class RlgDataSourceTests
         offers.BuyOffers.Single().Item.Certification.Should().Be(expected);
     }
 
+    [TestCase("/items/bodies/fennec", TradeItemType.Body)]
+    [TestCase("/items/bodies/fennec/titaniumwhite", TradeItemType.Body)]
+    [TestCase("/items/decals/blackmarket/20xx", TradeItemType.Decal)]
+    [TestCase("/items/decals/blackmarket/20xx/crimson", TradeItemType.Decal)]
+    [TestCase("/items/paints/anodized-pearl", TradeItemType.PaintFinish)]
+    [TestCase("/items/wheels/cristiano", TradeItemType.Wheels)]
+    [TestCase("/items/wheels/cristiano/orange", TradeItemType.Wheels)]
+    [TestCase("/items/boosts/standard", TradeItemType.RocketBoost)]
+    [TestCase("/items/boosts/standard/black", TradeItemType.RocketBoost)]
+    [TestCase("/items/toppers/wildcat-ears", TradeItemType.Topper)]
+    [TestCase("/items/toppers/wildcat-ears/skyblue", TradeItemType.Topper)]
+    [TestCase("/items/antennas/mage-glass-iii", TradeItemType.Antenna)]
+    [TestCase("/items/antennas/mage-glass-iii/burntsienna", TradeItemType.Antenna)]
+    [TestCase("/items/explosions/dueling-dragons", TradeItemType.GoalExplosion)]
+    [TestCase("/items/explosions/dueling-dragons/pink", TradeItemType.GoalExplosion)]
+    [TestCase("/items/trails/laser-wave-iii", TradeItemType.Trail)]
+    [TestCase("/items/trails/laser-wave-iii/saffron", TradeItemType.Trail)]
+    [TestCase("/items/banners/doughnut-eater", TradeItemType.Banner)]
+    [TestCase("/items/banners/doughnut-eater/cobalt", TradeItemType.Banner)]
+    [TestCase("/items/borders/crown", TradeItemType.AvatarBorder)]
+    [TestCase("/items/borders/crown/forestgreen", TradeItemType.AvatarBorder)]
+    public async Task ScrapPageAsync_buy_offer_item_type_should_be_mapped(string link, TradeItemType expected)
+    {
+        var page = new RlgPageBuilder();
+
+        page.AddTrade()
+            .WithHasItem(Build.Credits(100))
+            .WithWantsItem(Build.RlgItem("Item").WithItemDetailsLink(link));
+
+        httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => page.Build());
+
+        var offers = await sut.GetTradeOffersPage(cancellationToken);
+
+        offers.BuyOffers.Single().Item.ItemType.Should().Be(expected);
+    }
+
     [Test]
     public async Task ScrapPageAsync_sell_offer_source_id_should_be_mapped()
     {
@@ -295,6 +333,43 @@ public class RlgDataSourceTests
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
         offers.SellOffers.Single().Item.Certification.Should().Be(expected);
+    }
+
+    [TestCase("/items/bodies/fennec", TradeItemType.Body)]
+    [TestCase("/items/bodies/fennec/titaniumwhite", TradeItemType.Body)]
+    [TestCase("/items/decals/blackmarket/20xx", TradeItemType.Decal)]
+    [TestCase("/items/decals/blackmarket/20xx/crimson", TradeItemType.Decal)]
+    [TestCase("/items/paints/anodized-pearl", TradeItemType.PaintFinish)]
+    [TestCase("/items/wheels/cristiano", TradeItemType.Wheels)]
+    [TestCase("/items/wheels/cristiano/orange", TradeItemType.Wheels)]
+    [TestCase("/items/boosts/standard", TradeItemType.RocketBoost)]
+    [TestCase("/items/boosts/standard/black", TradeItemType.RocketBoost)]
+    [TestCase("/items/toppers/wildcat-ears", TradeItemType.Topper)]
+    [TestCase("/items/toppers/wildcat-ears/skyblue", TradeItemType.Topper)]
+    [TestCase("/items/antennas/mage-glass-iii", TradeItemType.Antenna)]
+    [TestCase("/items/antennas/mage-glass-iii/burntsienna", TradeItemType.Antenna)]
+    [TestCase("/items/explosions/dueling-dragons", TradeItemType.GoalExplosion)]
+    [TestCase("/items/explosions/dueling-dragons/pink", TradeItemType.GoalExplosion)]
+    [TestCase("/items/trails/laser-wave-iii", TradeItemType.Trail)]
+    [TestCase("/items/trails/laser-wave-iii/saffron", TradeItemType.Trail)]
+    [TestCase("/items/banners/doughnut-eater", TradeItemType.Banner)]
+    [TestCase("/items/banners/doughnut-eater/cobalt", TradeItemType.Banner)]
+    [TestCase("/items/borders/crown", TradeItemType.AvatarBorder)]
+    [TestCase("/items/borders/crown/forestgreen", TradeItemType.AvatarBorder)]
+    public async Task ScrapPageAsync_sell_offer_item_type_should_be_mapped(string link, TradeItemType expected)
+    {
+        var page = new RlgPageBuilder();
+
+        page.AddTrade()
+            .WithHasItem(Build.RlgItem("Item").WithItemDetailsLink(link))
+            .WithWantsItem(Build.Credits(140));
+
+        httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => page.Build());
+
+        var offers = await sut.GetTradeOffersPage(cancellationToken);
+
+        offers.SellOffers.Single().Item.ItemType.Should().Be(expected);
     }
 
     [Test]

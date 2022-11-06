@@ -177,6 +177,7 @@ public class RlgDataSource
         {
             Color = GetColorFromTradeItemElement(tradeItemNode),
             Certification = GetCertificationFromTradeItemElement(tradeItemNode),
+            ItemType = GetItemTypeFromTradeItemElement(tradeItemNode)
         };
     }
 
@@ -192,7 +193,7 @@ public class RlgDataSource
         if (int.TryParse(quantityValue, out var quantity))
             return quantity;
 
-        log.Error($"Unable to parse item amount from '{quantityValue}' string.");
+        log.Error($"Unable to parse trade item amount from '{quantityValue}' string.");
 
         return 1;
     }
@@ -213,6 +214,44 @@ public class RlgDataSource
             return certElement.InnerText.Trim();
 
         return "";
+    }
+
+    private TradeItemType GetItemTypeFromTradeItemElement(HtmlNode tradeItemNode)
+    {
+        var linkElement = tradeItemNode.QuerySelector(".rlg-item-links a.rlg-btn-primary");
+        var link = linkElement?.Attributes["href"]?.Value;
+
+        if (linkElement == null || string.IsNullOrEmpty(link))
+        {
+            log.Error($"Unable to parse trade item type.");
+
+            return TradeItemType.Unknown;
+        }
+
+        if (link.ToLower().StartsWith("/items/bodies/"))
+            return TradeItemType.Body;
+        if (link.ToLower().StartsWith("/items/decals/"))
+            return TradeItemType.Decal;
+        if (link.ToLower().StartsWith("/items/paints/"))
+            return TradeItemType.PaintFinish;
+        if (link.ToLower().StartsWith("/items/wheels/"))
+            return TradeItemType.Wheels;
+        if (link.ToLower().StartsWith("/items/boosts/"))
+            return TradeItemType.RocketBoost;
+        if (link.ToLower().StartsWith("/items/toppers/"))
+            return TradeItemType.Topper;
+        if (link.ToLower().StartsWith("/items/antennas/"))
+            return TradeItemType.Antenna;
+        if (link.ToLower().StartsWith("/items/explosions/"))
+            return TradeItemType.GoalExplosion;
+        if (link.ToLower().StartsWith("/items/trails/"))
+            return TradeItemType.Trail;
+        if (link.ToLower().StartsWith("/items/banners/"))
+            return TradeItemType.Banner;
+        if (link.ToLower().StartsWith("/items/borders/"))
+            return TradeItemType.AvatarBorder;
+
+        return TradeItemType.Unknown;
     }
 
     private static bool ContainsOnlyOneForOneTypeOfOffers(HtmlNode tradeNode)

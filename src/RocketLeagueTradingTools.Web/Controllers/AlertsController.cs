@@ -53,8 +53,8 @@ public class AlertsController : ControllerBase
     [HttpPatch("{id:int}")]
     public async Task<ActionResult> Patch(int id, AlertPatchRequest request)
     {
-        if (request.Disabled != null)
-            await alertApplication.UpdateAlertEnabledState(id, request.Disabled.Value);
+        if (request.Enabled != null)
+            await alertApplication.UpdateAlertEnabledState(id, request.Enabled.Value);
 
         return Ok();
     }
