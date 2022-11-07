@@ -248,13 +248,14 @@ public class PersistenceRepository : IPersistenceRepository
 
     private Alert Map(PersistedAlert alert)
     {
-        return new Alert
+        return new Alert(
+            MapAlertOfferType(alert.OfferType),
+            alert.ItemName,
+            new PriceRange(alert.PriceFrom, alert.PriceTo)
+        )
         {
             Id = alert.Id,
             CreatedDate = alert.CreatedDate,
-            ItemName = alert.ItemName,
-            OfferType = MapAlertOfferType(alert.OfferType),
-            Price = new PriceRange(alert.PriceFrom, alert.PriceTo),
             ItemType = MapAlertItemType(alert.ItemType),
             Color = alert.Color,
             Certification = alert.Certification,

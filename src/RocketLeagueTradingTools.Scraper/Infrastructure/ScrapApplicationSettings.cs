@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Configuration;
 using RocketLeagueTradingTools.Infrastructure.Common;
 using RocketLeagueTradingTools.Core.Application.Scraping;
 

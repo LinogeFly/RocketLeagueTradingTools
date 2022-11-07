@@ -30,7 +30,7 @@ const ensureNotificationPopupPermissionGranted = (): Promise<void> => {
 }
 
 const showNotificationPopup = () => {
-    return new Notification("RLTT", { "body": "New trade item alert." });
+    return new Notification("RLTT", { "body": "New trade offer alert." });
 }
 
 const playNotificationSound = (audioRef: React.RefObject<HTMLAudioElement>) => {

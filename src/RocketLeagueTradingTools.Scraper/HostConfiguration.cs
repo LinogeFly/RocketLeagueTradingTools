@@ -3,7 +3,7 @@ using RocketLeagueTradingTools.Core.Application;
 using RocketLeagueTradingTools.Core.Application.Scraping;
 using RocketLeagueTradingTools.Core.Application.Common;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
-using RocketLeagueTradingTools.Core.Common;
+using RocketLeagueTradingTools.Common;
 using RocketLeagueTradingTools.Infrastructure.Common;
 using RocketLeagueTradingTools.Infrastructure.Persistence;
 using RocketLeagueTradingTools.Infrastructure.TradeOffers;
@@ -13,11 +13,15 @@ static class HostConfiguration
 {
     public static IHost Configure(this IHostBuilder hostBuilder)
     {
-        var host = hostBuilder.ConfigureAppConfiguration((_, config) =>
+        var host = hostBuilder
+            .ConfigureAppConfiguration((context, config) =>
             {
-                config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+                var env = context.HostingEnvironment.EnvironmentName;
+
+                config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
+                config.AddJsonFile($"appsettings.{env}.json", optional: true, reloadOnChange: false);
             })
-            .ConfigureServices(services =>
+            .ConfigureServices((context, services) =>
             {
                 services.AddSingleton(typeof(ILogger), typeof(Logger<Program>));
                 services.AddSingleton(typeof(SessionStorage.ScrapApplication));
@@ -26,7 +30,7 @@ static class HostConfiguration
                 services.AddSingleton<IDateTime, SystemDateTime>();
                 services.AddSingleton<IScrapApplicationSettings, ScrapApplicationSettings>();
 
-                services.AddSQLiteDbContext();
+                services.AddSQLiteDbContext(context.Configuration);
 
                 services.AddScoped<ScrapApplication>();
                 services.AddScoped<DataRetentionApplication>();
@@ -45,13 +49,13 @@ static class HostConfiguration
             .UseConsoleLifetime()
             .Build();
 
-        var config = host.Services.GetRequiredService<Microsoft.Extensions.Configuration.IConfiguration>();
+        var config = host.Services.GetRequiredService<IConfiguration>();
 
         // Configure HTTP client
         var http = host.Services.GetRequiredService<IHttp>();
         http.Timeout = config.GetRequiredValue<string>("HttpSettings:Timeout").ToTimeSpan();
         http.DefaultRequestUserAgent = config.GetRequiredValue<string>("HttpSettings:DefaultRequestUserAgent");
-        http.DefaultRequestCookie = config.GetValue<string>("HttpSettings:DefaultRequestCookie", "");
+        http.DefaultRequestCookie = config.GetValue("HttpSettings:DefaultRequestCookie", "");
 
         // Apply Entity Framework migrations
         using (var scope = host.Services.CreateScope())

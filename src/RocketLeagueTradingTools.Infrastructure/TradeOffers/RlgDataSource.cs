@@ -221,9 +221,9 @@ public class RlgDataSource
         var linkElement = tradeItemNode.QuerySelector(".rlg-item-links a.rlg-btn-primary");
         var link = linkElement?.Attributes["href"]?.Value;
 
-        if (linkElement == null || string.IsNullOrEmpty(link))
+        if (string.IsNullOrEmpty(link))
         {
-            log.Error($"Unable to parse trade item type.");
+            log.Error("Unable to parse trade item type.");
 
             return TradeItemType.Unknown;
         }
@@ -298,7 +298,7 @@ public class RlgDataSource
         if (offer.Item.Name.ToLower().EndsWith("blueprint"))
             return false;
 
-        if (offer.Item.Color.ToLower() == ("painted set"))
+        if (offer.Item.Color.ToLower() == "painted set")
             return false;
 
         return true;

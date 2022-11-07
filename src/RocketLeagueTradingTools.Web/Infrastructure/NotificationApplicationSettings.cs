@@ -1,10 +1,9 @@
-using Microsoft.Extensions.Configuration;
-using RocketLeagueTradingTools.Core.Common;
+using RocketLeagueTradingTools.Common;
 using RocketLeagueTradingTools.Infrastructure.Common;
 
 namespace RocketLeagueTradingTools.Web.Infrastructure;
 
-class NotificationApplicationSettings : RocketLeagueTradingTools.Core.Application.Notifications.INotificationApplicationSettings
+class NotificationApplicationSettings : Core.Application.Notifications.INotificationApplicationSettings
 {
     private readonly IConfiguration config;
 

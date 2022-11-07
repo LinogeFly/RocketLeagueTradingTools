@@ -13,7 +13,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.ConfigureAppConfiguration((context, config) =>
 {
-    config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+    var env = context.HostingEnvironment.EnvironmentName;
+
+    config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
+    config.AddJsonFile($"appsettings.{env}.json", optional: true, reloadOnChange: false);
 });
 
 // Add services to the container.
@@ -28,7 +31,7 @@ builder.Services
         );
     });
 
-builder.Services.AddSQLiteDbContext();
+builder.Services.AddSQLiteDbContext(builder.Configuration);
 builder.Services.AddSingleton(typeof(ILogger), typeof(Logger<Program>));
 builder.Services.AddSingleton<ILog, Log>();
 builder.Services.AddSingleton<IDateTime, SystemDateTime>();

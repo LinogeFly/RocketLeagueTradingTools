@@ -1,3 +1,5 @@
+using RocketLeagueTradingTools.Common;
+
 namespace RocketLeagueTradingTools.Infrastructure.Common;
 
 public interface IHttp
@@ -31,7 +33,7 @@ public class Http : IHttp
     {
         set
         {
-            if (string.IsNullOrEmpty(value))
+            if (value.IsEmpty())
                 return;
 
             if (httpClient.DefaultRequestHeaders.Contains("user-agent"))
@@ -45,7 +47,7 @@ public class Http : IHttp
     {
         set
         {
-            if (string.IsNullOrEmpty(value))
+            if (value.IsEmpty())
                 return;
 
             if (httpClient.DefaultRequestHeaders.Contains("cookie"))

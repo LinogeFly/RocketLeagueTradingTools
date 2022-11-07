@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using RocketLeagueTradingTools.Infrastructure.Common;
-using RocketLeagueTradingTools.Core.Common;
+using RocketLeagueTradingTools.Common;
 using RocketLeagueTradingTools.Core.Application;
 using RocketLeagueTradingTools.Core.Application.Scraping;
 using RocketLeagueTradingTools.Core.Domain.Exceptions;
@@ -91,9 +91,9 @@ class Jobs
 
     private static TimeSpan? GetNotificationsMaxAge(IConfiguration config)
     {
-        var maxAgeValue = config.GetValue<string>("DataRetentionRules:DeleteNotificationsAfter", "");
+        var maxAgeValue = config.GetValue("DataRetentionRules:DeleteNotificationsAfter", "");
 
-        if (string.IsNullOrEmpty(maxAgeValue))
+        if (maxAgeValue.IsEmpty())
             return null;
 
         return maxAgeValue.ToTimeSpan();

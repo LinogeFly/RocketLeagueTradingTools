@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using RocketLeagueTradingTools.Common;
 
 namespace RocketLeagueTradingTools.Infrastructure.Common;
 
@@ -16,7 +17,7 @@ public static class ConfigurationExtensions
 
     private static void EnsureString(string? value, string key)
     {
-        if (string.IsNullOrEmpty(value))
+        if (value.IsEmpty())
             throw new Exception($"Required configuration value with '{key}' key is missing.");
     }
 }

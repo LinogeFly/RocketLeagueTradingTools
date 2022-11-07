@@ -1,6 +1,6 @@
 ﻿{
   "profiles": {
-    "RocketLeagueTradeScraper.Cli": {
+    "RocketLeagueTradingTools.Scraper": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "environmentVariables": {

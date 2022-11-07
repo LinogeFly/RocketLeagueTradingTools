@@ -4,17 +4,12 @@
 
 ### Core
 
-- Move `.sln` file to `src` folder.
-- Make the database name configurable per environment.
-- Add a constructor to `Alert` class with all class required properties. Those are `ItemName`, `OfferType` and `Price`.
-- Move `StringExtensions` class to a separate project called SharedKernel.
 - Add a possibility to create alerts for painted only items.
 - Add more unit tests for persistance repository mapping.
 - Add a possibility to blacklist traders, so notifications for their trades are not created.
 
 ### Web
 
-- Add model validation for the API requests.
 - Fix the issue with notifications becoming "new" right after they are marked as seen by clicking "Mark as seen" link.
 - Show offer type in notification boxes.
 - Implement paging or infinite scroll for notifications.
