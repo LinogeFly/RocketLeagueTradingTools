@@ -1,10 +1,8 @@
 using FluentAssertions;
 using Moq;
 using RocketLeagueTradingTools.Core.Application.Scraping;
-using RocketLeagueTradingTools.Core.Application.Common;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Core.Domain.Entities;
-using RocketLeagueTradingTools.Core.Domain.Exceptions;
 using RocketLeagueTradingTools.Core.UnitTests.Support;
 
 namespace RocketLeagueTradingTools.Core.UnitTests;
@@ -23,41 +21,33 @@ public class ScrapApplicationTests
     public void Setup()
     {
         cancellationToken = new CancellationToken();
-        config = new Mock<IScrapApplicationSettings>();
         log = new Mock<ILog>();
         repository = new Mock<ITradeOfferRepository>();
         persistence = new Mock<IPersistenceRepository>();
+
+        config = new Mock<IScrapApplicationSettings>();
+        config.Setup(c => c.ScrapRetryMaxAttempts).Returns(1);
+        config.Setup(c => c.ScrapDelayMin).Returns(TimeSpan.Zero);
+        config.Setup(c => c.ScrapDelayMax).Returns(TimeSpan.Zero);
+
+        sut = new ScrapApplication(repository.Object, persistence.Object, log.Object, config.Object);
     }
 
     [Test]
-    public async Task GetTradeOffersPage_should_fail_after_number_of_unsuccessful_downloading_attempts()
+    public async Task InfiniteScrap_should_retry_downloading_after_number_for_unsuccessful_attempts_before_stopping()
     {
-        var session = new SessionStorage.ScrapApplication();
-
         config.Setup(c => c.ScrapRetryMaxAttempts).Returns(3);
         repository.Setup(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new HttpRequestException());
 
-        // Attempt 1
-        sut = new SutBuilder(repository.Object, persistence.Object, log.Object, config.Object).Add(session).Build();
-        await sut.ScrapPageAsync(cancellationToken);
-        // Attempt 2
-        sut = new SutBuilder(repository.Object, persistence.Object, log.Object, config.Object).Add(session).Build();
-        await sut.ScrapPageAsync(cancellationToken);
-        // Attempt 3
-        var act = async () =>
-        {
-            sut = new SutBuilder(repository.Object, persistence.Object, log.Object, config.Object).Add(session).Build();
-            await sut.ScrapPageAsync(cancellationToken);
-        };
+        await sut.InfiniteScrap(cancellationToken);
 
-        await act.Should().ThrowAsync<PageScrapFailedAfterNumberOfRetriesException>();
+        repository.Verify(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()), Times.Exactly(3));
     }
 
     [Test]
-    public async Task GetTradeOffersPage_should_not_persist_buy_offers_from_previous_page_scrap()
+    public async Task InfiniteScrap_should_not_persist_buy_offers_from_previous_page_scrap()
     {
-        var session = new SessionStorage.ScrapApplication();
         var firstOffer = new TradeOfferBuilder()
             .WithTradeItem(Build.TradeItem("Fennec"))
             .WithRlgId("1")
@@ -69,26 +59,20 @@ public class ScrapApplicationTests
             .WithPrice(100)
             .Build();
 
-        config.Setup(c => c.ScrapRetryMaxAttempts).Returns(3);
         repository.SetupSequence(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new TradeOffersPage { BuyOffers = new[] { firstOffer } })
-            .ReturnsAsync(new TradeOffersPage { BuyOffers = new[] { firstOffer, secondOffer } });
+            .ReturnsAsync(new TradeOffersPage { BuyOffers = new[] { firstOffer, secondOffer } })
+            .ThrowsAsync(new OperationCanceledException());
 
-        // Scrap 1
-        sut = new SutBuilder(repository.Object, persistence.Object, log.Object, config.Object).Add(session).Build();
-        await sut.ScrapPageAsync(cancellationToken);
-        // Scrap 2
-        sut = new SutBuilder(repository.Object, persistence.Object, log.Object, config.Object).Add(session).Build();
-        await sut.ScrapPageAsync(cancellationToken);
+        await sut.InfiniteScrap(cancellationToken);
 
         persistence.Verify(p => p.AddBuyOffers(new[] { firstOffer }), Times.Once);
         persistence.Verify(p => p.AddBuyOffers(new[] { secondOffer }), Times.Once);
     }
 
     [Test]
-    public async Task GetTradeOffersPage_should_not_persist_sell_offers_from_previous_page_scrap()
+    public async Task InfiniteScrap_should_not_persist_sell_offers_from_previous_page_scrap()
     {
-        var session = new SessionStorage.ScrapApplication();
         var firstOffer = new TradeOfferBuilder()
             .WithTradeItem(Build.TradeItem("Fennec"))
             .WithRlgId("1")
@@ -100,30 +84,23 @@ public class ScrapApplicationTests
             .WithPrice(150)
             .Build();
 
-        config.Setup(c => c.ScrapRetryMaxAttempts).Returns(3);
         repository.SetupSequence(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new TradeOffersPage { SellOffers = new[] { firstOffer } })
-            .ReturnsAsync(new TradeOffersPage { SellOffers = new[] { firstOffer, secondOffer } });
+            .ReturnsAsync(new TradeOffersPage { SellOffers = new[] { firstOffer, secondOffer } })
+            .ThrowsAsync(new HttpRequestException());
 
-        // Scrap 1
-        sut = new SutBuilder(repository.Object, persistence.Object, log.Object, config.Object).Add(session).Build();
-        await sut.ScrapPageAsync(cancellationToken);
-        // Scrap 2
-        sut = new SutBuilder(repository.Object, persistence.Object, log.Object, config.Object).Add(session).Build();
-        await sut.ScrapPageAsync(cancellationToken);
+        await sut.InfiniteScrap(cancellationToken);
 
         persistence.Verify(p => p.AddSellOffers(new[] { firstOffer }), Times.Once);
         persistence.Verify(p => p.AddSellOffers(new[] { secondOffer }), Times.Once);
     }
 
     [Test]
-    public async Task GetTradeOffersPage_should_warn_if_there_is_no_offers_overlap_between_latest_and_previous_scraps()
+    public async Task InfiniteScrap_should_warn_if_there_is_no_offers_overlap_between_latest_and_previous_scraps()
     {
-        var session = new SessionStorage.ScrapApplication();
         var firstScrapDate = new DateTime(2022, 1, 1);
         var secondScrapDate = firstScrapDate.AddSeconds(10);
 
-        config.Setup(c => c.ScrapRetryMaxAttempts).Returns(3);
         repository.SetupSequence(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new TradeOffersPage
             {
@@ -166,26 +143,20 @@ public class ScrapApplicationTests
                         .WithScrapedDate(secondScrapDate)
                         .Build()
                 }
-            });
+            })
+            .ThrowsAsync(new HttpRequestException());
 
-        // Scrap 1
-        sut = new SutBuilder(repository.Object, persistence.Object, log.Object, config.Object).Add(session).Build();
-        await sut.ScrapPageAsync(cancellationToken);
-        // Scrap 2
-        sut = new SutBuilder(repository.Object, persistence.Object, log.Object, config.Object).Add(session).Build();
-        await sut.ScrapPageAsync(cancellationToken);
+        await sut.InfiniteScrap(cancellationToken);
 
         log.Verify(logger => logger.Warn(It.Is<string>(m => m.StartsWith("No offers overlap"))), Times.Once);
     }
 
     [Test]
-    public async Task GetTradeOffersPage_should_not_warn_if_there_is_offers_overlap_between_latest_and_previous_scraps()
+    public async Task InfiniteScrap_should_not_warn_if_there_is_offers_overlap_between_latest_and_previous_scraps()
     {
-        var session = new SessionStorage.ScrapApplication();
         var firstScrapDate = new DateTime(2022, 1, 1);
         var secondScrapDate = firstScrapDate.AddSeconds(10);
 
-        config.Setup(c => c.ScrapRetryMaxAttempts).Returns(3);
         repository.SetupSequence(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new TradeOffersPage
             {
@@ -228,26 +199,20 @@ public class ScrapApplicationTests
                         .WithScrapedDate(secondScrapDate)
                         .Build()
                 }
-            });
+            })
+            .ThrowsAsync(new HttpRequestException());
 
-        // Scrap 1
-        sut = new SutBuilder(repository.Object, persistence.Object, log.Object, config.Object).Add(session).Build();
-        await sut.ScrapPageAsync(cancellationToken);
-        // Scrap 2
-        sut = new SutBuilder(repository.Object, persistence.Object, log.Object, config.Object).Add(session).Build();
-        await sut.ScrapPageAsync(cancellationToken);
+        await sut.InfiniteScrap(cancellationToken);
 
         log.Verify(logger => logger.Warn(It.Is<string>(m => m.StartsWith("No offers overlap"))), Times.Never);
     }
 
     [Test]
-    public async Task GetTradeOffersPage_should_not_warn_if_there_is_buy_offers_overlap_but_no_sell_offers_overlap_between_latest_and_previous_scraps()
+    public async Task InfiniteScrap_should_not_warn_if_there_is_buy_offers_overlap_but_no_sell_offers_overlap_between_latest_and_previous_scraps()
     {
-        var session = new SessionStorage.ScrapApplication();
         var firstScrapDate = new DateTime(2022, 1, 1);
         var secondScrapDate = firstScrapDate.AddSeconds(10);
 
-        config.Setup(c => c.ScrapRetryMaxAttempts).Returns(3);
         repository.SetupSequence(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new TradeOffersPage
             {
@@ -290,26 +255,20 @@ public class ScrapApplicationTests
                         .WithScrapedDate(secondScrapDate)
                         .Build()
                 }
-            });
+            })
+            .ThrowsAsync(new HttpRequestException());
 
-        // Scrap 1
-        sut = new SutBuilder(repository.Object, persistence.Object, log.Object, config.Object).Add(session).Build();
-        await sut.ScrapPageAsync(cancellationToken);
-        // Scrap 2
-        sut = new SutBuilder(repository.Object, persistence.Object, log.Object, config.Object).Add(session).Build();
-        await sut.ScrapPageAsync(cancellationToken);
+        await sut.InfiniteScrap(cancellationToken);
 
         log.Verify(logger => logger.Warn(It.Is<string>(m => m.StartsWith("No offers overlap"))), Times.Never);
     }
 
     [Test]
-    public async Task GetTradeOffersPage_should_not_warn_if_there_is_sell_offers_overlap_but_no_buy_offers_overlap_between_latest_and_previous_scraps()
+    public async Task InfiniteScrap_should_not_warn_if_there_is_sell_offers_overlap_but_no_buy_offers_overlap_between_latest_and_previous_scraps()
     {
-        var session = new SessionStorage.ScrapApplication();
         var firstScrapDate = new DateTime(2022, 1, 1);
         var secondScrapDate = firstScrapDate.AddSeconds(10);
 
-        config.Setup(c => c.ScrapRetryMaxAttempts).Returns(3);
         repository.SetupSequence(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new TradeOffersPage
             {
@@ -352,26 +311,21 @@ public class ScrapApplicationTests
                         .WithScrapedDate(secondScrapDate)
                         .Build()
                 }
-            });
+            })
+            .ThrowsAsync(new HttpRequestException());
 
-        // Scrap 1
-        sut = new SutBuilder(repository.Object, persistence.Object, log.Object, config.Object).Add(session).Build();
-        await sut.ScrapPageAsync(cancellationToken);
-        // Scrap 2
-        sut = new SutBuilder(repository.Object, persistence.Object, log.Object, config.Object).Add(session).Build();
-        await sut.ScrapPageAsync(cancellationToken);
+        await sut.InfiniteScrap(cancellationToken);
 
         log.Verify(logger => logger.Warn(It.Is<string>(m => m.StartsWith("No offers overlap"))), Times.Never);
     }
 
     [Test]
-    public async Task GetTradeOffersPage_should_not_warn_if_there_is_no_offers_overlap_but_the_previous_scrap_failed()
+    public async Task InfiniteScrap_should_not_warn_if_there_is_no_offers_overlap_but_the_previous_scrap_failed()
     {
-        var session = new SessionStorage.ScrapApplication();
         var firstScrapDate = new DateTime(2022, 1, 1);
         var secondScrapDate = firstScrapDate.AddSeconds(10);
 
-        config.Setup(c => c.ScrapRetryMaxAttempts).Returns(3);
+        config.Setup(c => c.ScrapRetryMaxAttempts).Returns(2);
         repository.SetupSequence(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new TradeOffersPage
             {
@@ -415,52 +369,12 @@ public class ScrapApplicationTests
                         .WithScrapedDate(secondScrapDate)
                         .Build()
                 }
-            });
+            })
+            .ThrowsAsync(new HttpRequestException())
+            .ThrowsAsync(new HttpRequestException());
 
-        // Scrap 1
-        sut = new SutBuilder(repository.Object, persistence.Object, log.Object, config.Object).Add(session).Build();
-        await sut.ScrapPageAsync(cancellationToken);
-        // Scrap 2
-        sut = new SutBuilder(repository.Object, persistence.Object, log.Object, config.Object).Add(session).Build();
-        await sut.ScrapPageAsync(cancellationToken);
-        // Scrap 3
-        sut = new SutBuilder(repository.Object, persistence.Object, log.Object, config.Object).Add(session).Build();
-        await sut.ScrapPageAsync(cancellationToken);
+        await sut.InfiniteScrap(cancellationToken);
 
         log.Verify(logger => logger.Warn(It.Is<string>(m => m.StartsWith("No offers overlap"))), Times.Never);
-    }
-
-    private ScrapApplication BuildSut(SessionStorage.ScrapApplication session)
-    {
-        return new ScrapApplication(repository.Object, persistence.Object, session, log.Object, config.Object);
-    }
-
-    private class SutBuilder
-    {
-        private ITradeOfferRepository repository;
-        private IPersistenceRepository persistence;
-        private ILog log;
-        private IScrapApplicationSettings config;
-        private SessionStorage.ScrapApplication session = new SessionStorage.ScrapApplication();
-
-        public SutBuilder(ITradeOfferRepository repository, IPersistenceRepository persistence, ILog log, IScrapApplicationSettings config)
-        {
-            this.repository = repository;
-            this.persistence = persistence;
-            this.log = log;
-            this.config = config;
-        }
-
-        public SutBuilder Add(SessionStorage.ScrapApplication session)
-        {
-            this.session = session;
-
-            return this;
-        }
-
-        public ScrapApplication Build()
-        {
-            return new ScrapApplication(repository, persistence, session, log, config);
-        }
     }
 }

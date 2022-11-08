@@ -27,13 +27,17 @@ public class PersistenceRepositoryTests
         // The connection is closed at the end of each test run in the TearDown method.
         var keepAliveConnection = new SqliteConnection("Filename=:memory:");
         keepAliveConnection.Open();
-        var contextOptions = new DbContextOptionsBuilder<PersistenceDbContext>()
+        var dbContextOptions = new DbContextOptionsBuilder<PersistenceDbContext>()
             .UseSqlite(keepAliveConnection)
             .Options;
-        dbContext = new PersistenceDbContext(contextOptions);
-        dbContext.Database.EnsureCreated();
 
-        sut = new PersistenceRepository(dbContext, dateTime.Object);
+        // Create DbContext
+        var dbContextFactory = new Mock<IDbContextFactory<PersistenceDbContext>>();
+        dbContext = new PersistenceDbContext(dbContextOptions);
+        dbContext.Database.EnsureCreated();
+        dbContextFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>())).ReturnsAsync(dbContext);
+
+        sut = new PersistenceRepository(dbContextFactory.Object, dateTime.Object);
     }
 
     [TearDown]

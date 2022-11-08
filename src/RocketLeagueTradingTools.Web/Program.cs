@@ -31,7 +31,7 @@ builder.Services
         );
     });
 
-builder.Services.AddSQLiteDbContext(builder.Configuration);
+builder.Services.AddSQLiteDbContext(builder.Configuration); // Created as a singleton internally
 builder.Services.AddSingleton(typeof(ILogger), typeof(Logger<Program>));
 builder.Services.AddSingleton<ILog, Log>();
 builder.Services.AddSingleton<IDateTime, SystemDateTime>();

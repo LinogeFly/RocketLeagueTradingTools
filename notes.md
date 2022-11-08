@@ -4,6 +4,7 @@
 
 ### Core
 
+- Add a feature so the scraping interval getting progressively longer with more failing attempts occurring. For example, based on Fibonacci sequence. This mechanism is also called retries with exponential backoff.
 - Add a possibility to create alerts for painted only items.
 - Add more unit tests for persistance repository mapping.
 - Add a possibility to blacklist traders, so notifications for their trades are not created.
@@ -19,11 +20,6 @@
 Ideas:
 
 - TT, as for Trading Tools
-
-### ScrapApplication that performs continuous scrapping
-
-- Prototype DbContext factory approach. For example, <https://github.com/vany0114/EF.DbContextFactory>
-- Move `ScrapRetryMaxAttempts`, `ScrapIntervalMin` and `ScrapIntervalMax` configurations here.
 
 ### Keep the following concept naming in the solution
   

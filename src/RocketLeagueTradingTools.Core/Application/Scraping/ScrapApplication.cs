@@ -2,7 +2,6 @@
 using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Core.Domain.Exceptions;
 using System.Diagnostics;
-using RocketLeagueTradingTools.Core.Application.Common;
 
 namespace RocketLeagueTradingTools.Core.Application.Scraping;
 
@@ -10,14 +9,15 @@ public class ScrapApplication
 {
     private readonly ITradeOfferRepository tradeOfferRepository;
     private readonly IPersistenceRepository persistence;
-    private readonly SessionStorage.ScrapApplication session;
     private readonly ILog log;
     private readonly IScrapApplicationSettings config;
+    private int numberOfFailedTries;
+    private IList<TradeOffer> previousScrapBuyOffers = new List<TradeOffer>();
+    private IList<TradeOffer> previousScrapSellOffers = new List<TradeOffer>();
 
     public ScrapApplication(
         ITradeOfferRepository tradeOfferRepository,
         IPersistenceRepository persistence,
-        SessionStorage.ScrapApplication session,
         ILog log,
         IScrapApplicationSettings config)
     {
@@ -25,13 +25,39 @@ public class ScrapApplication
         this.persistence = persistence;
         this.log = log;
         this.config = config;
-        this.session = session;
     }
 
-    public async Task ScrapPageAsync(CancellationToken cancellationToken)
+    public async Task InfiniteScrap(CancellationToken cancellationToken)
     {
-        var scrapingWatch = Stopwatch.StartNew();
+        while (true)
+        {
+            var scrapingWatch = Stopwatch.StartNew();
 
+            try
+            {
+                await ScrapPage(scrapingWatch, cancellationToken);
+            }
+            catch (PageScrapFailedAfterNumberOfRetriesException)
+            {
+                // End the scraping if it failed after number of retries (configured in the settings)
+                return;
+            }
+            finally
+            {
+                scrapingWatch.Stop();
+            }
+
+            // Have a delay before scraping again
+            await DelayBeforeNextScrap(scrapingWatch.Elapsed, cancellationToken);
+
+            // End the scraping if it was requested
+            if (cancellationToken.IsCancellationRequested)
+                return;
+        }
+    }
+
+    private async Task ScrapPage(Stopwatch scrapingWatch, CancellationToken cancellationToken)
+    {
         try
         {
             log.Trace("Downloading of trade offers started.");
@@ -39,8 +65,8 @@ public class ScrapApplication
             log.Trace("Downloading of trade offers finished.");
 
             // Ignore trade offers that were added in the previous scrap
-            var newBuyOffers = latestOffers.BuyOffers.Except(session.PreviousScrapBuyOffers).ToList();
-            var newSellOffers = latestOffers.SellOffers.Except(session.PreviousScrapSellOffers).ToList();
+            var newBuyOffers = latestOffers.BuyOffers.Except(previousScrapBuyOffers).ToList();
+            var newSellOffers = latestOffers.SellOffers.Except(previousScrapSellOffers).ToList();
 
             // Not passing the cancellation token here as we don't want to terminate the persistence operation.
             // We want only to terminate the scraping when requested.
@@ -50,46 +76,67 @@ public class ScrapApplication
             if (IsNotFirstRun() && LastRunDidNotFail() && !HasOverlapWithPreviousScrap(latestOffers, newBuyOffers, newSellOffers))
                 log.Warn("No offers overlap between scraps. Scraping interval can be decreased.");
 
-            session.NumberOfFailedTries = 0;
+            numberOfFailedTries = 0;
 
-            session.PreviousScrapBuyOffers = latestOffers.BuyOffers;
-            session.PreviousScrapSellOffers = latestOffers.SellOffers;
+            previousScrapBuyOffers = latestOffers.BuyOffers;
+            previousScrapSellOffers = latestOffers.SellOffers;
 
             log.Info($"Scraped {newBuyOffers.Count + newSellOffers.Count} new offers in {scrapingWatch.ElapsedMilliseconds} ms.");
         }
         catch (TradingDataServiceIsNotAvailableException ex)
         {
-            session.NumberOfFailedTries++;
-            log.Error($"'{ex.DataServiceName}' website is not available. Retry attempt {session.NumberOfFailedTries} of {config.ScrapRetryMaxAttempts}.");
+            numberOfFailedTries++;
+            log.Error($"'{ex.DataServiceName}' website is not available. Retry attempt {numberOfFailedTries} of {config.ScrapRetryMaxAttempts}.");
         }
         catch (OperationCanceledException)
         {
             if (cancellationToken.IsCancellationRequested)
                 return;
 
-            session.NumberOfFailedTries++;
-            log.Error($"Scraping has timed out. Retry attempt {session.NumberOfFailedTries} of {config.ScrapRetryMaxAttempts}.");
+            numberOfFailedTries++;
+            log.Error($"Scraping has timed out. Retry attempt {numberOfFailedTries} of {config.ScrapRetryMaxAttempts}.");
         }
         catch (HttpRequestException)
         {
-            session.NumberOfFailedTries++;
-            log.Error($"Connectivity issue has occurred. Retry attempt {session.NumberOfFailedTries} of {config.ScrapRetryMaxAttempts}.");
-        }
-        finally
-        {
-            scrapingWatch.Stop();
+            numberOfFailedTries++;
+            log.Error($"Connectivity issue has occurred. Retry attempt {numberOfFailedTries} of {config.ScrapRetryMaxAttempts}.");
         }
 
-        if (session.NumberOfFailedTries == config.ScrapRetryMaxAttempts)
+        if (numberOfFailedTries == config.ScrapRetryMaxAttempts)
             throw new PageScrapFailedAfterNumberOfRetriesException();
+    }
+
+    private async Task DelayBeforeNextScrap(TimeSpan lastScrapDuration, CancellationToken cancellationToken)
+    {
+        var delayMin = (int)config.ScrapDelayMin.TotalMilliseconds;
+        var delayMax = (int)config.ScrapDelayMax.TotalMilliseconds;
+
+        if (delayMin == 0 || delayMax == 0)
+            return;
+
+        var scrapTimeout = new Random().Next(delayMin, delayMax);
+        var delay = scrapTimeout - (int)lastScrapDuration.TotalMilliseconds;
+
+        if (delay <= 0)
+            return;
+
+        try
+        {
+            await Task.Delay(delay, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            if (!cancellationToken.IsCancellationRequested)
+                throw;
+        }
     }
 
     private bool IsNotFirstRun()
     {
-        if (session.PreviousScrapBuyOffers.Count != 0)
+        if (previousScrapBuyOffers.Count != 0)
             return true;
 
-        if (session.PreviousScrapSellOffers.Count != 0)
+        if (previousScrapSellOffers.Count != 0)
             return true;
 
         return false;
@@ -97,7 +144,7 @@ public class ScrapApplication
 
     private bool LastRunDidNotFail()
     {
-        return session.NumberOfFailedTries == 0;
+        return numberOfFailedTries == 0;
     }
 
     private bool HasOverlapWithPreviousScrap(TradeOffersPage latestOffers, List<TradeOffer> newBuyOffers, List<TradeOffer> newSellOffers)

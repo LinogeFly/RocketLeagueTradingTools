@@ -1,31 +1,39 @@
--- Popular items with price range and price differences
-SELECT Name, Color, count(1) cnt, min(Price) || '-' || max(price) rng, max(Price) - min(Price) dif
+-- Trending items with price range and price differences
+SELECT Name, Color, ItemType, count(1) [Total], min(Price) || '-' || max(price) PriceRange, max(Price) - min(Price) PriceDif
 FROM (
 	-- Unique offers of all items
 	SELECT
-		Name, Color, Price, SourceId
-	FROM BuyOffers
+		Name, ItemType, Color, Price, ItemType, SourceId
+	FROM SellOffers
 	WHERE
-		ScrapedDate > datetime('now', '-2 days')
+		ScrapedDate > datetime('now', '-3 days')
 	GROUP BY
-		Name, Color, SourceId, Price
+		Name, ItemType, Color, Price, ItemType, SourceId
 ) ofr
 GROUP BY
-	Name, Color
-ORDER BY cnt DESC
-LIMIT 50
-
+	Name, Color, ItemType
+ORDER BY [Total] DESC
+LIMIT 100
 
 
 -- Unique offers of a certain item
 SELECT
-	Name, Color, Price, SourceId
+	Name, Color, Price, ItemType, SourceId
 FROM SellOffers
 WHERE
 	ScrapedDate > datetime('now', '-5 days')
-	AND Name = "Intrudium"
-	AND Color = ""
+	AND Name = "Nomster"
+	AND Color = "Lime"
+	AND ItemType = "Goal Explosion"
 GROUP BY
-	Name, Color, SourceId, Price
+	Name, Color, Price, ItemType, SourceId
 ORDER BY
 	Price
+
+	
+-- Total amount of buy and sell offers
+SELECT sum(cnt) as offers_count FROM (
+	SELECT COUNT(1) as cnt FROM BuyOffers
+	UNION
+	SELECT COUNT(1) as cnt FROM SellOffers
+)

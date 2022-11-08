@@ -23,7 +23,7 @@ try
     Console.WriteLine("done.");
 
     Console.WriteLine("Scraping has started. Press Q to stop.");
-    await Jobs.ContinuousScraping(host, token);
+    await Jobs.InfiniteScrap(host, token);
 }
 catch (Exception ex)
 {

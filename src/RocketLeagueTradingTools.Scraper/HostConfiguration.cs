@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RocketLeagueTradingTools.Core.Application;
 using RocketLeagueTradingTools.Core.Application.Scraping;
-using RocketLeagueTradingTools.Core.Application.Common;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Common;
 using RocketLeagueTradingTools.Infrastructure.Common;
@@ -23,14 +22,12 @@ static class HostConfiguration
             })
             .ConfigureServices((context, services) =>
             {
+                services.AddSQLiteDbContext(context.Configuration); // Created as a singleton internally
                 services.AddSingleton(typeof(ILogger), typeof(Logger<Program>));
-                services.AddSingleton(typeof(SessionStorage.ScrapApplication));
                 services.AddSingleton<ILog, Log>();
                 services.AddSingleton<IHttp, Http>();
                 services.AddSingleton<IDateTime, SystemDateTime>();
                 services.AddSingleton<IScrapApplicationSettings, ScrapApplicationSettings>();
-
-                services.AddSQLiteDbContext(context.Configuration);
 
                 services.AddScoped<ScrapApplication>();
                 services.AddScoped<DataRetentionApplication>();

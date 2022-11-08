@@ -8,19 +8,21 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence;
 
 public class PersistenceRepository : IPersistenceRepository
 {
-    private readonly PersistenceDbContext dbContext;
+    private readonly IDbContextFactory<PersistenceDbContext> dbContextFactory;
     private readonly IDateTime dateTime;
 
     public PersistenceRepository(
-        PersistenceDbContext dbContext,
+        IDbContextFactory<PersistenceDbContext> dbContextFactory,
         IDateTime dateTime)
     {
-        this.dbContext = dbContext;
+        this.dbContextFactory = dbContextFactory;
         this.dateTime = dateTime;
     }
 
     public async Task AddBuyOffers(IList<TradeOffer> offers)
     {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
         await dbContext.BuyOffers.AddRangeAsync(offers.Select(Map<PersistedBuyOffer>));
 
         await dbContext.SaveChangesAsync();
@@ -28,6 +30,8 @@ public class PersistenceRepository : IPersistenceRepository
 
     public async Task AddSellOffers(IList<TradeOffer> offers)
     {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
         await dbContext.SellOffers.AddRangeAsync(offers.Select(Map<PersistedSellOffer>));
 
         await dbContext.SaveChangesAsync();
@@ -35,8 +39,10 @@ public class PersistenceRepository : IPersistenceRepository
 
     public async Task<IList<TradeOffer>> FindAlertMatchingOffers(TimeSpan alertOfferMaxAge)
     {
-        var buyOffers = await GetAlertMatchingOffersQuery(dbContext.BuyOffers, alertOfferMaxAge).ToListAsync();
-        var sellOffers = await GetAlertMatchingOffersQuery(dbContext.SellOffers, alertOfferMaxAge).ToListAsync();
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+        var buyOffers = await GetAlertMatchingOffersQuery(dbContext, dbContext.BuyOffers, alertOfferMaxAge).ToListAsync();
+        var sellOffers = await GetAlertMatchingOffersQuery(dbContext, dbContext.SellOffers, alertOfferMaxAge).ToListAsync();
 
         return buyOffers.Select(Map)
             .Union(sellOffers.Select(Map))
@@ -45,6 +51,8 @@ public class PersistenceRepository : IPersistenceRepository
 
     public async Task DeleteOldOffers(TimeSpan maxAge)
     {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
         var sellOffersToDelete = dbContext.SellOffers.Where(o => o.ScrapedDate < dateTime.Now.Add(-maxAge));
         var buyOffersToDelete = dbContext.BuyOffers.Where(o => o.ScrapedDate < dateTime.Now.Add(-maxAge));
 
@@ -56,14 +64,17 @@ public class PersistenceRepository : IPersistenceRepository
 
     public async Task<IList<Alert>> GetAlerts()
     {
-        var items = await dbContext.Alerts
-            .ToListAsync();
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+        var items = await dbContext.Alerts.ToListAsync();
 
         return items.Select(Map).ToList();
     }
 
     public async Task<Alert?> GetAlert(int id)
     {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
         var persistedAlert = await dbContext.Alerts.SingleOrDefaultAsync(x => x.Id == id);
 
         if (persistedAlert == null)
@@ -74,6 +85,8 @@ public class PersistenceRepository : IPersistenceRepository
 
     public async Task AddAlert(Alert alert)
     {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
         dbContext.Alerts.Add(new PersistedAlert
         {
             CreatedDate = dateTime.Now,
@@ -91,6 +104,8 @@ public class PersistenceRepository : IPersistenceRepository
 
     public async Task UpdateAlert(Alert alert)
     {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
         var persistedAlert = await dbContext.Alerts.SingleOrDefaultAsync(x => x.Id == alert.Id);
 
         if (persistedAlert == null)
@@ -112,6 +127,8 @@ public class PersistenceRepository : IPersistenceRepository
 
     public async Task DeleteAlert(int id)
     {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
         var persistedAlert = await dbContext.Alerts.SingleOrDefaultAsync(x => x.Id == id);
 
         if (persistedAlert == null)
@@ -124,6 +141,8 @@ public class PersistenceRepository : IPersistenceRepository
 
     public async Task<IList<Notification>> GetNotifications(int pageSize)
     {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
         var items = await dbContext.Notifications
             .OrderByDescending(n => n.TradeOfferScrapedDate)
             .Take(pageSize)
@@ -134,6 +153,8 @@ public class PersistenceRepository : IPersistenceRepository
 
     public async Task<IList<Notification>> GetNotifications(TimeSpan notOlderThan)
     {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
         var items = await dbContext.Notifications
             .Where(n => n.CreatedDate >= dateTime.Now - notOlderThan)
             .ToListAsync();
@@ -143,6 +164,8 @@ public class PersistenceRepository : IPersistenceRepository
 
     public async Task AddNotifications(IList<Notification> notifications)
     {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
         dbContext.Notifications.AddRange(notifications.Select(n =>
             new PersistedNotification
             {
@@ -163,6 +186,8 @@ public class PersistenceRepository : IPersistenceRepository
 
     public async Task MarkNotificationAsSeen(int id)
     {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+        
         var persistedItem = await dbContext.Notifications.SingleOrDefaultAsync(x => x.Id == id);
 
         if (persistedItem == null)
@@ -178,6 +203,8 @@ public class PersistenceRepository : IPersistenceRepository
 
     public async Task DeleteOldNotifications(TimeSpan maxAge)
     {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
         var notificationsToDelete = dbContext.Notifications.Where(o => o.CreatedDate < dateTime.Now.Add(-maxAge));
 
         dbContext.Notifications.RemoveRange(notificationsToDelete);
@@ -185,7 +212,7 @@ public class PersistenceRepository : IPersistenceRepository
         await dbContext.SaveChangesAsync();
     }
 
-    private IQueryable<T> GetAlertMatchingOffersQuery<T>(DbSet<T> offers, TimeSpan alertOfferMaxAge) where T : PersistedTradeOffer
+    private IQueryable<T> GetAlertMatchingOffersQuery<T>(PersistenceDbContext dbContext, DbSet<T> offers, TimeSpan alertOfferMaxAge) where T : PersistedTradeOffer
     {
         return
             from o in offers

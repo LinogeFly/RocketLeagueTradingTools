@@ -16,6 +16,6 @@ public static class ServiceCollectionExtensions
 
         Directory.CreateDirectory(appPath);
 
-        services.AddDbContext<PersistenceDbContext>(opt => opt.UseSqlite($"Data Source={databasePath};"));
+        services.AddDbContextFactory<PersistenceDbContext>(opt => opt.UseSqlite($"Data Source={databasePath};"));
     }
 }

@@ -1,3 +1,4 @@
+using RocketLeagueTradingTools.Common;
 using RocketLeagueTradingTools.Infrastructure.Common;
 using RocketLeagueTradingTools.Core.Application.Scraping;
 
@@ -12,5 +13,7 @@ class ScrapApplicationSettings : IScrapApplicationSettings
         this.config = config;
     }
 
-    public int ScrapRetryMaxAttempts => config.GetRequiredValue<int>("ScrapRetryMaxAttempts");
+    public TimeSpan ScrapDelayMin => config.GetRequiredValue<string>("ScrapSettings:DelayMin").ToTimeSpan();
+    public TimeSpan ScrapDelayMax => config.GetRequiredValue<string>("ScrapSettings:DelayMax").ToTimeSpan();
+    public int ScrapRetryMaxAttempts => config.GetRequiredValue<int>("ScrapSettings:RetryMaxAttempts");
 }
