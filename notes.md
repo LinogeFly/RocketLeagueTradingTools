@@ -4,8 +4,7 @@
 
 ### Core
 
-- Add a possibility to create alerts for painted only items.
-- Add more unit tests for persistance repository mapping.
+- Add more unit tests for persistence repository mapping.
 - Add a possibility to blacklist traders, so notifications for their trades are not created.
 
 ### Web

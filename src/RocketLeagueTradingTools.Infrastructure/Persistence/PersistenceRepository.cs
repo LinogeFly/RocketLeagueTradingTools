@@ -224,8 +224,8 @@ public class PersistenceRepository : IPersistenceRepository
                 o.Price >= a.PriceFrom &&
                 o.Price <= a.PriceTo &&
                 (a.ItemType == "*" || o.ItemType.ToLower() == a.ItemType.ToLower()) &&
-                (a.Color == "*" || o.Color.ToLower() == a.Color.ToLower()) &&
-                (a.Certification == "*" || o.Certification.ToLower() == a.Certification.ToLower())
+                (a.Color == "*" || o.Color.ToLower() == a.Color.ToLower() || (a.Color == "+" && o.Color != "")) &&
+                (a.Certification == "*" || o.Certification.ToLower() == a.Certification.ToLower() || (a.Certification == "+" && o.Certification != ""))
             select o;
     }
 
