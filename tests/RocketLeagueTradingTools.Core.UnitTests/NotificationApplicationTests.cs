@@ -11,24 +11,18 @@ namespace RocketLeagueTradingTools.Core.UnitTests;
 public class NotificationApplicationTests
 {
     private NotificationApplication sut = null!;
-    private Mock<ILog> log = null!;
     private Mock<IPersistenceRepository> persistence = null!;
-    private Mock<IDateTime> dateTime = null!;
     private Mock<INotificationApplicationSettings> config = null!;
 
     [SetUp]
     public void Setup()
     {
-        log = new Mock<ILog>();
         persistence = new Mock<IPersistenceRepository>();
-
-        dateTime = new Mock<IDateTime>();
-        dateTime.SetupGet(d => d.Now).Returns(DateTime.UtcNow);
 
         config = new Mock<INotificationApplicationSettings>();
         config.SetupGet(c => c.NotificationsExpiration).Returns(TimeSpan.FromDays(1));
 
-        sut = new NotificationApplication(persistence.Object, dateTime.Object, config.Object, log.Object);
+        sut = new NotificationApplication(persistence.Object, config.Object);
     }
 
     [Test]

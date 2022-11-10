@@ -373,7 +373,6 @@ public class PersistenceRepository : IPersistenceRepository
                 return TradeItemType.Banner;
             case "avatar border":
                 return TradeItemType.AvatarBorder;
-            case "":
             default:
                 return TradeItemType.Unknown;
         }
@@ -437,7 +436,6 @@ public class PersistenceRepository : IPersistenceRepository
                 return AlertItemType.Banner;
             case "avatar border":
                 return AlertItemType.AvatarBorder;
-            case "*":
             default:
                 return AlertItemType.Any;
         }

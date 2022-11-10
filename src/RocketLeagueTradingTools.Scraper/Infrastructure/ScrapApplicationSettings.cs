@@ -13,7 +13,9 @@ class ScrapApplicationSettings : IScrapApplicationSettings
         this.config = config;
     }
 
-    public TimeSpan ScrapDelayMin => config.GetRequiredValue<string>("ScrapSettings:DelayMin").ToTimeSpan();
-    public TimeSpan ScrapDelayMax => config.GetRequiredValue<string>("ScrapSettings:DelayMax").ToTimeSpan();
-    public int ScrapRetryMaxAttempts => config.GetRequiredValue<int>("ScrapSettings:RetryMaxAttempts");
+    public TimeSpan DelayMin => config.GetRequiredValue<string>("ScrapSettings:DelayMin").ToTimeSpan();
+    public TimeSpan DelayMax => config.GetRequiredValue<string>("ScrapSettings:DelayMax").ToTimeSpan();
+    public int RetryMaxAttempts => config.GetRequiredValue<int>("ScrapSettings:Retry:MaxAttempts");
+    public TimeSpan RetryInterval => config.GetRequiredValue<string>("ScrapSettings:Retry:Interval").ToTimeSpan();
+    public int RetryBackoffRate => config.GetRequiredValue<int>("ScrapSettings:Retry:BackoffRate");
 }

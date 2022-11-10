@@ -4,7 +4,6 @@
 
 ### Core
 
-- Add a feature so the scraping interval getting progressively longer with more failing attempts occurring. For example, based on Fibonacci sequence. This mechanism is also called retries with exponential backoff.
 - Add a possibility to create alerts for painted only items.
 - Add more unit tests for persistance repository mapping.
 - Add a possibility to blacklist traders, so notifications for their trades are not created.

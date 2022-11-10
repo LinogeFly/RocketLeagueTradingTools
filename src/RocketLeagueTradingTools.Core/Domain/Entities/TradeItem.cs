@@ -2,7 +2,7 @@ namespace RocketLeagueTradingTools.Core.Domain.Entities;
 
 public sealed class TradeItem
 {
-    public string Name { get; set; }
+    public string Name { get; }
     public TradeItemType ItemType { get; set; }
     public string Color { get; set; } = "";
     public string Certification { get; set; } = "";

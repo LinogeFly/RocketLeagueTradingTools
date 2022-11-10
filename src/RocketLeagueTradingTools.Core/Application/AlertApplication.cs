@@ -5,14 +5,11 @@ namespace RocketLeagueTradingTools.Core.Application;
 
 public class AlertApplication
 {
-    private readonly ILog log;
     private readonly IPersistenceRepository persistence;
 
     public AlertApplication(
-        ILog log,
         IPersistenceRepository persistence)
     {
-        this.log = log;
         this.persistence = persistence;
     }
 

@@ -25,6 +25,9 @@ public class ScrapApplication
         this.persistence = persistence;
         this.log = log;
         this.config = config;
+
+        if (config.RetryMaxAttempts < 0)
+            throw new InvalidOperationException($"{nameof(config.RetryMaxAttempts)} value has to be more than 0.");
     }
 
     public async Task InfiniteScrap(CancellationToken cancellationToken)
@@ -37,9 +40,9 @@ public class ScrapApplication
             {
                 await ScrapPage(scrapingWatch, cancellationToken);
             }
-            catch (PageScrapFailedAfterNumberOfRetriesException)
+            catch (PageScrapFailedAfterNumberOfTriesException)
             {
-                // End the scraping if it failed after number of retries (configured in the settings)
+                // End the scraping if it failed after number of retries
                 return;
             }
             finally
@@ -47,8 +50,11 @@ public class ScrapApplication
                 scrapingWatch.Stop();
             }
 
-            // Have a delay before scraping again
-            await DelayBeforeNextScrap(scrapingWatch.Elapsed, cancellationToken);
+            // Have a delay before scraping again, or retrying if the last scrap failed
+            if (LastRunDidNotFail())
+                await DelayBeforeNextScrap(scrapingWatch.Elapsed, cancellationToken);
+            else
+                await DelayBeforeNextRetry(cancellationToken);
 
             // End the scraping if it was requested
             if (cancellationToken.IsCancellationRequested)
@@ -86,7 +92,7 @@ public class ScrapApplication
         catch (TradingDataServiceIsNotAvailableException ex)
         {
             numberOfFailedTries++;
-            log.Error($"'{ex.DataServiceName}' website is not available. Retry attempt {numberOfFailedTries} of {config.ScrapRetryMaxAttempts}.");
+            LogScrapPageError($"'{ex.DataServiceName}' website is not available.");
         }
         catch (OperationCanceledException)
         {
@@ -94,35 +100,64 @@ public class ScrapApplication
                 return;
 
             numberOfFailedTries++;
-            log.Error($"Scraping has timed out. Retry attempt {numberOfFailedTries} of {config.ScrapRetryMaxAttempts}.");
+            LogScrapPageError("Scraping has timed out.");
         }
         catch (HttpRequestException)
         {
             numberOfFailedTries++;
-            log.Error($"Connectivity issue has occurred. Retry attempt {numberOfFailedTries} of {config.ScrapRetryMaxAttempts}.");
+            LogScrapPageError("Connectivity issue has occurred.");
         }
 
-        if (numberOfFailedTries == config.ScrapRetryMaxAttempts)
-            throw new PageScrapFailedAfterNumberOfRetriesException();
+        if (numberOfFailedTries > config.RetryMaxAttempts)
+            throw new PageScrapFailedAfterNumberOfTriesException();
+    }
+
+    private void LogScrapPageError(string message)
+    {
+        var trimmedMessage = message.TrimEnd('.');
+
+        if (config.RetryMaxAttempts == 0)
+            log.Error(message);
+        else
+            log.Error($"{trimmedMessage}. Attempt {numberOfFailedTries} of {config.RetryMaxAttempts + 1}.");
     }
 
     private async Task DelayBeforeNextScrap(TimeSpan lastScrapDuration, CancellationToken cancellationToken)
     {
-        var delayMin = (int)config.ScrapDelayMin.TotalMilliseconds;
-        var delayMax = (int)config.ScrapDelayMax.TotalMilliseconds;
+        var delayMin = (int)config.DelayMin.TotalMilliseconds;
+        var delayMax = (int)config.DelayMax.TotalMilliseconds;
 
         if (delayMin == 0 || delayMax == 0)
             return;
 
-        var scrapTimeout = new Random().Next(delayMin, delayMax);
-        var delay = scrapTimeout - (int)lastScrapDuration.TotalMilliseconds;
+        var delay = (new Random().Next(delayMin, delayMax)) - lastScrapDuration.TotalMilliseconds;
 
         if (delay <= 0)
             return;
 
         try
         {
-            await Task.Delay(delay, cancellationToken);
+            await Task.Delay(TimeSpan.FromMilliseconds(delay), cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            if (!cancellationToken.IsCancellationRequested)
+                throw;
+        }
+    }
+
+    private async Task DelayBeforeNextRetry(CancellationToken cancellationToken)
+    {
+        // The interval between retries grows exponentially
+        var interval = (int)config.RetryInterval.TotalMilliseconds;
+        var delay = interval * Math.Pow(config.RetryBackoffRate, numberOfFailedTries - 1);
+
+        if (delay <= 0)
+            return;
+
+        try
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(delay), cancellationToken);
         }
         catch (OperationCanceledException)
         {

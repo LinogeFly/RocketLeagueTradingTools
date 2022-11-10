@@ -1,14 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using RocketLeagueTradingTools.Core.Application;
-using RocketLeagueTradingTools.Core.Application.Scraping;
-using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Common;
+using RocketLeagueTradingTools.Core.Application;
+using RocketLeagueTradingTools.Core.Application.Interfaces;
+using RocketLeagueTradingTools.Core.Application.Scraping;
 using RocketLeagueTradingTools.Infrastructure.Common;
 using RocketLeagueTradingTools.Infrastructure.Persistence;
 using RocketLeagueTradingTools.Infrastructure.TradeOffers;
 using RocketLeagueTradingTools.Scraper.Infrastructure;
 
-static class HostConfiguration
+namespace RocketLeagueTradingTools.Scraper;
+
+internal static class HostConfiguration
 {
     public static IHost Configure(this IHostBuilder hostBuilder)
     {

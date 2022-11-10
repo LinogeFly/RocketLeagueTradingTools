@@ -1,9 +1,11 @@
-using RocketLeagueTradingTools.Infrastructure.Common;
 using RocketLeagueTradingTools.Common;
 using RocketLeagueTradingTools.Core.Application;
 using RocketLeagueTradingTools.Core.Application.Scraping;
+using RocketLeagueTradingTools.Infrastructure.Common;
 
-class Jobs
+namespace RocketLeagueTradingTools.Scraper;
+
+internal static class Jobs
 {
     public static void ExitKeyPressWaiting(CancellationTokenSource tokenSource)
     {

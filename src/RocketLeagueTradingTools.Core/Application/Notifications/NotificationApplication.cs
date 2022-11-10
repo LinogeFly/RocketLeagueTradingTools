@@ -5,21 +5,15 @@ namespace RocketLeagueTradingTools.Core.Application.Notifications;
 
 public class NotificationApplication
 {
-    private readonly ILog log;
     private readonly IPersistenceRepository persistence;
-    private readonly IDateTime dateTime;
     private readonly INotificationApplicationSettings config;
 
     public NotificationApplication(
         IPersistenceRepository persistence,
-        IDateTime dateTime,
-        INotificationApplicationSettings config,
-        ILog log)
+        INotificationApplicationSettings config)
     {
         this.persistence = persistence;
-        this.dateTime = dateTime;
         this.config = config;
-        this.log = log;
     }
 
     public async Task<IList<Notification>> GetNotifications(int pageSize)

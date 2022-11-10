@@ -1,4 +1,5 @@
 using RocketLeagueTradingTools.Core.Application.Interfaces;
+using RocketLeagueTradingTools.Scraper;
 
 using var host = Host
     .CreateDefaultBuilder(args)

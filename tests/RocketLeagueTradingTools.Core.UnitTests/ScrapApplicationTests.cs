@@ -4,6 +4,7 @@ using RocketLeagueTradingTools.Core.Application.Scraping;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Core.Domain.Entities;
 using RocketLeagueTradingTools.Core.UnitTests.Support;
+using FluentAssertions.Extensions;
 
 namespace RocketLeagueTradingTools.Core.UnitTests;
 
@@ -26,23 +27,77 @@ public class ScrapApplicationTests
         persistence = new Mock<IPersistenceRepository>();
 
         config = new Mock<IScrapApplicationSettings>();
-        config.Setup(c => c.ScrapRetryMaxAttempts).Returns(1);
-        config.Setup(c => c.ScrapDelayMin).Returns(TimeSpan.Zero);
-        config.Setup(c => c.ScrapDelayMax).Returns(TimeSpan.Zero);
+        config.Setup(c => c.RetryMaxAttempts).Returns(0);
+        config.Setup(c => c.DelayMin).Returns(TimeSpan.Zero);
+        config.Setup(c => c.DelayMax).Returns(TimeSpan.Zero);
 
         sut = new ScrapApplication(repository.Object, persistence.Object, log.Object, config.Object);
     }
 
     [Test]
-    public async Task InfiniteScrap_should_retry_downloading_after_number_for_unsuccessful_attempts_before_stopping()
+    public void InfiniteScrap_should_have_a_delay_between_scraps()
     {
-        config.Setup(c => c.ScrapRetryMaxAttempts).Returns(3);
+        var expectedDelay = 200.Milliseconds();
+
+        config.Setup(c => c.DelayMin).Returns(expectedDelay);
+        config.Setup(c => c.DelayMax).Returns(expectedDelay);
+        repository.SetupSequence(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new TradeOffersPage())
+            .ThrowsAsync(new OperationCanceledException());
+
+        var act = async () =>
+        {
+            await sut.InfiniteScrap(cancellationToken);
+        };
+
+        act.ExecutionTime().Should().BeCloseTo(expectedDelay, 100.Milliseconds());
+    }
+
+    [TestCase(0)]
+    [TestCase(1)]
+    public async Task InfiniteScrap_should_retry_number_of_times_before_stopping(int maxRetryAttempts)
+    {
+        config.Setup(c => c.RetryMaxAttempts).Returns(maxRetryAttempts);
         repository.Setup(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new HttpRequestException());
 
         await sut.InfiniteScrap(cancellationToken);
 
-        repository.Verify(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()), Times.Exactly(3));
+        repository.Verify(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()), Times.Exactly(maxRetryAttempts + 1));
+        log.Verify(logger => logger.Error(It.IsAny<string>()), Times.Exactly(maxRetryAttempts + 1));
+    }
+
+    [Test]
+    public void InfiniteScrap_should_only_allow_zero_or_more_max_retry_attempts_configuration()
+    {
+        config.Setup(c => c.RetryMaxAttempts).Returns(-1);
+        repository.Setup(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException());
+
+        var act = () =>
+        {
+            sut = new ScrapApplication(repository.Object, persistence.Object, log.Object, config.Object);
+        };
+
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Test]
+    public void InfiniteScrap_should_have_exponentially_increased_delay_between_retries()
+    {
+        config.Setup(c => c.RetryMaxAttempts).Returns(2);
+        config.Setup(c => c.RetryInterval).Returns(200.Milliseconds());
+        config.Setup(c => c.RetryBackoffRate).Returns(2);
+
+        repository.Setup(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new HttpRequestException());
+
+        var act = async () =>
+        {
+            await sut.InfiniteScrap(cancellationToken);
+        };
+
+        act.ExecutionTime().Should().BeCloseTo(600.Milliseconds(), 100.Milliseconds());
     }
 
     [Test]
@@ -325,7 +380,7 @@ public class ScrapApplicationTests
         var firstScrapDate = new DateTime(2022, 1, 1);
         var secondScrapDate = firstScrapDate.AddSeconds(10);
 
-        config.Setup(c => c.ScrapRetryMaxAttempts).Returns(2);
+        config.Setup(c => c.RetryMaxAttempts).Returns(1);
         repository.SetupSequence(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new TradeOffersPage
             {

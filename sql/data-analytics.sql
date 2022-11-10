@@ -22,9 +22,9 @@ SELECT
 FROM SellOffers
 WHERE
 	ScrapedDate > datetime('now', '-5 days')
-	AND Name = "Nomster"
-	AND Color = "Lime"
-	AND ItemType = "Goal Explosion"
+	AND Name = "Hellfire"
+	--AND Color = "Lime"
+	--AND ItemType = "Goal Explosion"
 GROUP BY
 	Name, Color, Price, ItemType, SourceId
 ORDER BY
