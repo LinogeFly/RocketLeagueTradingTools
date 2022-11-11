@@ -7,14 +7,28 @@ ON
 	AND o.Price <= a.PriceTo
 
 	
-SELECT * FROM SellOffers
-WHERE
-	Name = "Fennec"
-	
-	
 UPDATE SellOffers
 SET
-	ScrapedDate = datetime('now', '-2 hours')
+	ScrapedDate = datetime('now')
+WHERE
+	Name = "Hellfire"
+	
+	
+UPDATE Alerts
+SET
+	Enabled = "No"
+WHERE
+	ItemName = "Fennec"
+	
+	
+DELETE FROM SellOffers
+WHERE
+	Name = "Dingo"
+	
+	
+DELETE FROM Alerts
+WHERE
+	Name = "Dingo"
 	
 	
 SELECT sum(cnt) as offers_count FROM (

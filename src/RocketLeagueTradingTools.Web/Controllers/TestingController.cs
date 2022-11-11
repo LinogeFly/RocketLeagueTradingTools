@@ -26,8 +26,8 @@ public class TestingController : ControllerBase
         this.mapper = mapper;
     }
 
-    [HttpPost("offers/seed")]
-    public async Task<ActionResult> OffersSeed(TradeOfferRequest request)
+    [HttpPost("offers/clone")]
+    public async Task<ActionResult> OffersClone(TradeOfferRequest request)
     {
         var age = request.Age.ToTimeSpan();
         var offers = new List<TradeOffer>();
@@ -54,7 +54,7 @@ public class TestingController : ControllerBase
 
         return Ok();
     }
-
+    
     [HttpPost("alerts/seed")]
     public async Task<ActionResult> AlertsSeed()
     {
@@ -76,9 +76,17 @@ public class TestingController : ControllerBase
             new (AlertOfferType.Sell, "Sub-Zero", 60) {Certification = "*"},
             new (AlertOfferType.Sell, "Singularity", 50) {Certification = "*"},
             new (AlertOfferType.Sell, "Buffy-Sugo", 1100) {Certification = "*"},
+            new (AlertOfferType.Sell, "Heatwave", 290) {Certification = "*"},
+            new (AlertOfferType.Sell, "Beach Party", 400) {Certification = "*"},
             new (AlertOfferType.Sell, "Nomster", 50) {Certification = "*", Color = "Sky Blue", ItemType = AlertItemType.GoalExplosion},
             new (AlertOfferType.Sell, "Ion", 300) {Certification = "*", Color = "Titanium White"},
             new (AlertOfferType.Sell, "Ion", 110) {Certification = "*", Color = "Lime"},
+            new (AlertOfferType.Sell, "Ion", 100) {Certification = "*", Color = "+"},
+            new (AlertOfferType.Sell, "Ninja Star", 40) {Certification = "*", Color = "+"},
+            new (AlertOfferType.Sell, "Fennec", 1400) {Certification = "*", Color = "Titanium White"},
+            new (AlertOfferType.Sell, "Merc", 60) {Certification = "*", Color = "Titanium White"},
+            new (AlertOfferType.Sell, "Endo", 200) {Certification = "*", Color = "Titanium White"},
+            new (AlertOfferType.Sell, "OEM", 500) {Certification = "*", Color = "Black"}
         };
 
         foreach (var alert in alerts)

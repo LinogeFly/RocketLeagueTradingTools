@@ -58,7 +58,11 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Id", "ItemName", "Enabled", "OfferType", "PriceFrom", "PriceTo", "ItemType", "Color", "Certification");
+                    b.HasIndex("ItemName");
+
+                    b.HasIndex("PriceFrom");
+
+                    b.HasIndex("PriceTo");
 
                     b.ToTable("Alerts", (string)null);
                 });
@@ -101,7 +105,11 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Id", "Name", "ScrapedDate", "Price", "ItemType", "Color", "Certification");
+                    b.HasIndex("Name");
+
+                    b.HasIndex("Price");
+
+                    b.HasIndex("ScrapedDate");
 
                     b.ToTable("BuyOffers", (string)null);
                 });
@@ -150,7 +158,9 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Id", "CreatedDate", "TradeOfferScrapedDate");
+                    b.HasIndex("CreatedDate");
+
+                    b.HasIndex("TradeOfferScrapedDate");
 
                     b.ToTable("Notifications", (string)null);
                 });
@@ -193,7 +203,11 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Id", "Name", "ScrapedDate", "Price", "ItemType", "Color", "Certification");
+                    b.HasIndex("Name");
+
+                    b.HasIndex("Price");
+
+                    b.HasIndex("ScrapedDate");
 
                     b.ToTable("SellOffers", (string)null);
                 });

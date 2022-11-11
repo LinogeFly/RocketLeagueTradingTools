@@ -14,6 +14,7 @@ var token = tokenSource.Token;
 // The thread is a background thread and will be terminated automatically once the main thread finishes.
 var waitForExitKeyPressTask = Task.Run(() =>
 {
+    // ReSharper disable once AccessToDisposedClosure
     Jobs.ExitKeyPressWaiting(tokenSource);
 });
 

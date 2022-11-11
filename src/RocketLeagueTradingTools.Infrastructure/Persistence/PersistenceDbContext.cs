@@ -16,54 +16,23 @@ public class PersistenceDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<PersistedBuyOffer>()
-            .ToTable("BuyOffers")
-            .HasIndex(p => new
-            {
-                p.Id,
-                p.Name,
-                p.ScrapedDate,
-                p.Price,
-                p.ItemType,
-                p.Color,
-                p.Certification
-            });
+        modelBuilder.Entity<PersistedBuyOffer>().ToTable("BuyOffers");
+        modelBuilder.Entity<PersistedBuyOffer>().HasIndex(o => o.Name);
+        modelBuilder.Entity<PersistedBuyOffer>().HasIndex(o => o.ScrapedDate);
+        modelBuilder.Entity<PersistedBuyOffer>().HasIndex(o => o.Price);
 
-        modelBuilder.Entity<PersistedSellOffer>()
-            .ToTable("SellOffers")
-            .HasIndex(p => new
-            {
-                p.Id,
-                p.Name,
-                p.ScrapedDate,
-                p.Price,
-                p.ItemType,
-                p.Color,
-                p.Certification
-            });
+        modelBuilder.Entity<PersistedSellOffer>().ToTable("SellOffers");
+        modelBuilder.Entity<PersistedSellOffer>().HasIndex(o => o.Name);
+        modelBuilder.Entity<PersistedSellOffer>().HasIndex(o => o.ScrapedDate);
+        modelBuilder.Entity<PersistedSellOffer>().HasIndex(o => o.Price);
 
-        modelBuilder.Entity<PersistedAlert>()
-            .ToTable("Alerts")
-            .HasIndex(p => new
-            {
-                p.Id,
-                p.ItemName,
-                p.Enabled,
-                p.OfferType,
-                p.PriceFrom,
-                p.PriceTo,
-                p.ItemType,
-                p.Color,
-                p.Certification
-            });
+        modelBuilder.Entity<PersistedAlert>().ToTable("Alerts");
+        modelBuilder.Entity<PersistedAlert>().HasIndex(a => a.ItemName);
+        modelBuilder.Entity<PersistedAlert>().HasIndex(p => p.PriceFrom);
+        modelBuilder.Entity<PersistedAlert>().HasIndex(p => p.PriceTo);
 
-        modelBuilder.Entity<PersistedNotification>()
-            .ToTable("Notifications")
-            .HasIndex(p => new
-            {
-                p.Id,
-                p.CreatedDate,
-                p.TradeOfferScrapedDate
-            });
+        modelBuilder.Entity<PersistedNotification>().ToTable("Notifications");
+        modelBuilder.Entity<PersistedNotification>().HasIndex(n => n.CreatedDate);
+        modelBuilder.Entity<PersistedNotification>().HasIndex(n => n.TradeOfferScrapedDate);
     }
 }

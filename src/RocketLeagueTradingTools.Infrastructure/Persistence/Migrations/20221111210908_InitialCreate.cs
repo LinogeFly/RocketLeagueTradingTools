@@ -93,24 +93,59 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Alerts_Id_ItemName_Enabled_OfferType_PriceFrom_PriceTo_ItemType_Color_Certification",
+                name: "IX_Alerts_ItemName",
                 table: "Alerts",
-                columns: new[] { "Id", "ItemName", "Enabled", "OfferType", "PriceFrom", "PriceTo", "ItemType", "Color", "Certification" });
+                column: "ItemName");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BuyOffers_Id_Name_ScrapedDate_Price_ItemType_Color_Certification",
+                name: "IX_Alerts_PriceFrom",
+                table: "Alerts",
+                column: "PriceFrom");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Alerts_PriceTo",
+                table: "Alerts",
+                column: "PriceTo");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BuyOffers_Name",
                 table: "BuyOffers",
-                columns: new[] { "Id", "Name", "ScrapedDate", "Price", "ItemType", "Color", "Certification" });
+                column: "Name");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Notifications_Id_CreatedDate_TradeOfferScrapedDate",
+                name: "IX_BuyOffers_Price",
+                table: "BuyOffers",
+                column: "Price");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BuyOffers_ScrapedDate",
+                table: "BuyOffers",
+                column: "ScrapedDate");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_CreatedDate",
                 table: "Notifications",
-                columns: new[] { "Id", "CreatedDate", "TradeOfferScrapedDate" });
+                column: "CreatedDate");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SellOffers_Id_Name_ScrapedDate_Price_ItemType_Color_Certification",
+                name: "IX_Notifications_TradeOfferScrapedDate",
+                table: "Notifications",
+                column: "TradeOfferScrapedDate");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SellOffers_Name",
                 table: "SellOffers",
-                columns: new[] { "Id", "Name", "ScrapedDate", "Price", "ItemType", "Color", "Certification" });
+                column: "Name");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SellOffers_Price",
+                table: "SellOffers",
+                column: "Price");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SellOffers_ScrapedDate",
+                table: "SellOffers",
+                column: "ScrapedDate");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
