@@ -200,6 +200,17 @@ public class PersistenceRepository : IPersistenceRepository
 
         await dbContext.SaveChangesAsync();
     }
+    
+    public async Task MarkAllNotificationAsSeen()
+    {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+        await dbContext.Notifications
+            .Where(n => n.SeenDate == null)
+            .ForEachAsync(n => n.SeenDate = dateTime.Now);
+
+        await dbContext.SaveChangesAsync();
+    }
 
     public async Task DeleteOldNotifications(TimeSpan maxAge)
     {

@@ -2,11 +2,11 @@ namespace RocketLeagueTradingTools.Core.Domain.Entities;
 
 public sealed class TradeOffer
 {
-    public TradeItem Item { get; set; }
-    public int Price { get; set; }
-    public DateTime ScrapedDate { get; set; }
-    public string SourceId { get; set; }
-    public string Link { get; set; }
+    public TradeItem Item { get; }
+    public int Price { get; }
+    public DateTime ScrapedDate { get; }
+    public string SourceId { get; }
+    public string Link { get; }
 
     public TradeOffer(TradeItem item, int price, DateTime scrapedDate, string sourceId, string link)
     {

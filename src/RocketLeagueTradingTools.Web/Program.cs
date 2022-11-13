@@ -22,7 +22,7 @@ builder.Host.ConfigureAppConfiguration((context, config) =>
 // Add services to the container.
 
 builder.Services
-    .AddControllersWithViews()
+    .AddControllers()
     .AddJsonOptions(opt =>
     {
         opt.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
@@ -53,7 +53,6 @@ using (var scope = app.Services.CreateScope())
 
 app.UseStaticFiles();
 app.UseRouting();
-
 
 app.MapControllerRoute(
     name: "default",

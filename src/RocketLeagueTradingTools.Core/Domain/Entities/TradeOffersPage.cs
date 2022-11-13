@@ -2,8 +2,8 @@ namespace RocketLeagueTradingTools.Core.Domain.Entities;
 
 public sealed class TradeOffersPage
 {
-    public IList<TradeOffer> BuyOffers { get; set; } = new List<TradeOffer>();
-    public IList<TradeOffer> SellOffers { get; set; } = new List<TradeOffer>();
+    public IList<TradeOffer> BuyOffers { get; init; } = new List<TradeOffer>();
+    public IList<TradeOffer> SellOffers { get; init; } = new List<TradeOffer>();
 
     public override bool Equals(object? obj)
     {

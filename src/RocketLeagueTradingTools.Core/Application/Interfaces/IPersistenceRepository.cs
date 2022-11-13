@@ -19,5 +19,6 @@ public interface IPersistenceRepository
     Task<IList<Notification>> GetNotifications(TimeSpan notOlderThan);
     Task AddNotifications(IList<Notification> notifications);
     Task MarkNotificationAsSeen(int id);
+    Task MarkAllNotificationAsSeen();
     Task DeleteOldNotifications(TimeSpan maxAge);
 }

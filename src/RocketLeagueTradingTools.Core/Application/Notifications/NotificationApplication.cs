@@ -31,11 +31,16 @@ public class NotificationApplication
             await persistence.AddNotifications(newNotifications);
     }
 
-    public async Task MarkNotificationAsSeen(int id)
+    public async Task MarkAsSeen(int id)
     {
         await persistence.MarkNotificationAsSeen(id);
     }
-
+    
+    public async Task MarkAllAsSeen()
+    {
+        await persistence.MarkAllNotificationAsSeen();
+    }
+    
     private async Task<IEnumerable<Notification>> GetAlertMatchingOfferNotifications()
     {
         var offers = await persistence.FindAlertMatchingOffers(config.AlertOfferMaxAge);

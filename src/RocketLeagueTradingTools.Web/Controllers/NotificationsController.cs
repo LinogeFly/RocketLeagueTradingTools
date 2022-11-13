@@ -33,8 +33,16 @@ public class NotificationsController : ControllerBase
     [HttpPatch("{id:int}")]
     public async Task<ActionResult> Patch(int id, NotificationPatchRequest request)
     {
-        if (request.MarkAsSeen != null && request.MarkAsSeen == true)
-            await notificationApplication.MarkNotificationAsSeen(id);
+        if (request.MarkAsSeen is true)
+            await notificationApplication.MarkAsSeen(id);
+
+        return Ok();
+    }
+    
+    [HttpPost("mark-all-as-seen")]
+    public async Task<ActionResult> MarkAllAsSeen()
+    {
+        await notificationApplication.MarkAllAsSeen();
 
         return Ok();
     }

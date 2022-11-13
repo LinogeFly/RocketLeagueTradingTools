@@ -9,7 +9,6 @@
 
 ### Web
 
-- Fix the issue with notifications becoming "new" right after they are marked as seen by clicking "Mark as seen" link.
 - Show offer type in notification boxes.
 - Implement paging or infinite scroll for notifications.
 
