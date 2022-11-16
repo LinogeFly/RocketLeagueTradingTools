@@ -1,3 +1,5 @@
+using RocketLeagueTradingTools.Common;
+using RocketLeagueTradingTools.Core.Domain.Enumerations;
 using RocketLeagueTradingTools.Core.Domain.ValueObjects;
 
 namespace RocketLeagueTradingTools.Core.Domain.Entities;
@@ -16,6 +18,9 @@ public sealed class Alert
 
     public Alert(AlertOfferType offerType, string itemName, PriceRange price)
     {
+        if (itemName.IsEmpty())
+            throw new ArgumentException($"{nameof(itemName)} is required.");
+        
         OfferType = offerType;
         ItemName = itemName;
         Price = price;
@@ -27,26 +32,4 @@ public sealed class Alert
         ItemName = itemName;
         Price = new PriceRange(priceTo);
     }
-}
-
-public enum AlertOfferType
-{
-    Buy,
-    Sell
-}
-
-public enum AlertItemType
-{
-    Any,
-    Body,
-    Decal,
-    PaintFinish,
-    Wheels,
-    RocketBoost,
-    Topper,
-    Antenna,
-    GoalExplosion,
-    Trail,
-    Banner,
-    AvatarBorder
 }

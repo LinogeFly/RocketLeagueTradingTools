@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Moq;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
-using RocketLeagueTradingTools.Core.Domain.Entities;
+using RocketLeagueTradingTools.Core.Domain.Enumerations;
 using RocketLeagueTradingTools.Infrastructure.Common;
 using RocketLeagueTradingTools.Infrastructure.TradeOffers;
 using RocketLeagueTradingTools.Infrastructure.UnitTests.DataSource.Support.Rlg;
@@ -26,25 +26,6 @@ public class RlgDataSourceTests
         dateTime.SetupGet(d => d.Now).Returns(DateTime.UtcNow);
 
         sut = new RlgDataSource(httpClient.Object, new Mock<ILog>().Object, dateTime.Object);
-    }
-
-    [Test]
-    public async Task ScrapPageAsync_buy_offer_source_id_should_be_mapped()
-    {
-        const string expected = "88c10b46-a29a-4770-8efa-0304d6be8699";
-
-        var page = new RlgPageBuilder();
-
-        page.AddTrade(expected)
-            .WithHasItem(Build.Credits(100))
-            .WithWantsItem(Build.RlgItem("Hellfire"));
-
-        httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(() => page.Build());
-
-        var offers = await sut.GetTradeOffersPage(cancellationToken);
-
-        offers.BuyOffers.Single().SourceId.Should().Be(expected);
     }
 
     [Test]
@@ -106,6 +87,43 @@ public class RlgDataSourceTests
         offers.BuyOffers.Single().Price.Should().Be(expected);
     }
 
+    [Test]
+    public async Task ScrapPageAsync_buy_offer_trading_site_should_be_mapped()
+    {
+        var page = new RlgPageBuilder();
+
+        page.AddTrade()
+            .WithHasItem(Build.Credits(100))
+            .WithWantsItem(Build.RlgItem("Hellfire"));
+
+        httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => page.Build());
+
+        var offers = await sut.GetTradeOffersPage(cancellationToken);
+
+        offers.BuyOffers.Single().TradingSite.Should().Be(TradingSite.RocketLeagueGarage);
+    }
+    
+    [Test]
+    public async Task ScrapPageAsync_buy_offer_trader_name_should_be_mapped()
+    {
+        const string expected = "RLTrader69";
+        
+        var page = new RlgPageBuilder();
+
+        page.AddTrade()
+            .WithTraderName(expected)
+            .WithHasItem(Build.Credits(100))
+            .WithWantsItem(Build.RlgItem("Hellfire"));
+
+        httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => page.Build());
+
+        var offers = await sut.GetTradeOffersPage(cancellationToken);
+
+        offers.BuyOffers.Single().TraderName.Should().Be(expected);
+    }
+    
     [Test]
     public async Task ScrapPageAsync_buy_offer_item_name_should_be_mapped()
     {
@@ -201,25 +219,6 @@ public class RlgDataSourceTests
     }
 
     [Test]
-    public async Task ScrapPageAsync_sell_offer_source_id_should_be_mapped()
-    {
-        const string expected = "88c10b46-a29a-4770-8efa-0304d6be8699";
-
-        var page = new RlgPageBuilder();
-
-        page.AddTrade(expected)
-            .WithHasItem(Build.RlgItem("Hellfire"))
-            .WithWantsItem(Build.Credits(100));
-
-        httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(() => page.Build());
-
-        var offers = await sut.GetTradeOffersPage(cancellationToken);
-
-        offers.SellOffers.Single().SourceId.Should().Be(expected);
-    }
-
-    [Test]
     public async Task ScrapPageAsync_sell_offer_link_should_be_mapped()
     {
         const string offerId = "88c10b46-a29a-4770-8efa-0304d6be8699";
@@ -278,6 +277,43 @@ public class RlgDataSourceTests
         offers.SellOffers.Single().Price.Should().Be(expected);
     }
 
+    [Test]
+    public async Task ScrapPageAsync_sell_offer_trading_site_should_be_mapped()
+    {
+        var page = new RlgPageBuilder();
+
+        page.AddTrade()
+            .WithHasItem(Build.RlgItem("Hellfire"))
+            .WithWantsItem(Build.Credits(100));
+
+        httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => page.Build());
+
+        var offers = await sut.GetTradeOffersPage(cancellationToken);
+
+        offers.SellOffers.Single().TradingSite.Should().Be(TradingSite.RocketLeagueGarage);
+    }
+    
+    [Test]
+    public async Task ScrapPageAsync_sell_offer_trader_name_should_be_mapped()
+    {
+        const string expected = "RLTrader69";
+        
+        var page = new RlgPageBuilder();
+
+        page.AddTrade()
+            .WithTraderName(expected)
+            .WithHasItem(Build.RlgItem("Hellfire"))
+            .WithWantsItem(Build.Credits(100));
+
+        httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => page.Build());
+
+        var offers = await sut.GetTradeOffersPage(cancellationToken);
+
+        offers.SellOffers.Single().TraderName.Should().Be(expected);
+    }
+    
     [Test]
     public async Task ScrapPageAsync_sell_offer_item_name_should_be_mapped()
     {

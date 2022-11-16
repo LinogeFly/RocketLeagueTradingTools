@@ -3,6 +3,7 @@ using Moq;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Core.Application.Notifications;
 using RocketLeagueTradingTools.Core.Domain.Entities;
+using RocketLeagueTradingTools.Core.Domain.Enumerations;
 using RocketLeagueTradingTools.Core.UnitTests.Support;
 
 namespace RocketLeagueTradingTools.Core.UnitTests;
@@ -30,6 +31,8 @@ public class NotificationApplicationTests
     {
         var tradeOffer = new TradeOfferBuilder()
             .WithTradeItem(Build.TradeItem("Hellfire"))
+            .WithPrice(100)
+            .WithRlgId("1")
             .Build();
 
         persistence.Setup(p => p.GetNotifications(It.IsAny<int>())).ReturnsAsync(new List<Notification>
@@ -47,6 +50,8 @@ public class NotificationApplicationTests
     {
         var tradeOffer = new TradeOfferBuilder()
             .WithTradeItem(Build.TradeItem("Hellfire"))
+            .WithPrice(100)
+            .WithRlgId("1")
             .Build();
 
         persistence.Setup(p => p.GetNotifications(It.IsAny<TimeSpan>())).ReturnsAsync(new List<Notification>());

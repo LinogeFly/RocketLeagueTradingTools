@@ -1,14 +1,20 @@
+using RocketLeagueTradingTools.Common;
+using RocketLeagueTradingTools.Core.Domain.Enumerations;
+
 namespace RocketLeagueTradingTools.Core.Domain.Entities;
 
 public sealed class TradeItem
 {
     public string Name { get; }
-    public TradeItemType ItemType { get; set; }
-    public string Color { get; set; } = "";
-    public string Certification { get; set; } = "";
+    public TradeItemType ItemType { get; init; }
+    public string Color { get; init; } = "";
+    public string Certification { get; init; } = "";
 
     public TradeItem(string name)
     {
+        if (name.IsEmpty())
+            throw new ArgumentException($"{nameof(name)} is required.");
+        
         Name = name;
     }
 

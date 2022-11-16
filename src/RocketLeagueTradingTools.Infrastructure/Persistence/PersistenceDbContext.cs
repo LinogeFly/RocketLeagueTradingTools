@@ -9,6 +9,7 @@ public class PersistenceDbContext : DbContext
     public DbSet<PersistedSellOffer> SellOffers { get; set; } = null!;
     public DbSet<PersistedAlert> Alerts { get; set; } = null!;
     public DbSet<PersistedNotification> Notifications { get; set; } = null!;
+    public DbSet<PersistedBlacklistedTrader> BlacklistedTraders { get; set; } = null!;
 
     public PersistenceDbContext(DbContextOptions<PersistenceDbContext> options) : base(options)
     {
@@ -17,12 +18,12 @@ public class PersistenceDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<PersistedBuyOffer>().ToTable("BuyOffers");
-        modelBuilder.Entity<PersistedBuyOffer>().HasIndex(o => o.Name);
+        modelBuilder.Entity<PersistedBuyOffer>().HasIndex(o => o.ItemName);
         modelBuilder.Entity<PersistedBuyOffer>().HasIndex(o => o.ScrapedDate);
         modelBuilder.Entity<PersistedBuyOffer>().HasIndex(o => o.Price);
 
         modelBuilder.Entity<PersistedSellOffer>().ToTable("SellOffers");
-        modelBuilder.Entity<PersistedSellOffer>().HasIndex(o => o.Name);
+        modelBuilder.Entity<PersistedSellOffer>().HasIndex(o => o.ItemName);
         modelBuilder.Entity<PersistedSellOffer>().HasIndex(o => o.ScrapedDate);
         modelBuilder.Entity<PersistedSellOffer>().HasIndex(o => o.Price);
 
@@ -34,5 +35,9 @@ public class PersistenceDbContext : DbContext
         modelBuilder.Entity<PersistedNotification>().ToTable("Notifications");
         modelBuilder.Entity<PersistedNotification>().HasIndex(n => n.CreatedDate);
         modelBuilder.Entity<PersistedNotification>().HasIndex(n => n.TradeOfferScrapedDate);
+
+        modelBuilder.Entity<PersistedBlacklistedTrader>().ToTable("Blacklist")
+            .HasIndex(b => new { b.TradingSite, b.TraderName })
+            .IsUnique();
     }
 }

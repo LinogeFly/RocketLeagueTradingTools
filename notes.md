@@ -4,12 +4,15 @@
 
 ### Core
 
+- Refactor domain models. For example, some classes should be converted to VO type.
 - Add more unit tests for persistence repository mapping.
-- Add a possibility to blacklist traders, so notifications for their trades are not created.
+- Remove AutoMapper usage.
+- Combine BuyOffers and SellOffers into one TradeOffers table. Then make one-to-one relationship between Notifications and TradeOffers tables.
 
 ### Web
 
 - Show offer type in notification boxes.
+- Custom CSS component for notification items.
 - Implement paging or infinite scroll for notifications.
 
 ### Own custom logo

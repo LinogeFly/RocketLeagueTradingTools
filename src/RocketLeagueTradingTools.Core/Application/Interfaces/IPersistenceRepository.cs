@@ -21,4 +21,8 @@ public interface IPersistenceRepository
     Task MarkNotificationAsSeen(int id);
     Task MarkAllNotificationAsSeen();
     Task DeleteOldNotifications(TimeSpan maxAge);
+    
+    Task<IList<BlacklistedTrader>> GetBlacklistedTraders();
+    Task AddBlacklistedTrader(BlacklistedTrader trader);
+    Task DeleteBlacklistedTrader(int id);
 }

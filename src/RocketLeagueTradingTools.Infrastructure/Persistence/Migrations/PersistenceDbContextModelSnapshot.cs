@@ -67,6 +67,28 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                     b.ToTable("Alerts", (string)null);
                 });
 
+            modelBuilder.Entity("RocketLeagueTradingTools.Infrastructure.Persistence.Models.PersistedBlacklistedTrader", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("TraderName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TradingSite")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TradingSite", "TraderName")
+                        .IsUnique();
+
+                    b.ToTable("Blacklist", (string)null);
+                });
+
             modelBuilder.Entity("RocketLeagueTradingTools.Infrastructure.Persistence.Models.PersistedBuyOffer", b =>
                 {
                     b.Property<int>("Id")
@@ -81,15 +103,15 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ItemName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("ItemType")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Link")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -99,13 +121,17 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("ScrapedDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("SourceId")
+                    b.Property<string>("TraderName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TradingSite")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name");
+                    b.HasIndex("ItemName");
 
                     b.HasIndex("Price");
 
@@ -152,7 +178,11 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("TradeOfferScrapedDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("TradeOfferSourceId")
+                    b.Property<string>("TraderName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TradingSite")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -179,15 +209,15 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ItemName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("ItemType")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Link")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -197,13 +227,17 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("ScrapedDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("SourceId")
+                    b.Property<string>("TraderName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TradingSite")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name");
+                    b.HasIndex("ItemName");
 
                     b.HasIndex("Price");
 

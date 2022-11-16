@@ -24,7 +24,7 @@ internal static class HostConfiguration
             })
             .ConfigureServices((context, services) =>
             {
-                services.AddSQLiteDbContext(context.Configuration); // Created as a singleton internally
+                services.AddSingletonSqliteDbContext(context.Configuration);
                 services.AddSingleton(typeof(ILogger), typeof(Logger<Program>));
                 services.AddSingleton<ILog, Log>();
                 services.AddSingleton<IHttp, Http>();

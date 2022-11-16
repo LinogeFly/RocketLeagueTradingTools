@@ -31,14 +31,19 @@ builder.Services
         );
     });
 
-builder.Services.AddSQLiteDbContext(builder.Configuration); // Created as a singleton internally
+builder.Services.AddSingletonSqliteDbContext(builder.Configuration); // Created as a singleton internally
 builder.Services.AddSingleton(typeof(ILogger), typeof(Logger<Program>));
 builder.Services.AddSingleton<ILog, Log>();
 builder.Services.AddSingleton<IDateTime, SystemDateTime>();
-builder.Services.AddSingleton<INotificationApplicationSettings, NotificationApplicationSettings>();
 builder.Services.AddScoped<IPersistenceRepository, PersistenceRepository>();
+
+// Applications
 builder.Services.AddScoped<AlertApplication>();
 builder.Services.AddScoped<NotificationApplication>();
+builder.Services.AddSingleton<INotificationApplicationSettings, NotificationApplicationSettings>();
+builder.Services.AddScoped<BlacklistApplication>();
+
+// AutoMapper
 builder.Services.AddSingleton<DomainToDtoProfile.TradeOfferAgeResolver>();
 builder.Services.AddAutoMapper(typeof(Program));
 

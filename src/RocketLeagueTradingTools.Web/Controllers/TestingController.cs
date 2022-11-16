@@ -4,6 +4,7 @@ using RocketLeagueTradingTools.Web.Models.Testing;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Common;
 using AutoMapper;
+using RocketLeagueTradingTools.Core.Domain.Enumerations;
 using RocketLeagueTradingTools.Web.Models.Common;
 
 namespace RocketLeagueTradingTools.Web.Controllers;
@@ -40,8 +41,9 @@ public class TestingController : ControllerBase
                 Map(request),
                 request.Price,
                 dateTime.Now.Add(-age),
-                id,
-                $"https://rocket-league.com/trade/{id}"
+                $"https://rocket-league.com/trade/{id}",
+                TradingSite.RocketLeagueGarage,
+                request.TraderName
             );
 
             offers.Add(offer);
@@ -92,6 +94,23 @@ public class TestingController : ControllerBase
         foreach (var alert in alerts)
         {
             await persistence.AddAlert(alert);
+        }
+
+        return Ok();
+    }
+
+    [HttpPost("blacklist/seed")]
+    public async Task<ActionResult> BlacklistSeed(int count)
+    {
+        if (count == 0)
+            return BadRequest($"Parameter {nameof(count)} has to be greater than 0.");
+        
+        for (int i = 0; i < count; i++)
+        {
+            var traderName = Guid.NewGuid().ToString();
+            var trader = new BlacklistedTrader(TradingSite.RocketLeagueGarage, traderName);
+            
+            await persistence.AddBlacklistedTrader(trader);
         }
 
         return Ok();

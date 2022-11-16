@@ -1,8 +1,12 @@
 ﻿using AutoMapper;
-using RocketLeagueTradingTools.Web.Models.Common;
-using RocketLeagueTradingTools.Web.Models.Alert;
-using RocketLeagueTradingTools.Web.Models.Notification;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
+using RocketLeagueTradingTools.Core.Domain.Entities;
+using RocketLeagueTradingTools.Core.Domain.Enumerations;
+using RocketLeagueTradingTools.Core.Domain.ValueObjects;
+using RocketLeagueTradingTools.Web.Models.Alert;
+using RocketLeagueTradingTools.Web.Models.Blacklist;
+using RocketLeagueTradingTools.Web.Models.Common;
+using RocketLeagueTradingTools.Web.Models.Notification;
 
 namespace RocketLeagueTradingTools.Web.Mapping;
 
@@ -10,18 +14,32 @@ public class DomainToDtoProfile : Profile
 {
     public DomainToDtoProfile()
     {
-        CreateMap<Core.Domain.ValueObjects.PriceRange, PriceRangeDto>();
+        CreateMap<PriceRange, PriceRangeDto>();
 
-        CreateMap<Core.Domain.Entities.Alert, AlertDto>();
+        CreateMap<Alert, AlertDto>();
 
-        CreateMap<Core.Domain.Entities.Notification, NotificationDto>()
+        CreateMap<Notification, NotificationDto>()
             .ForMember(dest => dest.ItemName, opt => opt.MapFrom(src => src.TradeOffer.Item.Name))
             .ForMember(dest => dest.ItemPrice, opt => opt.MapFrom(src => src.TradeOffer.Price))
             .ForMember(dest => dest.IsNew, opt => opt.MapFrom(src => src.SeenDate == null))
             .ForMember(dest => dest.TradeOfferAge, opt => opt.MapFrom<TradeOfferAgeResolver>());
+
+        CreateMap<BlacklistedTrader, BlacklistedTraderDto>()
+            .ForMember(dest => dest.TradingSite, opt => opt.MapFrom(src => Map(src.TradingSite)));
     }
 
-    public class TradeOfferAgeResolver : IValueResolver<Core.Domain.Entities.Notification, NotificationDto, string>
+    private string Map(TradingSite tradingSite)
+    {
+        switch (tradingSite)
+        {
+            case TradingSite.RocketLeagueGarage:
+                return "RLG";
+            default:
+                throw new InvalidOperationException($"Invalid trading site '{tradingSite}'.");
+        }
+    }
+
+    public class TradeOfferAgeResolver : IValueResolver<Notification, NotificationDto, string>
     {
         private readonly IDateTime dateTime;
 
@@ -30,22 +48,23 @@ public class DomainToDtoProfile : Profile
             this.dateTime = dateTime;
         }
 
-        public string Resolve(Core.Domain.Entities.Notification source, NotificationDto dest, string destMember, ResolutionContext context)
+        public string Resolve(Notification source, NotificationDto dest, string destMember, ResolutionContext context)
         {
             var age = dateTime.Now - source.TradeOffer.ScrapedDate;
 
-            if (age.Hours == 1)
-                return $"{age.Hours} hour";
             if (age.Hours > 1)
                 return $"{age.Hours} hours";
-            if (age.Minutes == 1)
-                return $"{age.Minutes} minute";
+            if (age.Hours == 1)
+                return $"{age.Hours} hour";
             if (age.Minutes > 1)
                 return $"{age.Minutes} minutes";
-            if (age.Seconds == 1)
-                return $"{age.Minutes} second";
+            if (age.Minutes == 1)
+                return $"{age.Minutes} minute";
+            if (age.Seconds > 1)
+                return $"{age.Seconds} seconds";
 
-            return $"{age.Seconds} seconds";
+            // Combining one and less than one into "1 second", as we don't want to have "0 seconds" age.
+            return "1 second";
         }
     }
 }

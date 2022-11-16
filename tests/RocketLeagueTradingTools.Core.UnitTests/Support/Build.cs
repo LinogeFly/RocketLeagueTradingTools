@@ -1,4 +1,5 @@
 using RocketLeagueTradingTools.Core.Domain.Entities;
+using RocketLeagueTradingTools.Core.Domain.Enumerations;
 
 namespace RocketLeagueTradingTools.Core.UnitTests.Support;
 

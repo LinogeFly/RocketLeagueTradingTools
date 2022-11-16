@@ -7,7 +7,7 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence;
 
 public static class ServiceCollectionExtensions
 {
-    public static void AddSQLiteDbContext(this IServiceCollection services, IConfiguration config)
+    public static void AddSingletonSqliteDbContext(this IServiceCollection services, IConfiguration config)
     {
         var homePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         var appPath = Path.Combine(homePath, ".RocketLeagueTradingTools");

@@ -10,21 +10,21 @@ namespace RocketLeagueTradingTools.Web.Controllers;
 [Route("api/[controller]")]
 public class AlertsController : ControllerBase
 {
-    private readonly AlertApplication alertApplication;
+    private readonly AlertApplication app;
     private readonly IMapper mapper;
 
     public AlertsController(
-        AlertApplication alertApplication,
+        AlertApplication app,
         IMapper mapper)
     {
-        this.alertApplication = alertApplication;
+        this.app = app;
         this.mapper = mapper;
     }
 
     [HttpGet]
     public async Task<ActionResult<IList<AlertDto>>> Get()
     {
-        var alerts = await alertApplication.GetAlerts();
+        var alerts = await app.GetAlerts();
 
         return Ok(mapper.Map<List<AlertDto>>(alerts));
     }
@@ -34,7 +34,7 @@ public class AlertsController : ControllerBase
     {
         var alert = mapper.Map<Alert>(alertRequest);
 
-        await alertApplication.AddAlert(alert);
+        await app.AddAlert(alert);
 
         return Ok();
     }
@@ -45,7 +45,7 @@ public class AlertsController : ControllerBase
         var alert = mapper.Map<Alert>(alertRequest);
         alert.Id = id;
 
-        await alertApplication.UpdateAlert(alert);
+        await app.UpdateAlert(alert);
 
         return Ok();
     }
@@ -54,7 +54,7 @@ public class AlertsController : ControllerBase
     public async Task<ActionResult> Patch(int id, AlertPatchRequest request)
     {
         if (request.Enabled != null)
-            await alertApplication.UpdateAlertEnabledState(id, request.Enabled.Value);
+            await app.UpdateAlertEnabledState(id, request.Enabled.Value);
 
         return Ok();
     }
@@ -62,7 +62,7 @@ public class AlertsController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<ActionResult> Delete(int id)
     {
-        await alertApplication.DeleteAlert(id);
+        await app.DeleteAlert(id);
 
         return Ok();
     }

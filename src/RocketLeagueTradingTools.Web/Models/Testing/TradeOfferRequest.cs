@@ -20,6 +20,9 @@ public sealed class TradeOfferRequest
 
     [Range(1, int.MaxValue)]
     public int Amount { get; set; } = 1;
+    
+    [Required]
+    public string TraderName { get; set; } = null!;
 
     public OfferItemTypeDto ItemType { get; set; }
     public string Color { get; set; } = "";

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Core.Domain.Entities;
+using RocketLeagueTradingTools.Core.Domain.Enumerations;
 using RocketLeagueTradingTools.Core.Domain.ValueObjects;
 using RocketLeagueTradingTools.Infrastructure.Persistence.Models;
 
@@ -8,8 +9,8 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence;
 
 public class PersistenceRepository : IPersistenceRepository
 {
-    private readonly IDbContextFactory<PersistenceDbContext> dbContextFactory;
     private readonly IDateTime dateTime;
+    private readonly IDbContextFactory<PersistenceDbContext> dbContextFactory;
 
     public PersistenceRepository(
         IDbContextFactory<PersistenceDbContext> dbContextFactory,
@@ -96,7 +97,7 @@ public class PersistenceRepository : IPersistenceRepository
             PriceTo = alert.Price.To,
             ItemType = MapAlertItemType(alert.ItemType),
             Color = alert.Color,
-            Certification = alert.Certification,
+            Certification = alert.Certification
         });
 
         await dbContext.SaveChangesAsync();
@@ -173,10 +174,11 @@ public class PersistenceRepository : IPersistenceRepository
                 TradeItemType = MapTradeItemType(n.TradeOffer.Item.ItemType),
                 TradeItemColor = n.TradeOffer.Item.Color,
                 TradeItemCertification = n.TradeOffer.Item.Certification,
-                TradeOfferSourceId = n.TradeOffer.SourceId,
                 TradeOfferLink = n.TradeOffer.Link,
                 TradeOfferPrice = n.TradeOffer.Price,
                 TradeOfferScrapedDate = n.TradeOffer.ScrapedDate,
+                TradingSite = Map(n.TradeOffer.TradingSite),
+                TraderName = n.TradeOffer.TraderName,
                 CreatedDate = dateTime.Now
             }
         ));
@@ -187,7 +189,7 @@ public class PersistenceRepository : IPersistenceRepository
     public async Task MarkNotificationAsSeen(int id)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync();
-        
+
         var persistedItem = await dbContext.Notifications.SingleOrDefaultAsync(x => x.Id == id);
 
         if (persistedItem == null)
@@ -200,7 +202,7 @@ public class PersistenceRepository : IPersistenceRepository
 
         await dbContext.SaveChangesAsync();
     }
-    
+
     public async Task MarkAllNotificationAsSeen()
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync();
@@ -223,11 +225,47 @@ public class PersistenceRepository : IPersistenceRepository
         await dbContext.SaveChangesAsync();
     }
 
+    public async Task<IList<BlacklistedTrader>> GetBlacklistedTraders()
+    {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+        var items = await dbContext.BlacklistedTraders.ToListAsync();
+
+        return items.Select(Map).ToList();
+    }
+
+    public async Task AddBlacklistedTrader(BlacklistedTrader trader)
+    {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+        dbContext.BlacklistedTraders.Add(new PersistedBlacklistedTrader
+        {
+            TraderName = trader.Name,
+            TradingSite = Map(trader.TradingSite)
+        });
+
+        await dbContext.SaveChangesAsync();
+    }
+
+    public async Task DeleteBlacklistedTrader(int id)
+    {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+        var itemToDelete = await dbContext.BlacklistedTraders.SingleOrDefaultAsync(x => x.Id == id);
+
+        if (itemToDelete == null)
+            throw new InvalidOperationException("Blacklisted trader not found.");
+
+        dbContext.BlacklistedTraders.Remove(itemToDelete);
+
+        await dbContext.SaveChangesAsync();
+    }
+
     private IQueryable<T> GetAlertMatchingOffersQuery<T>(PersistenceDbContext dbContext, DbSet<T> offers, TimeSpan alertOfferMaxAge) where T : PersistedTradeOffer
     {
         return
             from o in offers
-            join a in dbContext.Alerts on o.Name.ToLower() equals a.ItemName.ToLower()
+            join a in dbContext.Alerts on o.ItemName.ToLower() equals a.ItemName.ToLower()
             where
                 a.Enabled == BoolToString(true) &&
                 a.OfferType == GetAlertOfferTypeFor(typeof(T)) &&
@@ -236,7 +274,12 @@ public class PersistenceRepository : IPersistenceRepository
                 o.Price <= a.PriceTo &&
                 (a.ItemType == "*" || o.ItemType.ToLower() == a.ItemType.ToLower()) &&
                 (a.Color == "*" || o.Color.ToLower() == a.Color.ToLower() || (a.Color == "+" && o.Color != "")) &&
-                (a.Certification == "*" || o.Certification.ToLower() == a.Certification.ToLower() || (a.Certification == "+" && o.Certification != ""))
+                (a.Certification == "*" || o.Certification.ToLower() == a.Certification.ToLower() || (a.Certification == "+" && o.Certification != "")) &&
+                !(
+                    from b in dbContext.BlacklistedTraders
+                    where b.TradingSite == o.TradingSite
+                    select b.TraderName
+                ).Contains(o.TraderName)
             select o;
     }
 
@@ -254,20 +297,21 @@ public class PersistenceRepository : IPersistenceRepository
     {
         return new T
         {
-            SourceId = offer.SourceId,
             Link = offer.Link,
             ScrapedDate = offer.ScrapedDate,
-            Name = offer.Item.Name,
+            ItemName = offer.Item.Name,
             Price = offer.Price,
             ItemType = MapTradeItemType(offer.Item.ItemType),
             Color = offer.Item.Color,
-            Certification = offer.Item.Certification
+            Certification = offer.Item.Certification,
+            TradingSite = Map(offer.TradingSite),
+            TraderName = offer.TraderName
         };
     }
 
     private TradeOffer Map(PersistedTradeOffer offer)
     {
-        var tradeItem = new TradeItem(offer.Name)
+        var tradeItem = new TradeItem(offer.ItemName)
         {
             ItemType = MapTradeItemType(offer.ItemType),
             Color = offer.Color,
@@ -279,8 +323,9 @@ public class PersistenceRepository : IPersistenceRepository
             tradeItem,
             offer.Price,
             offer.ScrapedDate,
-            offer.SourceId,
-            offer.Link
+            offer.Link,
+            Map(offer.TradingSite),
+            offer.TraderName
         );
     }
 
@@ -315,8 +360,9 @@ public class PersistenceRepository : IPersistenceRepository
             tradeItem,
             notification.TradeOfferPrice,
             notification.TradeOfferScrapedDate,
-            notification.TradeOfferSourceId,
-            notification.TradeOfferLink
+            notification.TradeOfferLink,
+            Map(notification.TradingSite),
+            notification.TraderName
         );
 
         return new Notification(tradeOffer)
@@ -494,5 +540,35 @@ public class PersistenceRepository : IPersistenceRepository
     private string BoolToString(bool value)
     {
         return value ? "Yes" : "No";
+    }
+
+    private TradingSite Map(string site)
+    {
+        switch (site.ToLower())
+        {
+            case "rlg":
+                return TradingSite.RocketLeagueGarage;
+            default:
+                throw new NotSupportedException($"Not supported trading site '{site}'.");
+        }
+    }
+
+    private string Map(TradingSite site)
+    {
+        switch (site)
+        {
+            case TradingSite.RocketLeagueGarage:
+                return "RLG";
+            default:
+                throw new NotSupportedException($"Not supported trading site '{site}'.");
+        }
+    }
+
+    private BlacklistedTrader Map(PersistedBlacklistedTrader trader)
+    {
+        return new BlacklistedTrader(Map(trader.TradingSite), trader.TraderName)
+        {
+            Id = trader.Id
+        };
     }
 }

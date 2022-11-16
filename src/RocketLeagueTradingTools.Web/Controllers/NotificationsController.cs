@@ -9,23 +9,23 @@ namespace RocketLeagueTradingTools.Web.Controllers;
 [Route("api/[controller]")]
 public class NotificationsController : ControllerBase
 {
-    private readonly NotificationApplication notificationApplication;
+    private readonly NotificationApplication app;
     private readonly IMapper mapper;
 
     public NotificationsController(
-        NotificationApplication notificationApplication,
+        NotificationApplication app,
         IMapper mapper)
     {
-        this.notificationApplication = notificationApplication;
+        this.app = app;
         this.mapper = mapper;
     }
 
     [HttpGet]
     public async Task<ActionResult<IList<NotificationDto>>> Get(int pageSize = 20)
     {
-        await notificationApplication.RefreshNotifications();
+        await app.RefreshNotifications();
 
-        var notifications = await notificationApplication.GetNotifications(pageSize);
+        var notifications = await app.GetNotifications(pageSize);
 
         return Ok(mapper.Map<List<NotificationDto>>(notifications));
     }
@@ -34,7 +34,7 @@ public class NotificationsController : ControllerBase
     public async Task<ActionResult> Patch(int id, NotificationPatchRequest request)
     {
         if (request.MarkAsSeen is true)
-            await notificationApplication.MarkAsSeen(id);
+            await app.MarkNotificationAsSeen(id);
 
         return Ok();
     }
@@ -42,7 +42,7 @@ public class NotificationsController : ControllerBase
     [HttpPost("mark-all-as-seen")]
     public async Task<ActionResult> MarkAllAsSeen()
     {
-        await notificationApplication.MarkAllAsSeen();
+        await app.MarkAllNotificationsAsSeen();
 
         return Ok();
     }

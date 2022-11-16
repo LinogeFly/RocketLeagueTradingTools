@@ -2,6 +2,7 @@ using HtmlAgilityPack;
 using HtmlAgilityPack.CssSelectors.NetCore;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Core.Domain.Entities;
+using RocketLeagueTradingTools.Core.Domain.Enumerations;
 using RocketLeagueTradingTools.Core.Domain.Exceptions;
 using RocketLeagueTradingTools.Infrastructure.Common;
 
@@ -83,8 +84,9 @@ public class RlgDataSource
                 GetTradeItemFromTradeItemElement(wantsItemElement),
                 GetPriceFromTradeItemElement(hasItemElement),
                 dateTime.Now,
-                GetIdFromTradeElement(tradeNode),
-                GetLinkFromTradeElement(tradeNode)
+                GetLinkFromTradeElement(tradeNode),
+                TradingSite.RocketLeagueGarage,
+                GetTraderNameFromTradeElement(tradeNode)
             );
         }
     }
@@ -110,8 +112,9 @@ public class RlgDataSource
                 GetTradeItemFromTradeItemElement(hasItemElement),
                 GetPriceFromTradeItemElement(wantsItemElement),
                 dateTime.Now,
-                GetIdFromTradeElement(tradeNode),
-                GetLinkFromTradeElement(tradeNode)
+                GetLinkFromTradeElement(tradeNode),
+                TradingSite.RocketLeagueGarage,
+                GetTraderNameFromTradeElement(tradeNode)
             );
         }
     }
@@ -131,11 +134,6 @@ public class RlgDataSource
         return false;
     }
 
-    private string GetIdFromTradeElement(HtmlNode tradeNode)
-    {
-        return tradeNode.QuerySelector(".rlg-trade__bookmark").Attributes["data-alias"].Value;
-    }
-
     private string GetLinkFromTradeElement(HtmlNode tradeNode)
     {
         return "https://rocket-league.com/" + tradeNode.QuerySelector(".rlg-trade__action.--comments").Attributes["href"].Value.TrimStart('/');
@@ -149,6 +147,11 @@ public class RlgDataSource
     private static IList<HtmlNode> GetWantsItemsElementsFromTradeElement(HtmlNode tradeNode)
     {
         return tradeNode.QuerySelectorAll(".rlg-trade__itemswants .rlg-item");
+    }
+    
+    private static string GetTraderNameFromTradeElement(HtmlNode tradeNode)
+    {
+        return tradeNode.QuerySelector(".rlg-trade__meta .rlg-trade__username").GetDirectInnerText().Trim();
     }
 
     private bool IsNotOneItemTradeItemElement(HtmlNode tradeItemNode)
@@ -201,19 +204,15 @@ public class RlgDataSource
     private string GetColorFromTradeItemElement(HtmlNode tradeItemNode)
     {
         var paintElement = tradeItemNode.QuerySelector(".rlg-item__paint");
-        if (paintElement != null)
-            return paintElement.InnerText.Trim();
-
-        return "";
+        
+        return paintElement != null ? paintElement.InnerText.Trim() : "";
     }
 
     private string GetCertificationFromTradeItemElement(HtmlNode tradeItemNode)
     {
         var certElement = tradeItemNode.QuerySelector(".rlg-item__text .rlg-item__cert");
-        if (certElement != null)
-            return certElement.InnerText.Trim();
-
-        return "";
+        
+        return certElement != null ? certElement.InnerText.Trim() : "";
     }
 
     private TradeItemType GetItemTypeFromTradeItemElement(HtmlNode tradeItemNode)
@@ -228,30 +227,33 @@ public class RlgDataSource
             return TradeItemType.Unknown;
         }
 
-        if (link.ToLower().StartsWith("/items/bodies/"))
-            return TradeItemType.Body;
-        if (link.ToLower().StartsWith("/items/decals/"))
-            return TradeItemType.Decal;
-        if (link.ToLower().StartsWith("/items/paints/"))
-            return TradeItemType.PaintFinish;
-        if (link.ToLower().StartsWith("/items/wheels/"))
-            return TradeItemType.Wheels;
-        if (link.ToLower().StartsWith("/items/boosts/"))
-            return TradeItemType.RocketBoost;
-        if (link.ToLower().StartsWith("/items/toppers/"))
-            return TradeItemType.Topper;
-        if (link.ToLower().StartsWith("/items/antennas/"))
-            return TradeItemType.Antenna;
-        if (link.ToLower().StartsWith("/items/explosions/"))
-            return TradeItemType.GoalExplosion;
-        if (link.ToLower().StartsWith("/items/trails/"))
-            return TradeItemType.Trail;
-        if (link.ToLower().StartsWith("/items/banners/"))
-            return TradeItemType.Banner;
-        if (link.ToLower().StartsWith("/items/borders/"))
-            return TradeItemType.AvatarBorder;
-
-        return TradeItemType.Unknown;
+        switch (link.ToLower())
+        {
+            case var s when s.StartsWith("/items/bodies/"):
+                return TradeItemType.Body;
+            case var s when s.StartsWith("/items/decals/"):
+                return TradeItemType.Decal;
+            case var s when s.StartsWith("/items/paints/"):
+                return TradeItemType.PaintFinish;
+            case var s when s.StartsWith("/items/wheels/"):
+                return TradeItemType.Wheels;
+            case var s when s.StartsWith("/items/boosts/"):
+                return TradeItemType.RocketBoost;
+            case var s when s.StartsWith("/items/toppers/"):
+                return TradeItemType.Topper;
+            case var s when s.StartsWith("/items/antennas/"):
+                return TradeItemType.Antenna;
+            case var s when s.StartsWith("/items/explosions/"):
+                return TradeItemType.GoalExplosion;
+            case var s when s.StartsWith("/items/trails/"):
+                return TradeItemType.Trail;
+            case var s when s.StartsWith("/items/banners/"):
+                return TradeItemType.Banner;
+            case var s when s.StartsWith("/items/borders/"):
+                return TradeItemType.AvatarBorder;
+            default:
+                return TradeItemType.Unknown;
+        }        
     }
 
     private static bool ContainsOnlyOneForOneTypeOfOffers(HtmlNode tradeNode)
@@ -262,10 +264,7 @@ public class RlgDataSource
         var hasItemsElements = GetHasItemsElementsFromTradeElement(tradeNode);
         var wantsItemsElements = GetWantsItemsElementsFromTradeElement(tradeNode);
 
-        if (hasItemsElements.Count == wantsItemsElements.Count)
-            return true;
-
-        return false;
+        return hasItemsElements.Count == wantsItemsElements.Count;
     }
 
     private static bool HasNoItemOrItemTypeOfOffers(HtmlNode tradeNode)

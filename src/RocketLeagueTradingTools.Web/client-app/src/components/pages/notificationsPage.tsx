@@ -203,7 +203,7 @@ function NotificationsPage() {
                     const isNewClass = isNew(notification) ? 'list-group-item-primary' : '';
 
                     return (
-                        <li className={`list-group-item ${isNewClass}`} key={notification.id}>
+                        <li className={`list-group-item mb-2 ${isNewClass}`} key={notification.id}>
                             <div className="d-flex mb-2">
                                 <div className="me-auto"><strong>{notification.itemName}</strong> for {notification.itemPrice} credits is matching a trade offer alert.</div>
                                 <div className="ms-4"><small className="text-nowrap">{notification.tradeOfferAge} ago</small></div>

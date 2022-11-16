@@ -1,8 +1,8 @@
-namespace RocketLeagueTradingTools.Core.Domain.Entities;
+namespace RocketLeagueTradingTools.Core.Domain.Enumerations;
 
-public enum TradeItemType
+public enum AlertItemType
 {
-    Unknown,
+    Any,
     Body,
     Decal,
     PaintFinish,

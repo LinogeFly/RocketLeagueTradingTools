@@ -1,4 +1,5 @@
 using RocketLeagueTradingTools.Core.Domain.Entities;
+using RocketLeagueTradingTools.Core.Domain.Enumerations;
 
 namespace RocketLeagueTradingTools.Core.UnitTests.Support;
 
@@ -7,12 +8,13 @@ class TradeOfferBuilder
     private TradeItem tradeItem = null!;
     private int price;
     private DateTime scrapedDate;
-    private string sourceId = "";
     private string link = "";
+    private TradingSite tradingSite;
 
-    public TradeOfferBuilder WithTradeItem(TradeItem item)
+    public TradeOfferBuilder WithTradeItem(TradeItem tradeItem)
     {
-        this.tradeItem = item;
+        this.tradeItem = tradeItem;
+        this.scrapedDate = DateTime.UtcNow;
 
         return this;
     }
@@ -33,8 +35,8 @@ class TradeOfferBuilder
 
     public TradeOfferBuilder WithRlgId(string sourceId)
     {
-        this.sourceId = sourceId;
         this.link = $"https://rocket-league.com/trade/{sourceId}";
+        this.tradingSite = TradingSite.RocketLeagueGarage;
 
         return this;
     }
@@ -46,8 +48,9 @@ class TradeOfferBuilder
             tradeItem,
             price,
             scrapedDate,
-            sourceId,
-            link
+            link,
+            tradingSite,
+            nameof(TradeOfferBuilder)
         );
     }
 }

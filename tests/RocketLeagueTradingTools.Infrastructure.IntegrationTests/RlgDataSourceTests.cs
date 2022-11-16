@@ -3,6 +3,7 @@ using RocketLeagueTradingTools.Infrastructure.Common;
 using Moq;
 using FluentAssertions;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
+using RocketLeagueTradingTools.Core.Domain.Enumerations;
 
 namespace RocketLeagueTradingTools.Infrastructure.IntegrationTests;
 
@@ -41,16 +42,18 @@ public class RlgDataSourceTests
 
         offersPage.BuyOffers.Count.Should().BeGreaterThan(0);
         offersPage.BuyOffers.Count.Should().BeLessThanOrEqualTo(400);
-        offersPage.BuyOffers.First().SourceId.Should().NotBeEmpty();
         offersPage.BuyOffers.First().Link.Should().StartWith("https://rocket-league.com/trade/");
         offersPage.BuyOffers.First().Item.Name.Should().NotBeEmpty();
         offersPage.BuyOffers.First().Price.Should().BeGreaterThan(0);
+        offersPage.BuyOffers.First().TradingSite.Should().Be(TradingSite.RocketLeagueGarage);
+        offersPage.BuyOffers.First().TraderName.Should().NotBeEmpty();
         offersPage.SellOffers.Count.Should().BeGreaterThan(0);
         offersPage.SellOffers.Count.Should().BeLessThanOrEqualTo(400);
-        offersPage.SellOffers.First().SourceId.Should().NotBeEmpty();
         offersPage.SellOffers.First().Link.Should().StartWith("https://rocket-league.com/trade/");
         offersPage.SellOffers.First().Item.Name.Should().NotBeEmpty();
         offersPage.SellOffers.First().Price.Should().BeGreaterThan(0);
+        offersPage.SellOffers.First().TradingSite.Should().Be(TradingSite.RocketLeagueGarage);
+        offersPage.SellOffers.First().TraderName.Should().NotBeEmpty();
     }
 
     [Test]

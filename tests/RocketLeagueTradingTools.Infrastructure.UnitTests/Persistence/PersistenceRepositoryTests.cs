@@ -3,7 +3,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
-using RocketLeagueTradingTools.Core.Domain.Entities;
+using RocketLeagueTradingTools.Core.Domain.Enumerations;
 using RocketLeagueTradingTools.Infrastructure.Persistence;
 using RocketLeagueTradingTools.Infrastructure.Persistence.Models;
 using RocketLeagueTradingTools.Infrastructure.UnitTests.Persistence.Support;
@@ -49,22 +49,21 @@ public class PersistenceRepositoryTests
     [Test]
     public async Task GetNotifications_should_return_notifications_with_trade_offer_mapped()
     {
-        dbContext.AddRange(new PersistedNotification
-        {
-            Id = 1,
-            TradeItemName = "Fennec",
-            TradeItemType = "Body",
-            TradeOfferSourceId = "1",
-            TradeOfferLink = "https://rocket-league.com/trade/1",
-            TradeOfferPrice = 300,
-            TradeOfferScrapedDate = new DateTime(2022, 1, 1)
-        });
+        dbContext.AddRange(Build.DefaultNotification()
+            .With(n =>
+            {
+                n.TradeItemName = "Fennec";
+                n.TradeItemType = "Body";
+                n.TradeOfferLink = "https://rocket-league.com/trade/88c10b46-a29a-4770-8efa-0304d6be8699";
+                n.TradeOfferPrice = 300;
+                n.TradeOfferScrapedDate = new DateTime(2022, 1, 1);
+            })
+        );
         await dbContext.SaveChangesAsync();
 
         var tradeOffer = (await sut.GetNotifications(20)).Single().TradeOffer;
 
-        tradeOffer.SourceId.Should().Be("1");
-        tradeOffer.Link.Should().Be("https://rocket-league.com/trade/1");
+        tradeOffer.Link.Should().Be("https://rocket-league.com/trade/88c10b46-a29a-4770-8efa-0304d6be8699");
         tradeOffer.Price.Should().Be(300);
         tradeOffer.ScrapedDate.Should().Be(new DateTime(2022, 1, 1));
     }
@@ -72,16 +71,17 @@ public class PersistenceRepositoryTests
     [Test]
     public async Task GetNotifications_should_return_notifications_that_has_trade_offer_with_trade_item_mapped()
     {
-        dbContext.AddRange(new PersistedNotification
-        {
-            Id = 1,
-            TradeItemName = "Fennec",
-            TradeItemType = "Body",
-            TradeItemColor = "Orange",
-            TradeItemCertification = "Aviator",
-            TradeOfferPrice = 450,
-            CreatedDate = new DateTime(2022, 1, 1)
-        });
+        dbContext.AddRange(Build.DefaultNotification()
+            .With(n =>
+            {
+                n.TradeItemName = "Fennec";
+                n.TradeItemType = "Body";
+                n.TradeItemColor = "Orange";
+                n.TradeItemCertification = "Aviator";
+                n.TradeOfferPrice = 300;
+                n.TradeOfferScrapedDate = new DateTime(2022, 1, 1);
+            })
+        );
         await dbContext.SaveChangesAsync();
 
         var tradeItem = (await sut.GetNotifications(20)).Single().TradeOffer.Item;
@@ -95,20 +95,22 @@ public class PersistenceRepositoryTests
     [Test]
     public async Task GetNotifications_should_return_notifications_page()
     {
-        dbContext.AddRange(new PersistedNotification
-        {
-            Id = 1,
-            TradeItemName = "Hellfire",
-            TradeOfferPrice = 100,
-            CreatedDate = new DateTime(2022, 1, 1)
-        },
-        new PersistedNotification
-        {
-            Id = 2,
-            TradeItemName = "Supernova III",
-            TradeOfferPrice = 90,
-            CreatedDate = new DateTime(2022, 1, 1)
-        });
+        dbContext.AddRange(Build.DefaultNotification()
+            .With(n =>
+            {
+                n.Id = 1;
+                n.TradeItemName = "Hellfire";
+                n.TradeOfferPrice = 100;
+                n.CreatedDate = new DateTime(2022, 1, 1);
+            }), Build.DefaultNotification()
+            .With(n =>
+            {
+                n.Id = 2;
+                n.TradeItemName = "Supernova III";
+                n.TradeOfferPrice = 90;
+                n.CreatedDate = new DateTime(2022, 1, 1);  
+            })
+        );
         await dbContext.SaveChangesAsync();
 
         var notifications = await sut.GetNotifications(1);
@@ -119,22 +121,24 @@ public class PersistenceRepositoryTests
     [Test]
     public async Task GetNotifications_should_return_notifications_ordered_by_scraped_date_newest_first()
     {
-        dbContext.AddRange(new PersistedNotification
-        {
-            Id = 1,
-            TradeItemName = "Hellfire",
-            TradeOfferPrice = 100,
-            CreatedDate = new DateTime(2022, 1, 2),
-            TradeOfferScrapedDate = new DateTime(2022, 1, 1, 12, 0, 0)
-        },
-        new PersistedNotification
-        {
-            Id = 2,
-            TradeItemName = "Supernova III",
-            TradeOfferPrice = 90,
-            CreatedDate = new DateTime(2022, 1, 2),
-            TradeOfferScrapedDate = new DateTime(2022, 1, 1, 13, 0, 0)
-        });
+        dbContext.AddRange(Build.DefaultNotification()
+            .With(n =>
+            {
+                n.Id = 1;
+                n.TradeItemName = "Hellfire";
+                n.TradeOfferPrice = 100;
+                n.CreatedDate = new DateTime(2022, 1, 2);
+                n.TradeOfferScrapedDate = new DateTime(2022, 1, 1, 12, 0, 0);
+            }), Build.DefaultNotification()
+            .With(n =>
+            {
+                n.Id = 2;
+                n.TradeItemName = "Supernova III";
+                n.TradeOfferPrice = 90;
+                n.CreatedDate = new DateTime(2022, 1, 2);
+                n.TradeOfferScrapedDate = new DateTime(2022, 1, 1, 13, 0, 0); 
+            })
+        );
         await dbContext.SaveChangesAsync();
 
         var notifications = await sut.GetNotifications(1);
@@ -146,55 +150,28 @@ public class PersistenceRepositoryTests
     [Test]
     public async Task GetNotifications_should_not_return_expired_notifications()
     {
-        dbContext.AddRange(new PersistedNotification
-        {
-            Id = 1,
-            TradeItemName = "Hellfire",
-            TradeOfferPrice = 100,
-            CreatedDate = DateTime.UtcNow.AddHours(-2)
-        },
-        new PersistedNotification
-        {
-            Id = 2,
-            TradeItemName = "Supernova III",
-            TradeOfferPrice = 90,
-            CreatedDate = DateTime.UtcNow
-        });
+        dbContext.AddRange(Build.DefaultNotification()
+            .With(n =>
+            {
+                n.Id = 1;
+                n.TradeItemName = "Hellfire";
+                n.TradeOfferPrice = 100;
+                n.CreatedDate = DateTime.UtcNow.AddHours(-2);
+            }), Build.DefaultNotification()
+            .With(n =>
+            {
+                n.Id = 2;
+                n.TradeItemName = "Supernova III";
+                n.TradeOfferPrice = 90;
+                n.CreatedDate = DateTime.UtcNow;
+            })
+        );
         await dbContext.SaveChangesAsync();
 
         var notifications = await sut.GetNotifications(TimeSpan.FromHours(1));
 
         notifications.Count.Should().Be(1);
         notifications.Single().TradeOffer.Item.Name.Should().Be("Supernova III");
-    }
-
-    [TestCase("Buy")]
-    [TestCase("Sell")]
-    public async Task FindAlertMatchingOffers_should_return_offer_matches_with_source_id_mapped(string alertOfferType)
-    {
-        const string expectedSourceId = "1";
-
-        dbContext.AddRange(new PersistedAlert
-        {
-            OfferType = alertOfferType,
-            ItemName = "Hellfire",
-            PriceFrom = 150,
-            PriceTo = 10000
-        });
-        dbContext.AddRange(Build.PersistedOffer(alertOfferType)
-            .With(o =>
-            {
-                o.Name = "Hellfire";
-                o.Price = 150;
-                o.SourceId = expectedSourceId;
-                o.ScrapedDate = DateTime.UtcNow;
-            })
-        );
-        await dbContext.SaveChangesAsync();
-
-        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
-
-        offers.Single().SourceId.Should().Be(expectedSourceId);
     }
 
     [TestCase("Buy")]
@@ -210,10 +187,10 @@ public class PersistenceRepositoryTests
             PriceFrom = 150,
             PriceTo = 10000
         });
-        dbContext.AddRange(Build.PersistedOffer(alertOfferType)
+        dbContext.AddRange(Build.DefaultOffer(alertOfferType)
             .With(o =>
             {
-                o.Name = "Hellfire";
+                o.ItemName = "Hellfire";
                 o.Price = 150;
                 o.Link = expectedLink;
                 o.ScrapedDate = DateTime.UtcNow;
@@ -243,10 +220,10 @@ public class PersistenceRepositoryTests
             PriceFrom = 150,
             PriceTo = 10000
         });
-        dbContext.AddRange(Build.PersistedOffer(alertOfferType)
+        dbContext.AddRange(Build.DefaultOffer(alertOfferType)
             .With(o =>
             {
-                o.Name = "Hellfire";
+                o.ItemName = "Hellfire";
                 o.Price = 150;
                 o.Color = expectedItemColor;
                 o.Certification = expectedItemCertification;
@@ -294,10 +271,10 @@ public class PersistenceRepositoryTests
             PriceFrom = 100,
             PriceTo = 150
         });
-        dbContext.AddRange(Build.PersistedOffer(alertOfferType)
+        dbContext.AddRange(Build.DefaultOffer(alertOfferType)
             .With(o =>
             {
-                o.Name = "Item";
+                o.ItemName = "Item";
                 o.Price = 100;
                 o.ItemType = persistedItemType;
                 o.ScrapedDate = DateTime.UtcNow;
@@ -323,10 +300,10 @@ public class PersistenceRepositoryTests
             PriceFrom = 150,
             PriceTo = 10000
         });
-        dbContext.AddRange(Build.PersistedOffer(alertOfferType)
+        dbContext.AddRange(Build.DefaultOffer(alertOfferType)
             .With(o =>
             {
-                o.Name = "Hellfire";
+                o.ItemName = "Hellfire";
                 o.Price = expectedPrice;
                 o.ScrapedDate = DateTime.UtcNow;
             })
@@ -351,10 +328,10 @@ public class PersistenceRepositoryTests
             PriceFrom = 150,
             PriceTo = 10000
         });
-        dbContext.AddRange(Build.PersistedOffer(alertOfferType)
+        dbContext.AddRange(Build.DefaultOffer(alertOfferType)
             .With(o =>
             {
-                o.Name = "Hellfire";
+                o.ItemName = "Hellfire";
                 o.Price = 150;
                 o.ScrapedDate = expectedDate;
             })
@@ -385,10 +362,10 @@ public class PersistenceRepositoryTests
             PriceFrom = 150,
             PriceTo = 10000
         });
-        dbContext.AddRange(Build.PersistedOffer(alertOfferType)
+        dbContext.AddRange(Build.DefaultOffer(alertOfferType)
             .With(o =>
             {
-                o.Name = offerName;
+                o.ItemName = offerName;
                 o.Price = 150;
                 o.ScrapedDate = DateTime.UtcNow;
             })
@@ -416,10 +393,10 @@ public class PersistenceRepositoryTests
             PriceFrom = alertPriceFrom,
             PriceTo = alertPriceTo
         });
-        dbContext.AddRange(Build.PersistedOffer(alertOfferType)
+        dbContext.AddRange(Build.DefaultOffer(alertOfferType)
             .With(o =>
             {
-                o.Name = "Hellfire";
+                o.ItemName = "Hellfire";
                 o.Price = offerPrice;
                 o.ScrapedDate = DateTime.UtcNow;
             })
@@ -459,10 +436,10 @@ public class PersistenceRepositoryTests
             PriceTo = 650,
             ItemType = alertItemType
         });
-        dbContext.AddRange(Build.PersistedOffer(alertOfferType)
+        dbContext.AddRange(Build.DefaultOffer(alertOfferType)
             .With(o =>
             {
-                o.Name = "Reaper";
+                o.ItemName = "Reaper";
                 o.Price = 650;
                 o.ItemType = offerItemType;
                 o.ScrapedDate = DateTime.UtcNow;
@@ -507,10 +484,10 @@ public class PersistenceRepositoryTests
             PriceTo = 10000,
             Color = alertColor
         });
-        dbContext.AddRange(Build.PersistedOffer(alertOfferType)
+        dbContext.AddRange(Build.DefaultOffer(alertOfferType)
             .With(o =>
             {
-                o.Name = "Hellfire";
+                o.ItemName = "Hellfire";
                 o.Price = 150;
                 o.Color = offerColor;
                 o.ScrapedDate = DateTime.UtcNow;
@@ -555,10 +532,10 @@ public class PersistenceRepositoryTests
             PriceTo = 10000,
             Certification = alertCertification
         });
-        dbContext.AddRange(Build.PersistedOffer(alertOfferType)
+        dbContext.AddRange(Build.DefaultOffer(alertOfferType)
             .With(o =>
             {
-                o.Name = "Hellfire";
+                o.ItemName = "Hellfire";
                 o.Price = 150;
                 o.Certification = offerCertification;
                 o.ScrapedDate = DateTime.UtcNow;
@@ -583,13 +560,12 @@ public class PersistenceRepositoryTests
             OfferType = alertOfferType,
             ItemName = "Hellfire",
             PriceFrom = 150,
-            PriceTo = 10000,
-            CreatedDate = now
+            PriceTo = 10000
         });
-        dbContext.AddRange(Build.PersistedOffer(alertOfferType)
+        dbContext.AddRange(Build.DefaultOffer(alertOfferType)
             .With(o =>
             {
-                o.Name = "Hellfire";
+                o.ItemName = "Hellfire";
                 o.Price = 150;
                 o.ScrapedDate = now.AddMinutes(-21);
             })
@@ -613,16 +589,48 @@ public class PersistenceRepositoryTests
             PriceTo = 10000,
             Enabled = "No"
         });
-        dbContext.AddRange(Build.PersistedOffer(alertOfferType)
+        dbContext.AddRange(Build.DefaultOffer(alertOfferType)
             .With(o =>
             {
-                o.Name = "Hellfire";
+                o.ItemName = "Hellfire";
                 o.Price = 150;
                 o.ScrapedDate = DateTime.UtcNow;
             })
         );
         await dbContext.SaveChangesAsync();
 
+        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
+
+        offers.Count.Should().Be(0);
+    }
+
+    [TestCase("Buy")]
+    [TestCase("Sell")]
+    public async Task FindAlertMatchingOffers_should_not_return_matching_offer_from_blacklisted_traders(string alertOfferType)
+    {
+        dbContext.AddRange(new PersistedAlert
+        {
+            OfferType = alertOfferType,
+            ItemName = "Hellfire",
+            PriceFrom = 150,
+            PriceTo = 10000
+        });
+        dbContext.AddRange(Build.DefaultOffer(alertOfferType)
+            .With(o =>
+            {
+                o.ItemName = "Hellfire";
+                o.Price = 150;
+                o.TradingSite = "RLG";
+                o.TraderName = "AnnoyingSpammer";
+            })
+        );
+        dbContext.AddRange(new PersistedBlacklistedTrader
+        {
+            TradingSite = "RLG",
+            TraderName = "AnnoyingSpammer"
+        });
+        await dbContext.SaveChangesAsync();
+        
         var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
 
         offers.Count.Should().Be(0);
@@ -638,10 +646,10 @@ public class PersistenceRepositoryTests
             PriceFrom = 0,
             PriceTo = 100,
         });
-        dbContext.AddRange(Build.PersistedOffer("Buy")
+        dbContext.AddRange(Build.DefaultOffer("Buy")
             .With(o =>
             {
-                o.Name = "Hellfire";
+                o.ItemName = "Hellfire";
                 o.Price = 90;
                 o.ScrapedDate = DateTime.UtcNow;
             })
@@ -664,10 +672,10 @@ public class PersistenceRepositoryTests
             PriceFrom = 150,
             PriceTo = 10000,
         });
-        dbContext.AddRange(Build.PersistedOffer("Sell")
+        dbContext.AddRange(Build.DefaultOffer("Sell")
             .With(o =>
             {
-                o.Name = "Hellfire";
+                o.ItemName = "Hellfire";
                 o.Price = 160;
                 o.ScrapedDate = DateTime.UtcNow;
             })

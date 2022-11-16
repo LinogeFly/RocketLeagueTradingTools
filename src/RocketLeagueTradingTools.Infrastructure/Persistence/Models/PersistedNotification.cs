@@ -8,9 +8,10 @@ public sealed class PersistedNotification
     public string TradeItemColor { get; set; } = "";
     public string TradeItemCertification { get; set; } = "";
     public int TradeOfferPrice { get; set; }
-    public string TradeOfferSourceId { get; set; } = "";
     public string TradeOfferLink { get; set; } = "";
     public DateTime TradeOfferScrapedDate { get; set; }
+    public string TradingSite { get; set; } = "";
+    public string TraderName { get; set; } = "";
     public DateTime CreatedDate { get; set; }
     public DateTime? SeenDate { get; set; }
 }

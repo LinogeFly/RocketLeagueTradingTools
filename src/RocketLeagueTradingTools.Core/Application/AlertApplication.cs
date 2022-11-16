@@ -7,8 +7,7 @@ public class AlertApplication
 {
     private readonly IPersistenceRepository persistence;
 
-    public AlertApplication(
-        IPersistenceRepository persistence)
+    public AlertApplication(IPersistenceRepository persistence)
     {
         this.persistence = persistence;
     }

@@ -31,12 +31,12 @@ public class NotificationApplication
             await persistence.AddNotifications(newNotifications);
     }
 
-    public async Task MarkAsSeen(int id)
+    public async Task MarkNotificationAsSeen(int id)
     {
         await persistence.MarkNotificationAsSeen(id);
     }
     
-    public async Task MarkAllAsSeen()
+    public async Task MarkAllNotificationsAsSeen()
     {
         await persistence.MarkAllNotificationAsSeen();
     }

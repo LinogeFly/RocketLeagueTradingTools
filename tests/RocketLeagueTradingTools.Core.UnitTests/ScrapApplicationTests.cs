@@ -107,11 +107,13 @@ public class ScrapApplicationTests
             .WithTradeItem(Build.TradeItem("Fennec"))
             .WithRlgId("1")
             .WithPrice(300)
+            .WithScrapedDate(DateTime.UtcNow.AddSeconds(-20))
             .Build();
         var secondOffer = new TradeOfferBuilder()
             .WithTradeItem(Build.TradeItem("Hellfire"))
             .WithRlgId("2")
             .WithPrice(100)
+            .WithScrapedDate(DateTime.UtcNow)
             .Build();
 
         repository.SetupSequence(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()))
@@ -132,11 +134,13 @@ public class ScrapApplicationTests
             .WithTradeItem(Build.TradeItem("Fennec"))
             .WithRlgId("1")
             .WithPrice(350)
+            .WithScrapedDate(DateTime.UtcNow.AddSeconds(-20))
             .Build();
         var secondOffer = new TradeOfferBuilder()
             .WithTradeItem(Build.TradeItem("Hellfire"))
             .WithRlgId("2")
             .WithPrice(150)
+            .WithScrapedDate(DateTime.UtcNow)
             .Build();
 
         repository.SetupSequence(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()))
