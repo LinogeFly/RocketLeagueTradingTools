@@ -1,23 +1,19 @@
 using System.Text;
 using RocketLeagueTradingTools.Common;
 
-namespace RocketLeagueTradingTools.Infrastructure.UnitTests.DataSource.Support.Rlg;
+namespace RocketLeagueTradingTools.Infrastructure.UnitTests.TradeOffers.Support.Rlg;
 
-class RlgItemBuilder : IHtmlBuilder
+class RlgItemBuilder
 {
     private readonly string name;
-    private readonly int quantity = 1;
+    private readonly int quantity;
     private string color = "";
     private string certification = "";
     private string itemDetailsLink = "";
 
-    public RlgItemBuilder(string name)
+    public RlgItemBuilder(string name, int quantity)
     {
         this.name = name;
-    }
-
-    public RlgItemBuilder(string name, int quantity) : this(name)
-    {
         this.quantity = quantity;
     }
 
@@ -42,7 +38,7 @@ class RlgItemBuilder : IHtmlBuilder
         return this;
     }
 
-    string IHtmlBuilder.Build()
+    public string Build()
     {
         var result = new StringBuilder();
 

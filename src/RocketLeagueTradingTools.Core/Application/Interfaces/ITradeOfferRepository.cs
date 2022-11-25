@@ -4,5 +4,5 @@ namespace RocketLeagueTradingTools.Core.Application.Interfaces;
 
 public interface ITradeOfferRepository
 {
-    Task<TradeOffersPage> GetTradeOffersPage(CancellationToken cancellationToken);
+    Task<IList<ScrapedTradeOffer>> GetTradeOffersPage(CancellationToken cancellationToken);
 }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 using RocketLeagueTradingTools.Core.Application;
-using RocketLeagueTradingTools.Core.Domain.Entities;
+using RocketLeagueTradingTools.Core.Domain.ValueObjects;
 using RocketLeagueTradingTools.Web.Models.Blacklist;
 
 namespace RocketLeagueTradingTools.Web.Controllers;
@@ -32,7 +32,7 @@ public class BlacklistController : ControllerBase
     [HttpPost]
     public async Task<ActionResult> AddBlacklistedTrader(BlacklistedTraderRequest blacklistedTraderRequest)
     {
-        var trader = mapper.Map<BlacklistedTrader>(blacklistedTraderRequest);
+        var trader = mapper.Map<Trader>(blacklistedTraderRequest);
 
         await app.AddTrader(trader);
 

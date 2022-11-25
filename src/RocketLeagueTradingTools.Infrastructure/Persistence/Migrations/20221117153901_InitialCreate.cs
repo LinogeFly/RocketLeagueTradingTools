@@ -45,13 +45,14 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "BuyOffers",
+                name: "TradeOffers",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Link = table.Column<string>(type: "TEXT", nullable: false),
                     ScrapedDate = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    OfferType = table.Column<string>(type: "TEXT", nullable: false),
                     ItemName = table.Column<string>(type: "TEXT", nullable: false),
                     ItemType = table.Column<string>(type: "TEXT", nullable: false),
                     Price = table.Column<int>(type: "INTEGER", nullable: false),
@@ -62,7 +63,7 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_BuyOffers", x => x.Id);
+                    table.PrimaryKey("PK_TradeOffers", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -71,42 +72,19 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    TradeItemName = table.Column<string>(type: "TEXT", nullable: false),
-                    TradeItemType = table.Column<string>(type: "TEXT", nullable: false),
-                    TradeItemColor = table.Column<string>(type: "TEXT", nullable: false),
-                    TradeItemCertification = table.Column<string>(type: "TEXT", nullable: false),
-                    TradeOfferPrice = table.Column<int>(type: "INTEGER", nullable: false),
-                    TradeOfferLink = table.Column<string>(type: "TEXT", nullable: false),
-                    TradeOfferScrapedDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    TradingSite = table.Column<string>(type: "TEXT", nullable: false),
-                    TraderName = table.Column<string>(type: "TEXT", nullable: false),
+                    TradeOfferId = table.Column<int>(type: "INTEGER", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "TEXT", nullable: false),
                     SeenDate = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Notifications", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "SellOffers",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Link = table.Column<string>(type: "TEXT", nullable: false),
-                    ScrapedDate = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    ItemName = table.Column<string>(type: "TEXT", nullable: false),
-                    ItemType = table.Column<string>(type: "TEXT", nullable: false),
-                    Price = table.Column<int>(type: "INTEGER", nullable: false),
-                    Color = table.Column<string>(type: "TEXT", nullable: false),
-                    Certification = table.Column<string>(type: "TEXT", nullable: false),
-                    TradingSite = table.Column<string>(type: "TEXT", nullable: false),
-                    TraderName = table.Column<string>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SellOffers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Notifications_TradeOffers_TradeOfferId",
+                        column: x => x.TradeOfferId,
+                        principalTable: "TradeOffers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -131,43 +109,28 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_BuyOffers_ItemName",
-                table: "BuyOffers",
-                column: "ItemName");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_BuyOffers_Price",
-                table: "BuyOffers",
-                column: "Price");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_BuyOffers_ScrapedDate",
-                table: "BuyOffers",
-                column: "ScrapedDate");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Notifications_CreatedDate",
                 table: "Notifications",
                 column: "CreatedDate");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Notifications_TradeOfferScrapedDate",
+                name: "IX_Notifications_TradeOfferId",
                 table: "Notifications",
-                column: "TradeOfferScrapedDate");
+                column: "TradeOfferId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SellOffers_ItemName",
-                table: "SellOffers",
+                name: "IX_TradeOffers_ItemName",
+                table: "TradeOffers",
                 column: "ItemName");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SellOffers_Price",
-                table: "SellOffers",
+                name: "IX_TradeOffers_Price",
+                table: "TradeOffers",
                 column: "Price");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SellOffers_ScrapedDate",
-                table: "SellOffers",
+                name: "IX_TradeOffers_ScrapedDate",
+                table: "TradeOffers",
                 column: "ScrapedDate");
         }
 
@@ -180,13 +143,10 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                 name: "Blacklist");
 
             migrationBuilder.DropTable(
-                name: "BuyOffers");
-
-            migrationBuilder.DropTable(
                 name: "Notifications");
 
             migrationBuilder.DropTable(
-                name: "SellOffers");
+                name: "TradeOffers");
         }
     }
 }

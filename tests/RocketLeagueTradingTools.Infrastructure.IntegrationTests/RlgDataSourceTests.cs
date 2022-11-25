@@ -31,38 +31,20 @@ public class RlgDataSourceTests
         cancellationToken = new CancellationToken();
         log = new Mock<ILog>();
 
-
         sut = new RlgDataSource(http, log.Object, dateTime.Object);
     }
 
     [Test]
     public async Task GetTradeOffersPage_should_download_trade_offers()
     {
-        var offersPage = await sut.GetTradeOffersPage(cancellationToken);
+        var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offersPage.BuyOffers.Count.Should().BeGreaterThan(0);
-        offersPage.BuyOffers.Count.Should().BeLessThanOrEqualTo(400);
-        offersPage.BuyOffers.First().Link.Should().StartWith("https://rocket-league.com/trade/");
-        offersPage.BuyOffers.First().Item.Name.Should().NotBeEmpty();
-        offersPage.BuyOffers.First().Price.Should().BeGreaterThan(0);
-        offersPage.BuyOffers.First().TradingSite.Should().Be(TradingSite.RocketLeagueGarage);
-        offersPage.BuyOffers.First().TraderName.Should().NotBeEmpty();
-        offersPage.SellOffers.Count.Should().BeGreaterThan(0);
-        offersPage.SellOffers.Count.Should().BeLessThanOrEqualTo(400);
-        offersPage.SellOffers.First().Link.Should().StartWith("https://rocket-league.com/trade/");
-        offersPage.SellOffers.First().Item.Name.Should().NotBeEmpty();
-        offersPage.SellOffers.First().Price.Should().BeGreaterThan(0);
-        offersPage.SellOffers.First().TradingSite.Should().Be(TradingSite.RocketLeagueGarage);
-        offersPage.SellOffers.First().TraderName.Should().NotBeEmpty();
-    }
-
-    [Test]
-    public async Task GetTradeOffersPage_all_trade_offers_should_have_the_same_date()
-    {
-        var offersPage = await sut.GetTradeOffersPage(cancellationToken);
-
-        var offers = offersPage.BuyOffers.Union(offersPage.SellOffers);
-
-        offers.DistinctBy(o => o.ScrapedDate).ToList().Count.Should().Be(1);
+        offers.Count.Should().BeGreaterThan(0);
+        offers.Count.Should().BeLessThanOrEqualTo(400);
+        offers.First().TradeOffer.Link.Should().StartWith("https://rocket-league.com/trade/");
+        offers.First().TradeOffer.Item.Name.Should().NotBeEmpty();
+        offers.First().TradeOffer.Price.Should().BeGreaterThan(0);
+        offers.First().TradeOffer.Trader.TradingSite.Should().Be(TradingSite.RocketLeagueGarage);
+        offers.First().TradeOffer.Trader.Name.Should().NotBeEmpty();
     }
 }

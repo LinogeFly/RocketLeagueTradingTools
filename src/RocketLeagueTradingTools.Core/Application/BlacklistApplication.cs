@@ -1,5 +1,5 @@
 ﻿using RocketLeagueTradingTools.Core.Application.Interfaces;
-using RocketLeagueTradingTools.Core.Domain.Entities;
+using RocketLeagueTradingTools.Core.Domain.ValueObjects;
 
 namespace RocketLeagueTradingTools.Core.Application;
 
@@ -12,12 +12,12 @@ public class BlacklistApplication
         this.persistence = persistence;
     }
 
-    public async Task<IList<BlacklistedTrader>> GetTraders()
+    public async Task<IList<Trader>> GetTraders()
     {
         return await persistence.GetBlacklistedTraders();
     }
 
-    public async Task AddTrader(BlacklistedTrader trader)
+    public async Task AddTrader(Trader trader)
     {
         await persistence.AddBlacklistedTrader(trader);
     }

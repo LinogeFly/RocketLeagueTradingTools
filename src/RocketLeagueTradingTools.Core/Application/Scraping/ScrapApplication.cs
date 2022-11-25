@@ -12,8 +12,7 @@ public class ScrapApplication
     private readonly ILog log;
     private readonly IScrapApplicationSettings config;
     private int numberOfFailedTries;
-    private IList<TradeOffer> previousScrapBuyOffers = new List<TradeOffer>();
-    private IList<TradeOffer> previousScrapSellOffers = new List<TradeOffer>();
+    private IList<ScrapedTradeOffer> previousScrapTradeOffers = new List<ScrapedTradeOffer>();
 
     public ScrapApplication(
         ITradeOfferRepository tradeOfferRepository,
@@ -71,23 +70,21 @@ public class ScrapApplication
             log.Trace("Downloading of trade offers finished.");
 
             // Ignore trade offers that were added in the previous scrap
-            var newBuyOffers = latestOffers.BuyOffers.Except(previousScrapBuyOffers).ToList();
-            var newSellOffers = latestOffers.SellOffers.Except(previousScrapSellOffers).ToList();
+            var newOffers = latestOffers
+                .ExceptBy(previousScrapTradeOffers.Select(p => p.TradeOffer), l => l.TradeOffer)
+                .ToList();
 
             // Not passing the cancellation token here as we don't want to terminate the persistence operation.
             // We want only to terminate the scraping when requested.
-            await persistence.AddBuyOffers(newBuyOffers);
-            await persistence.AddSellOffers(newSellOffers);
+            await persistence.AddTradeOffers(newOffers);
 
-            if (IsNotFirstRun() && LastRunDidNotFail() && !HasOverlapWithPreviousScrap(latestOffers, newBuyOffers, newSellOffers))
+            if (IsNotFirstRun() && LastRunDidNotFail() && newOffers.Count == latestOffers.Count)
                 log.Warn("No offers overlap between scraps. Scraping interval can be decreased.");
 
             numberOfFailedTries = 0;
+            previousScrapTradeOffers = latestOffers;
 
-            previousScrapBuyOffers = latestOffers.BuyOffers;
-            previousScrapSellOffers = latestOffers.SellOffers;
-
-            log.Info($"Scraped {newBuyOffers.Count + newSellOffers.Count} new offers in {scrapingWatch.ElapsedMilliseconds} ms.");
+            log.Info($"Scraped {newOffers.Count} new offers in {scrapingWatch.ElapsedMilliseconds} ms.");
         }
         catch (TradingDataServiceIsNotAvailableException ex)
         {
@@ -148,7 +145,9 @@ public class ScrapApplication
 
     private async Task DelayBeforeNextRetry(CancellationToken cancellationToken)
     {
-        // The interval between retries grows exponentially
+        // The interval between retries grows exponentially. 
+        // https://exponentialbackoffcalculator.com website can be useful for debugging/testing,
+        // as it helps to calculate timeout intervals.
         var interval = (int)config.RetryInterval.TotalMilliseconds;
         var delay = interval * Math.Pow(config.RetryBackoffRate, numberOfFailedTries - 1);
 
@@ -168,28 +167,11 @@ public class ScrapApplication
 
     private bool IsNotFirstRun()
     {
-        if (previousScrapBuyOffers.Count != 0)
-            return true;
-
-        if (previousScrapSellOffers.Count != 0)
-            return true;
-
-        return false;
+        return previousScrapTradeOffers.Count != 0;
     }
 
     private bool LastRunDidNotFail()
     {
         return numberOfFailedTries == 0;
-    }
-
-    private bool HasOverlapWithPreviousScrap(TradeOffersPage latestOffers, List<TradeOffer> newBuyOffers, List<TradeOffer> newSellOffers)
-    {
-        if (newBuyOffers.Count < latestOffers.BuyOffers.Count)
-            return true;
-
-        if (newSellOffers.Count < latestOffers.SellOffers.Count)
-            return true;
-
-        return false;
     }
 }

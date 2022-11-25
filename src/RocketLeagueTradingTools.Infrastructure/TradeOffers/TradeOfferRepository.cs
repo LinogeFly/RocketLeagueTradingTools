@@ -12,7 +12,7 @@ public class TradeOfferRepository : ITradeOfferRepository
         this.rlgDataSource = rlgDataSource;
     }
 
-    public async Task<TradeOffersPage> GetTradeOffersPage(CancellationToken cancellationToken)
+    public async Task<IList<ScrapedTradeOffer>> GetTradeOffersPage(CancellationToken cancellationToken)
     {
         return await rlgDataSource.GetTradeOffersPage(cancellationToken);
     }

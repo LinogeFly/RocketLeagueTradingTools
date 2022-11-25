@@ -1,6 +1,6 @@
 namespace RocketLeagueTradingTools.Core.Domain.Enumerations;
 
-public enum AlertOfferType
+public enum TradeOfferType
 {
     Buy,
     Sell

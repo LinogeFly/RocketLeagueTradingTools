@@ -7,26 +7,26 @@ namespace RocketLeagueTradingTools.Core.Domain.Entities;
 public sealed class Alert
 {
     public int Id { get; set; }
-    public DateTime CreatedDate { get; set; }
+    public TradeOfferType OfferType { get; set; }
     public string ItemName { get; set; }
-    public AlertOfferType OfferType { get; set; }
     public PriceRange Price { get; set; }
     public AlertItemType ItemType { get; set; }
     public string Color { get; set; } = "";
     public string Certification { get; set; } = "";
+    public DateTime CreatedDate { get; set; }
     public bool Enabled { get; set; } = true;
 
-    public Alert(AlertOfferType offerType, string itemName, PriceRange price)
+    public Alert(TradeOfferType offerType, string itemName, PriceRange price)
     {
         if (itemName.IsEmpty())
-            throw new ArgumentException($"{nameof(itemName)} is required.");
+            throw new ArgumentException("The field is required.", nameof(itemName));
         
         OfferType = offerType;
         ItemName = itemName;
         Price = price;
     }
 
-    public Alert(AlertOfferType offerType, string itemName, int priceTo)
+    public Alert(TradeOfferType offerType, string itemName, int priceTo)
     {
         OfferType = offerType;
         ItemName = itemName;

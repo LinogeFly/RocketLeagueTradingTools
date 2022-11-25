@@ -4,16 +4,31 @@
 
 ### Core
 
-- Refactor domain models. For example, some classes should be converted to VO type.
 - Add more unit tests for persistence repository mapping.
-- Remove AutoMapper usage.
-- Combine BuyOffers and SellOffers into one TradeOffers table. Then make one-to-one relationship between Notifications and TradeOffers tables.
+- Split `PersistenceRepository` into smaller, application specific repositories.
+- Add DI for tests. Wrap the DI container into `Given` and `Then` classes. Check MyPages for inspiration.
+  Check `TestContainer.cs` in SM project as well.
+- Implement incremental notifications refresh, instead of doing full refresh every time.
 
 ### Web
 
+- Remove AutoMapper usage.
+- Move API classes to a separate namespace called Contracts with Requests and Responses child namespaces. Use record
+  type for API model, instead of classes.
 - Show offer type in notification boxes.
 - Custom CSS component for notification items.
 - Implement paging or infinite scroll for notifications.
+
+### Projects to check out for inspiration/learning
+
+Things to check:
+
+- Tests naming convention and structure
+
+Links:
+
+- (Most starred repositories)[https://github.com/search?l=C%23&o=desc&q=stars%3A%3E0&s=stars&type=Repositories]
+- [https://github.com/jellyfin/jellyfin]
 
 ### Own custom logo
 
@@ -22,7 +37,7 @@ Ideas:
 - TT, as for Trading Tools
 
 ### Keep the following concept naming in the solution
-  
+
 - Trade item
 - Trade offer
 - Alert (configuration rules)

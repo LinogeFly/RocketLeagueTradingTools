@@ -1,6 +1,6 @@
 namespace RocketLeagueTradingTools.Core.Domain.ValueObjects;
 
-public sealed class PriceRange
+public sealed class PriceRange : ValueObject
 {
     public int From { get; }
     public int To { get; }
@@ -25,5 +25,11 @@ public sealed class PriceRange
             throw new ArgumentException($"{nameof(From)} has to be less than {nameof(To)}.");
 
         From = from;
+    }
+
+    protected override IEnumerable<object?> GetEqualityComponents()
+    {
+        yield return From;
+        yield return To;
     }
 }

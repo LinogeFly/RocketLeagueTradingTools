@@ -4,6 +4,7 @@ using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Core.Domain.Entities;
 using RocketLeagueTradingTools.Core.Domain.Enumerations;
 using RocketLeagueTradingTools.Core.Domain.Exceptions;
+using RocketLeagueTradingTools.Core.Domain.ValueObjects;
 using RocketLeagueTradingTools.Infrastructure.Common;
 
 namespace RocketLeagueTradingTools.Infrastructure.TradeOffers;
@@ -29,7 +30,7 @@ public class RlgDataSource
         this.dateTime = dateTime;
     }
 
-    public async Task<TradeOffersPage> GetTradeOffersPage(CancellationToken cancellationToken)
+    public async Task<IList<ScrapedTradeOffer>> GetTradeOffersPage(CancellationToken cancellationToken)
     {
         // Download the latest trades page
         var tradesResponse = await client.GetStringAsync(PageUrl, cancellationToken);
@@ -48,90 +49,68 @@ public class RlgDataSource
             .Where(HasNoItemOrItemTypeOfOffers)
             .ToList();
 
-        return new TradeOffersPage
-        {
-            BuyOffers = filteredTradeOfferElements
-                .SelectMany(MapBuyOffersFromTradeNode)
-                .Where(ContainsOnlySupportedItem)
-                .Distinct()
-                .ToList(),
-            SellOffers = filteredTradeOfferElements
-                .SelectMany(MapSellOffersFromTradeNode)
-                .Where(ContainsOnlySupportedItem)
-                .Distinct()
-                .ToList()
-        };
+        return filteredTradeOfferElements
+            .SelectMany(MapTradeOffersFromTradeNode)
+            .Where(ContainsOnlySupportedItem)
+            .Distinct()
+            .Select(o => new ScrapedTradeOffer(o, dateTime.Now))
+            .ToList();
     }
 
-    private IEnumerable<TradeOffer> MapBuyOffersFromTradeNode(HtmlNode tradeNode)
+    private IEnumerable<TradeOffer> MapTradeOffersFromTradeNode(HtmlNode tradeNode)
     {
-        var hasItemsElements = GetHasItemsElementsFromTradeElement(tradeNode);
-        var wantsItemsElements = GetWantsItemsElementsFromTradeElement(tradeNode);
+        var hasItems = GetHasItemsElementsFromTradeElement(tradeNode);
+        var wantsItems = GetWantsItemsElementsFromTradeElement(tradeNode);
 
-        for (int i = 0; i < hasItemsElements.Count; i++)
+        for (int i = 0; i < hasItems.Count; i++)
         {
-            var hasItemElement = hasItemsElements[i];
-            var wantsItemElement = wantsItemsElements[i];
+            var hasItem = hasItems[i];
+            var wantsItem = wantsItems[i];
+            var isBuyOffer = IsBuyOfferTradeItemElements(hasItem, wantsItem);
+            var isSellOffer = IsSellOfferTradeItemElements(hasItem, wantsItem);
 
-            if (IsNotCreditsTradeItemElement(hasItemElement))
-                continue;
-
-            if (IsNotOneItemTradeItemElement(wantsItemElement))
+            if (!isBuyOffer && !isSellOffer)
                 continue;
 
             yield return new TradeOffer
             (
-                GetTradeItemFromTradeItemElement(wantsItemElement),
-                GetPriceFromTradeItemElement(hasItemElement),
-                dateTime.Now,
+                isBuyOffer ? TradeOfferType.Buy : TradeOfferType.Sell,
+                isBuyOffer ? GetTradeItemFromTradeItemElement(wantsItem) : GetTradeItemFromTradeItemElement(hasItem),
+                isBuyOffer ? GetPriceFromTradeItemElement(hasItem) : GetPriceFromTradeItemElement(wantsItem),
                 GetLinkFromTradeElement(tradeNode),
-                TradingSite.RocketLeagueGarage,
-                GetTraderNameFromTradeElement(tradeNode)
+                new Trader(TradingSite.RocketLeagueGarage, GetTraderNameFromTradeElement(tradeNode))
             );
         }
     }
 
-    private IEnumerable<TradeOffer> MapSellOffersFromTradeNode(HtmlNode tradeNode)
+    private bool IsBuyOfferTradeItemElements(HtmlNode hasItemNode, HtmlNode wantsItemNode)
     {
-        var hasItemsElements = GetHasItemsElementsFromTradeElement(tradeNode);
-        var wantsItemsElements = GetWantsItemsElementsFromTradeElement(tradeNode);
-
-        for (int i = 0; i < hasItemsElements.Count; i++)
-        {
-            var hasItemElement = hasItemsElements[i];
-            var wantsItemElement = wantsItemsElements[i];
-
-            if (IsNotOneItemTradeItemElement(hasItemElement))
-                continue;
-
-            if (IsNotCreditsTradeItemElement(wantsItemElement))
-                continue;
-
-            yield return new TradeOffer
-            (
-                GetTradeItemFromTradeItemElement(hasItemElement),
-                GetPriceFromTradeItemElement(wantsItemElement),
-                dateTime.Now,
-                GetLinkFromTradeElement(tradeNode),
-                TradingSite.RocketLeagueGarage,
-                GetTraderNameFromTradeElement(tradeNode)
-            );
-        }
+        return IsCreditsTradeItemElement(hasItemNode) && IsOneItemTradeItemElement(wantsItemNode);
     }
 
-    private bool IsNotCreditsTradeItemElement(HtmlNode tradeItemNode)
+    private bool IsSellOfferTradeItemElements(HtmlNode hasItemNode, HtmlNode wantsItemNode)
+    {
+        return IsOneItemTradeItemElement(hasItemNode) && IsCreditsTradeItemElement(wantsItemNode);
+    }
+
+    private bool IsCreditsTradeItemElement(HtmlNode tradeItemNode)
     {
         var name = GetNameFromTradeItemElement(tradeItemNode);
 
         if (name.ToLower() != "credits")
-            return true;
+            return false;
 
         // Credits element but without specified amount, which is parsed to 1.
         // Such offers can't be considered as valid price ones.
         if (GetAmountFromTradeItemElement(tradeItemNode) == 1)
-            return true;
+            return false;
 
-        return false;
+        return true;
+    }
+
+    private bool IsOneItemTradeItemElement(HtmlNode tradeItemNode)
+    {
+        return GetAmountFromTradeItemElement(tradeItemNode) == 1;
     }
 
     private string GetLinkFromTradeElement(HtmlNode tradeNode)
@@ -139,35 +118,30 @@ public class RlgDataSource
         return "https://rocket-league.com/" + tradeNode.QuerySelector(".rlg-trade__action.--comments").Attributes["href"].Value.TrimStart('/');
     }
 
-    private static IList<HtmlNode> GetHasItemsElementsFromTradeElement(HtmlNode tradeNode)
+    private IList<HtmlNode> GetHasItemsElementsFromTradeElement(HtmlNode tradeNode)
     {
         return tradeNode.QuerySelectorAll(".rlg-trade__itemshas .rlg-item");
     }
 
-    private static IList<HtmlNode> GetWantsItemsElementsFromTradeElement(HtmlNode tradeNode)
+    private IList<HtmlNode> GetWantsItemsElementsFromTradeElement(HtmlNode tradeNode)
     {
         return tradeNode.QuerySelectorAll(".rlg-trade__itemswants .rlg-item");
     }
-    
-    private static string GetTraderNameFromTradeElement(HtmlNode tradeNode)
+
+    private string GetTraderNameFromTradeElement(HtmlNode tradeNode)
     {
         return tradeNode.QuerySelector(".rlg-trade__meta .rlg-trade__username").GetDirectInnerText().Trim();
     }
 
-    private bool IsNotOneItemTradeItemElement(HtmlNode tradeItemNode)
-    {
-        return GetAmountFromTradeItemElement(tradeItemNode) > 1;
-    }
-
     private int GetPriceFromTradeItemElement(HtmlNode tradeItemNode)
     {
-        if (IsNotCreditsTradeItemElement(tradeItemNode))
+        if (!IsCreditsTradeItemElement(tradeItemNode))
             throw new InvalidOperationException("Can't fetch the price from a non credits item element.");
 
         return GetAmountFromTradeItemElement(tradeItemNode);
     }
 
-    private static string GetNameFromTradeItemElement(HtmlNode tradeItemNode)
+    private string GetNameFromTradeItemElement(HtmlNode tradeItemNode)
     {
         return tradeItemNode.QuerySelector(".rlg-item__text .rlg-item__name").InnerText.Trim();
     }
@@ -204,14 +178,14 @@ public class RlgDataSource
     private string GetColorFromTradeItemElement(HtmlNode tradeItemNode)
     {
         var paintElement = tradeItemNode.QuerySelector(".rlg-item__paint");
-        
+
         return paintElement != null ? paintElement.InnerText.Trim() : "";
     }
 
     private string GetCertificationFromTradeItemElement(HtmlNode tradeItemNode)
     {
         var certElement = tradeItemNode.QuerySelector(".rlg-item__text .rlg-item__cert");
-        
+
         return certElement != null ? certElement.InnerText.Trim() : "";
     }
 
@@ -227,36 +201,24 @@ public class RlgDataSource
             return TradeItemType.Unknown;
         }
 
-        switch (link.ToLower())
+        return link.ToLower() switch
         {
-            case var s when s.StartsWith("/items/bodies/"):
-                return TradeItemType.Body;
-            case var s when s.StartsWith("/items/decals/"):
-                return TradeItemType.Decal;
-            case var s when s.StartsWith("/items/paints/"):
-                return TradeItemType.PaintFinish;
-            case var s when s.StartsWith("/items/wheels/"):
-                return TradeItemType.Wheels;
-            case var s when s.StartsWith("/items/boosts/"):
-                return TradeItemType.RocketBoost;
-            case var s when s.StartsWith("/items/toppers/"):
-                return TradeItemType.Topper;
-            case var s when s.StartsWith("/items/antennas/"):
-                return TradeItemType.Antenna;
-            case var s when s.StartsWith("/items/explosions/"):
-                return TradeItemType.GoalExplosion;
-            case var s when s.StartsWith("/items/trails/"):
-                return TradeItemType.Trail;
-            case var s when s.StartsWith("/items/banners/"):
-                return TradeItemType.Banner;
-            case var s when s.StartsWith("/items/borders/"):
-                return TradeItemType.AvatarBorder;
-            default:
-                return TradeItemType.Unknown;
-        }        
+            var s when s.StartsWith("/items/bodies/") => TradeItemType.Body,
+            var s when s.StartsWith("/items/decals/") => TradeItemType.Decal,
+            var s when s.StartsWith("/items/paints/") => TradeItemType.PaintFinish,
+            var s when s.StartsWith("/items/wheels/") => TradeItemType.Wheels,
+            var s when s.StartsWith("/items/boosts/") => TradeItemType.RocketBoost,
+            var s when s.StartsWith("/items/toppers/") => TradeItemType.Topper,
+            var s when s.StartsWith("/items/antennas/") => TradeItemType.Antenna,
+            var s when s.StartsWith("/items/explosions/") => TradeItemType.GoalExplosion,
+            var s when s.StartsWith("/items/trails/") => TradeItemType.Trail,
+            var s when s.StartsWith("/items/banners/") => TradeItemType.Banner,
+            var s when s.StartsWith("/items/borders/") => TradeItemType.AvatarBorder,
+            _ => TradeItemType.Unknown
+        };
     }
 
-    private static bool ContainsOnlyOneForOneTypeOfOffers(HtmlNode tradeNode)
+    private bool ContainsOnlyOneForOneTypeOfOffers(HtmlNode tradeNode)
     {
         // Skip trades that are not 1 for 1 type of trades. Those are difficult to analyze
         // and usually are not specific trades, but those that expect offers for listed items.
@@ -267,7 +229,7 @@ public class RlgDataSource
         return hasItemsElements.Count == wantsItemsElements.Count;
     }
 
-    private static bool HasNoItemOrItemTypeOfOffers(HtmlNode tradeNode)
+    private bool HasNoItemOrItemTypeOfOffers(HtmlNode tradeNode)
     {
         // Skip trades that contain "OR" type of offers.
 
@@ -283,7 +245,7 @@ public class RlgDataSource
         return true;
     }
 
-    private static bool ContainsOnlySupportedItem(TradeOffer offer)
+    private bool ContainsOnlySupportedItem(TradeOffer offer)
     {
         if (offer.Item.Name.ToLower().Contains("offer"))
             return false;

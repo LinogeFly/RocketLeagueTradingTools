@@ -1,10 +1,10 @@
 ﻿using System.Text;
 
-namespace RocketLeagueTradingTools.Infrastructure.UnitTests.DataSource.Support.Rlg;
+namespace RocketLeagueTradingTools.Infrastructure.UnitTests.TradeOffers.Support.Rlg;
 
 class RlgPageBuilder
 {
-    private readonly List<IHtmlBuilder> tradeBuilders = new();
+    private readonly List<RlgTradeBuilder> tradeBuilders = new();
 
     public RlgTradeBuilder AddTrade()
     {

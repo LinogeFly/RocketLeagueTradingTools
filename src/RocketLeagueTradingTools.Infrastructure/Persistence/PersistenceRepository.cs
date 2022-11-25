@@ -20,45 +20,31 @@ public class PersistenceRepository : IPersistenceRepository
         this.dateTime = dateTime;
     }
 
-    public async Task AddBuyOffers(IList<TradeOffer> offers)
+    public async Task AddTradeOffers(IList<ScrapedTradeOffer> offers)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync();
 
-        await dbContext.BuyOffers.AddRangeAsync(offers.Select(Map<PersistedBuyOffer>));
+        await dbContext.TradeOffers.AddRangeAsync(offers.Select(Map));
 
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task AddSellOffers(IList<TradeOffer> offers)
+    public async Task<IList<ScrapedTradeOffer>> FindAlertMatchingOffers(TimeSpan alertOfferMaxAge)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync();
 
-        await dbContext.SellOffers.AddRangeAsync(offers.Select(Map<PersistedSellOffer>));
+        var offers = await GetAlertMatchingOffersQuery(dbContext, alertOfferMaxAge).ToListAsync();
 
-        await dbContext.SaveChangesAsync();
-    }
-
-    public async Task<IList<TradeOffer>> FindAlertMatchingOffers(TimeSpan alertOfferMaxAge)
-    {
-        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
-
-        var buyOffers = await GetAlertMatchingOffersQuery(dbContext, dbContext.BuyOffers, alertOfferMaxAge).ToListAsync();
-        var sellOffers = await GetAlertMatchingOffersQuery(dbContext, dbContext.SellOffers, alertOfferMaxAge).ToListAsync();
-
-        return buyOffers.Select(Map)
-            .Union(sellOffers.Select(Map))
-            .ToList();
+        return offers.Select(Map).ToList();
     }
 
     public async Task DeleteOldOffers(TimeSpan maxAge)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync();
 
-        var sellOffersToDelete = dbContext.SellOffers.Where(o => o.ScrapedDate < dateTime.Now.Add(-maxAge));
-        var buyOffersToDelete = dbContext.BuyOffers.Where(o => o.ScrapedDate < dateTime.Now.Add(-maxAge));
+        var offersToDelete = dbContext.TradeOffers.Where(o => o.ScrapedDate < dateTime.Now.Add(-maxAge));
 
-        dbContext.SellOffers.RemoveRange(sellOffersToDelete);
-        dbContext.BuyOffers.RemoveRange(buyOffersToDelete);
+        dbContext.TradeOffers.RemoveRange(offersToDelete);
 
         await dbContext.SaveChangesAsync();
     }
@@ -92,7 +78,7 @@ public class PersistenceRepository : IPersistenceRepository
         {
             CreatedDate = dateTime.Now,
             ItemName = alert.ItemName,
-            OfferType = MapAlertOfferType(alert.OfferType),
+            OfferType = MapTradeOfferType(alert.OfferType),
             PriceFrom = alert.Price.From,
             PriceTo = alert.Price.To,
             ItemType = MapAlertItemType(alert.ItemType),
@@ -113,7 +99,7 @@ public class PersistenceRepository : IPersistenceRepository
             throw new InvalidOperationException("Alert not found.");
 
         persistedAlert.ItemName = alert.ItemName;
-        persistedAlert.OfferType = MapAlertOfferType(alert.OfferType);
+        persistedAlert.OfferType = MapTradeOfferType(alert.OfferType);
         persistedAlert.ItemType = MapAlertItemType(alert.ItemType);
         persistedAlert.PriceFrom = alert.Price.From;
         persistedAlert.PriceTo = alert.Price.To;
@@ -145,7 +131,8 @@ public class PersistenceRepository : IPersistenceRepository
         await using var dbContext = await dbContextFactory.CreateDbContextAsync();
 
         var items = await dbContext.Notifications
-            .OrderByDescending(n => n.TradeOfferScrapedDate)
+            .OrderByDescending(n => n.CreatedDate)
+            .Include(n => n.TradeOffer)
             .Take(pageSize)
             .ToListAsync();
 
@@ -158,6 +145,7 @@ public class PersistenceRepository : IPersistenceRepository
 
         var items = await dbContext.Notifications
             .Where(n => n.CreatedDate >= dateTime.Now - notOlderThan)
+            .Include(n => n.TradeOffer)
             .ToListAsync();
 
         return items.Select(Map).ToList();
@@ -166,19 +154,11 @@ public class PersistenceRepository : IPersistenceRepository
     public async Task AddNotifications(IList<Notification> notifications)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync();
-
+        
         dbContext.Notifications.AddRange(notifications.Select(n =>
             new PersistedNotification
             {
-                TradeItemName = n.TradeOffer.Item.Name,
-                TradeItemType = MapTradeItemType(n.TradeOffer.Item.ItemType),
-                TradeItemColor = n.TradeOffer.Item.Color,
-                TradeItemCertification = n.TradeOffer.Item.Certification,
-                TradeOfferLink = n.TradeOffer.Link,
-                TradeOfferPrice = n.TradeOffer.Price,
-                TradeOfferScrapedDate = n.TradeOffer.ScrapedDate,
-                TradingSite = Map(n.TradeOffer.TradingSite),
-                TraderName = n.TradeOffer.TraderName,
+                TradeOffer = dbContext.TradeOffers.Single(o => o.Id == n.ScrapedTradeOffer.Id),
                 CreatedDate = dateTime.Now
             }
         ));
@@ -225,7 +205,7 @@ public class PersistenceRepository : IPersistenceRepository
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task<IList<BlacklistedTrader>> GetBlacklistedTraders()
+    public async Task<IList<Trader>> GetBlacklistedTraders()
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync();
 
@@ -234,14 +214,14 @@ public class PersistenceRepository : IPersistenceRepository
         return items.Select(Map).ToList();
     }
 
-    public async Task AddBlacklistedTrader(BlacklistedTrader trader)
+    public async Task AddBlacklistedTrader(Trader trader)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync();
 
         dbContext.BlacklistedTraders.Add(new PersistedBlacklistedTrader
         {
             TraderName = trader.Name,
-            TradingSite = Map(trader.TradingSite)
+            TradingSite = MapTradingSite(trader.TradingSite)
         });
 
         await dbContext.SaveChangesAsync();
@@ -261,14 +241,14 @@ public class PersistenceRepository : IPersistenceRepository
         await dbContext.SaveChangesAsync();
     }
 
-    private IQueryable<T> GetAlertMatchingOffersQuery<T>(PersistenceDbContext dbContext, DbSet<T> offers, TimeSpan alertOfferMaxAge) where T : PersistedTradeOffer
+    private IQueryable<PersistedTradeOffer> GetAlertMatchingOffersQuery(PersistenceDbContext dbContext, TimeSpan alertOfferMaxAge)
     {
         return
-            from o in offers
+            from o in dbContext.TradeOffers
             join a in dbContext.Alerts on o.ItemName.ToLower() equals a.ItemName.ToLower()
             where
                 a.Enabled == BoolToString(true) &&
-                a.OfferType == GetAlertOfferTypeFor(typeof(T)) &&
+                a.OfferType == o.OfferType &&
                 o.ScrapedDate >= dateTime.Now.Add(-alertOfferMaxAge) &&
                 o.Price >= a.PriceFrom &&
                 o.Price <= a.PriceTo &&
@@ -278,38 +258,29 @@ public class PersistenceRepository : IPersistenceRepository
                 !(
                     from b in dbContext.BlacklistedTraders
                     where b.TradingSite == o.TradingSite
-                    select b.TraderName
-                ).Contains(o.TraderName)
+                    select b.TraderName.ToLower()
+                ).Contains(o.TraderName.ToLower())
             select o;
     }
 
-    private string GetAlertOfferTypeFor(Type tradeOfferType)
+    private PersistedTradeOffer Map(ScrapedTradeOffer offer)
     {
-        if (tradeOfferType == typeof(PersistedBuyOffer))
-            return "Buy";
-        if (tradeOfferType == typeof(PersistedSellOffer))
-            return "Sell";
-
-        throw new InvalidOperationException($"Invalid offer type '{tradeOfferType.FullName}'.");
-    }
-
-    private T Map<T>(TradeOffer offer) where T : PersistedTradeOffer, new()
-    {
-        return new T
+        return new PersistedTradeOffer
         {
-            Link = offer.Link,
             ScrapedDate = offer.ScrapedDate,
-            ItemName = offer.Item.Name,
-            Price = offer.Price,
-            ItemType = MapTradeItemType(offer.Item.ItemType),
-            Color = offer.Item.Color,
-            Certification = offer.Item.Certification,
-            TradingSite = Map(offer.TradingSite),
-            TraderName = offer.TraderName
+            Link = offer.TradeOffer.Link,
+            OfferType = MapTradeOfferType(offer.TradeOffer.OfferType),
+            ItemName = offer.TradeOffer.Item.Name,
+            Price = offer.TradeOffer.Price,
+            ItemType = MapTradeItemType(offer.TradeOffer.Item.ItemType),
+            Color = offer.TradeOffer.Item.Color,
+            Certification = offer.TradeOffer.Item.Certification,
+            TradingSite = MapTradingSite(offer.TradeOffer.Trader.TradingSite),
+            TraderName = offer.TradeOffer.Trader.Name,
         };
     }
 
-    private TradeOffer Map(PersistedTradeOffer offer)
+    private ScrapedTradeOffer Map(PersistedTradeOffer offer)
     {
         var tradeItem = new TradeItem(offer.ItemName)
         {
@@ -317,22 +288,26 @@ public class PersistenceRepository : IPersistenceRepository
             Color = offer.Color,
             Certification = offer.Certification
         };
-
-        return new TradeOffer
+        var trader = new Trader(MapTradingSite(offer.TradingSite), offer.TraderName);
+        var tradeOffer = new TradeOffer
         (
+            MapTradeOfferType(offer.OfferType),
             tradeItem,
             offer.Price,
-            offer.ScrapedDate,
             offer.Link,
-            Map(offer.TradingSite),
-            offer.TraderName
+            trader
         );
+
+        return new ScrapedTradeOffer(tradeOffer, offer.ScrapedDate)
+        {
+            Id = offer.Id
+        };
     }
 
     private Alert Map(PersistedAlert alert)
     {
         return new Alert(
-            MapAlertOfferType(alert.OfferType),
+            MapTradeOfferType(alert.OfferType),
             alert.ItemName,
             new PriceRange(alert.PriceFrom, alert.PriceTo)
         )
@@ -348,22 +323,7 @@ public class PersistenceRepository : IPersistenceRepository
 
     private Notification Map(PersistedNotification notification)
     {
-        var tradeItem = new TradeItem(notification.TradeItemName)
-        {
-            ItemType = MapTradeItemType(notification.TradeItemType),
-            Color = notification.TradeItemColor,
-            Certification = notification.TradeItemCertification
-        };
-
-        var tradeOffer = new TradeOffer
-        (
-            tradeItem,
-            notification.TradeOfferPrice,
-            notification.TradeOfferScrapedDate,
-            notification.TradeOfferLink,
-            Map(notification.TradingSite),
-            notification.TraderName
-        );
+        var tradeOffer = Map(notification.TradeOffer);
 
         return new Notification(tradeOffer)
         {
@@ -498,26 +458,26 @@ public class PersistenceRepository : IPersistenceRepository
         }
     }
 
-    private AlertOfferType MapAlertOfferType(string offerType)
+    private TradeOfferType MapTradeOfferType(string offerType)
     {
         switch (offerType.ToLower())
         {
             case "buy":
-                return AlertOfferType.Buy;
+                return TradeOfferType.Buy;
             case "sell":
-                return AlertOfferType.Sell;
+                return TradeOfferType.Sell;
             default:
                 throw new InvalidOperationException($"Unable to map '{offerType}' to alert offer type.");
         }
     }
 
-    private string MapAlertOfferType(AlertOfferType offerType)
+    private string MapTradeOfferType(TradeOfferType offerType)
     {
         switch (offerType)
         {
-            case AlertOfferType.Buy:
+            case TradeOfferType.Buy:
                 return "Buy";
-            case AlertOfferType.Sell:
+            case TradeOfferType.Sell:
                 return "Sell";
             default:
                 throw new InvalidOperationException($"Invalid offer type '{offerType}'.");
@@ -542,7 +502,7 @@ public class PersistenceRepository : IPersistenceRepository
         return value ? "Yes" : "No";
     }
 
-    private TradingSite Map(string site)
+    private TradingSite MapTradingSite(string site)
     {
         switch (site.ToLower())
         {
@@ -553,7 +513,7 @@ public class PersistenceRepository : IPersistenceRepository
         }
     }
 
-    private string Map(TradingSite site)
+    private string MapTradingSite(TradingSite site)
     {
         switch (site)
         {
@@ -564,11 +524,8 @@ public class PersistenceRepository : IPersistenceRepository
         }
     }
 
-    private BlacklistedTrader Map(PersistedBlacklistedTrader trader)
+    private Trader Map(PersistedBlacklistedTrader trader)
     {
-        return new BlacklistedTrader(Map(trader.TradingSite), trader.TraderName)
-        {
-            Id = trader.Id
-        };
+        return new Trader(MapTradingSite(trader.TradingSite), trader.TraderName);
     }
 }

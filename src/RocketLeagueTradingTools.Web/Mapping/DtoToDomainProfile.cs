@@ -19,8 +19,8 @@ public class DtoToDomainProfile : Profile
 
         CreateMap<AlertRequest, Alert>();
 
-        CreateMap<BlacklistedTraderRequest, BlacklistedTrader>()
-            .ConstructUsing(src => new BlacklistedTrader(Map(src.TradingSite), src.Name));
+        CreateMap<BlacklistedTraderRequest, Trader>()
+            .ConstructUsing(src => new Trader(Map(src.TradingSite), src.Name));
     }
 
     private TradingSite Map(string tradingSite)

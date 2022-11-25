@@ -25,7 +25,9 @@ public class NotificationApplication
     {
         var oldNotifications = await persistence.GetNotifications(config.NotificationsExpiration);
         var alertMatchingOfferNotifications = await GetAlertMatchingOfferNotifications();
-        var newNotifications = alertMatchingOfferNotifications.Except(oldNotifications, new TradeOfferEqualityComparer()).ToList();
+        var newNotifications = alertMatchingOfferNotifications
+            .ExceptBy(oldNotifications.Select(o => o.ScrapedTradeOffer.TradeOffer), n => n.ScrapedTradeOffer.TradeOffer)
+            .ToList();
 
         if (newNotifications.Count > 0)
             await persistence.AddNotifications(newNotifications);

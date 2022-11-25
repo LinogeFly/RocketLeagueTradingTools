@@ -1,19 +1,19 @@
 using System.Text;
 
-namespace RocketLeagueTradingTools.Infrastructure.UnitTests.DataSource.Support.Rlg;
+namespace RocketLeagueTradingTools.Infrastructure.UnitTests.TradeOffers.Support.Rlg;
 
-class RlgTradeBuilder : IHtmlBuilder
+class RlgTradeBuilder
 {
     private readonly string id;
     private string traderName = nameof(RlgTradeBuilder);
-    private readonly List<IHtmlBuilder> hasItemBuilders = new();
-    private readonly List<IHtmlBuilder> wantItemBuilders = new();
+    private readonly List<RlgItemBuilder> hasItemBuilders = new();
+    private readonly List<RlgItemBuilder> wantItemBuilders = new();
 
     public RlgTradeBuilder(string id)
     {
         this.id = id;
     }
-    
+
     public RlgTradeBuilder WithTraderName(string traderName)
     {
         this.traderName = traderName;
@@ -34,6 +34,7 @@ class RlgTradeBuilder : IHtmlBuilder
 
         return this;
     }
+
     public string Build()
     {
         var result = new StringBuilder();
@@ -50,7 +51,7 @@ class RlgTradeBuilder : IHtmlBuilder
     private string BuildHeader()
     {
         var result = new StringBuilder();
-        
+
         result.AppendLine("<header class=\"rlg-trade__header\">");
         result.AppendLine("<a class=\"rlg-trade__user\">");
         result.AppendLine("<div class=\"rlg-trade__meta\">");

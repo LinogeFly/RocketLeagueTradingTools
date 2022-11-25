@@ -4,9 +4,9 @@ using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Core.Domain.Enumerations;
 using RocketLeagueTradingTools.Infrastructure.Common;
 using RocketLeagueTradingTools.Infrastructure.TradeOffers;
-using RocketLeagueTradingTools.Infrastructure.UnitTests.DataSource.Support.Rlg;
+using RocketLeagueTradingTools.Infrastructure.UnitTests.TradeOffers.Support.Rlg;
 
-namespace RocketLeagueTradingTools.Infrastructure.UnitTests.DataSource;
+namespace RocketLeagueTradingTools.Infrastructure.UnitTests.TradeOffers;
 
 [TestFixture]
 public class RlgDataSourceTests
@@ -37,15 +37,16 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade(offerId)
-            .WithHasItem(Build.Credits(100))
-            .WithWantsItem(Build.RlgItem("Hellfire"));
+            .WithHasItem(A.Credits(100))
+            .WithWantsItem(A.RlgItem("Hellfire"));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Single().Link.Should().Be(expected);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Buy);
+        offers.Single().TradeOffer.Link.Should().Be(expected);
     }
 
     [Test]
@@ -56,16 +57,16 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.Credits(100))
-            .WithWantsItem(Build.RlgItem("Hellfire"));
-
+            .WithHasItem(A.Credits(100))
+            .WithWantsItem(A.RlgItem("Hellfire"));
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
         dateTime.SetupGet(d => d.Now).Returns(expectedDate);
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Single().ScrapedDate.Should().Be(expectedDate);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Buy);
+        offers.Single().ScrapedDate.Should().Be(expectedDate);
     }
 
     [Test]
@@ -76,15 +77,16 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.Credits(expected))
-            .WithWantsItem(Build.RlgItem("Hellfire"));
+            .WithHasItem(A.Credits(expected))
+            .WithWantsItem(A.RlgItem("Hellfire"));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Single().Price.Should().Be(expected);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Buy);
+        offers.Single().TradeOffer.Price.Should().Be(expected);
     }
 
     [Test]
@@ -93,15 +95,16 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.Credits(100))
-            .WithWantsItem(Build.RlgItem("Hellfire"));
+            .WithHasItem(A.Credits(100))
+            .WithWantsItem(A.RlgItem("Hellfire"));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Single().TradingSite.Should().Be(TradingSite.RocketLeagueGarage);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Buy);
+        offers.Single().TradeOffer.Trader.TradingSite.Should().Be(TradingSite.RocketLeagueGarage);
     }
     
     [Test]
@@ -113,15 +116,16 @@ public class RlgDataSourceTests
 
         page.AddTrade()
             .WithTraderName(expected)
-            .WithHasItem(Build.Credits(100))
-            .WithWantsItem(Build.RlgItem("Hellfire"));
+            .WithHasItem(A.Credits(100))
+            .WithWantsItem(A.RlgItem("Hellfire"));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Single().TraderName.Should().Be(expected);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Buy);
+        offers.Single().TradeOffer.Trader.Name.Should().Be(expected);
     }
     
     [Test]
@@ -132,15 +136,16 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.Credits(100))
-            .WithWantsItem(Build.RlgItem(expected));
+            .WithHasItem(A.Credits(100))
+            .WithWantsItem(A.RlgItem(expected));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Single().Item.Name.Should().Be(expected);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Buy);
+        offers.Single().TradeOffer.Item.Name.Should().Be(expected);
     }
 
     [Test]
@@ -151,15 +156,16 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.Credits(1700))
-            .WithWantsItem(Build.RlgItem("Fennec").WithColor(expected));
+            .WithHasItem(A.Credits(1700))
+            .WithWantsItem(A.RlgItem("Fennec").WithColor(expected));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Single().Item.Color.Should().Be(expected);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Buy);
+        offers.Single().TradeOffer.Item.Color.Should().Be(expected);
     }
 
     [Test]
@@ -170,15 +176,16 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.Credits(300))
-            .WithWantsItem(Build.RlgItem("Fennec").WithCertification(expected));
+            .WithHasItem(A.Credits(300))
+            .WithWantsItem(A.RlgItem("Fennec").WithCertification(expected));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Single().Item.Certification.Should().Be(expected);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Buy);
+        offers.Single().TradeOffer.Item.Certification.Should().Be(expected);
     }
 
     [TestCase("/items/bodies/fennec", TradeItemType.Body)]
@@ -207,15 +214,16 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.Credits(100))
-            .WithWantsItem(Build.RlgItem("Item").WithItemDetailsLink(link));
+            .WithHasItem(A.Credits(100))
+            .WithWantsItem(A.RlgItem("Item").WithItemDetailsLink(link));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Single().Item.ItemType.Should().Be(expected);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Buy);
+        offers.Single().TradeOffer.Item.ItemType.Should().Be(expected);
     }
 
     [Test]
@@ -227,15 +235,16 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade(offerId)
-            .WithHasItem(Build.RlgItem("Hellfire"))
-            .WithWantsItem(Build.Credits(100));
+            .WithHasItem(A.RlgItem("Hellfire"))
+            .WithWantsItem(A.Credits(100));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.SellOffers.Single().Link.Should().Be(expected);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Sell);
+        offers.Single().TradeOffer.Link.Should().Be(expected);
     }
 
     [Test]
@@ -246,8 +255,8 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.RlgItem("Hellfire"))
-            .WithWantsItem(Build.Credits(100));
+            .WithHasItem(A.RlgItem("Hellfire"))
+            .WithWantsItem(A.Credits(100));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
@@ -255,7 +264,8 @@ public class RlgDataSourceTests
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.SellOffers.Single().ScrapedDate.Should().Be(expectedDate);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Sell);
+        offers.Single().ScrapedDate.Should().Be(expectedDate);
     }
 
     [Test]
@@ -266,15 +276,16 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.RlgItem("Hellfire"))
-            .WithWantsItem(Build.Credits(expected));
+            .WithHasItem(A.RlgItem("Hellfire"))
+            .WithWantsItem(A.Credits(expected));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.SellOffers.Single().Price.Should().Be(expected);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Sell);
+        offers.Single().TradeOffer.Price.Should().Be(expected);
     }
 
     [Test]
@@ -283,15 +294,16 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.RlgItem("Hellfire"))
-            .WithWantsItem(Build.Credits(100));
+            .WithHasItem(A.RlgItem("Hellfire"))
+            .WithWantsItem(A.Credits(100));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.SellOffers.Single().TradingSite.Should().Be(TradingSite.RocketLeagueGarage);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Sell);
+        offers.Single().TradeOffer.Trader.TradingSite.Should().Be(TradingSite.RocketLeagueGarage);
     }
     
     [Test]
@@ -303,15 +315,16 @@ public class RlgDataSourceTests
 
         page.AddTrade()
             .WithTraderName(expected)
-            .WithHasItem(Build.RlgItem("Hellfire"))
-            .WithWantsItem(Build.Credits(100));
+            .WithHasItem(A.RlgItem("Hellfire"))
+            .WithWantsItem(A.Credits(100));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.SellOffers.Single().TraderName.Should().Be(expected);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Sell);
+        offers.Single().TradeOffer.Trader.Name.Should().Be(expected);
     }
     
     [Test]
@@ -322,15 +335,16 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.RlgItem(expected))
-            .WithWantsItem(Build.Credits(100));
+            .WithHasItem(A.RlgItem(expected))
+            .WithWantsItem(A.Credits(100));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.SellOffers.Single().Item.Name.Should().Be(expected);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Sell);
+        offers.Single().TradeOffer.Item.Name.Should().Be(expected);
     }
 
     [Test]
@@ -341,15 +355,16 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.RlgItem("Fennec").WithColor(expected))
-            .WithWantsItem(Build.Credits(1700));
+            .WithHasItem(A.RlgItem("Fennec").WithColor(expected))
+            .WithWantsItem(A.Credits(1700));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.SellOffers.Single().Item.Color.Should().Be(expected);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Sell);
+        offers.Single().TradeOffer.Item.Color.Should().Be(expected);
     }
 
     [Test]
@@ -360,15 +375,16 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.RlgItem("Fennec").WithCertification(expected))
-            .WithWantsItem(Build.Credits(300));
+            .WithHasItem(A.RlgItem("Fennec").WithCertification(expected))
+            .WithWantsItem(A.Credits(300));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.SellOffers.Single().Item.Certification.Should().Be(expected);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Sell);
+        offers.Single().TradeOffer.Item.Certification.Should().Be(expected);
     }
 
     [TestCase("/items/bodies/fennec", TradeItemType.Body)]
@@ -397,15 +413,16 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.RlgItem("Item").WithItemDetailsLink(link))
-            .WithWantsItem(Build.Credits(140));
+            .WithHasItem(A.RlgItem("Item").WithItemDetailsLink(link))
+            .WithWantsItem(A.Credits(140));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.SellOffers.Single().Item.ItemType.Should().Be(expected);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Sell);
+        offers.Single().TradeOffer.Item.ItemType.Should().Be(expected);
     }
 
     [Test]
@@ -414,21 +431,23 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.Credits(500))
-            .WithHasItem(Build.Credits(300))
-            .WithWantsItem(Build.RlgItem("Dueling Dragons"))
-            .WithWantsItem(Build.RlgItem("Fennec"));
+            .WithHasItem(A.Credits(500))
+            .WithHasItem(A.Credits(300))
+            .WithWantsItem(A.RlgItem("Dueling Dragons"))
+            .WithWantsItem(A.RlgItem("Fennec"));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
-        var buyOffers = (await sut.GetTradeOffersPage(cancellationToken)).BuyOffers.ToArray();
+        var offers = (await sut.GetTradeOffersPage(cancellationToken)).ToArray();
 
-        buyOffers.Length.Should().Be(2);
-        buyOffers[0].Item.Name.Should().Be("Dueling Dragons");
-        buyOffers[0].Price.Should().Be(500);
-        buyOffers[1].Item.Name.Should().Be("Fennec");
-        buyOffers[1].Price.Should().Be(300);
+        offers.Length.Should().Be(2);
+        offers[0].TradeOffer.OfferType.Should().Be(TradeOfferType.Buy);
+        offers[0].TradeOffer.Item.Name.Should().Be("Dueling Dragons");
+        offers[0].TradeOffer.Price.Should().Be(500);
+        offers[1].TradeOffer.OfferType.Should().Be(TradeOfferType.Buy);
+        offers[1].TradeOffer.Item.Name.Should().Be("Fennec");
+        offers[1].TradeOffer.Price.Should().Be(300);
     }
 
     [Test]
@@ -437,57 +456,78 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.RlgItem("Dueling Dragons"))
-            .WithHasItem(Build.RlgItem("Fennec"))
-            .WithWantsItem(Build.Credits(550))
-            .WithWantsItem(Build.Credits(350));
+            .WithHasItem(A.RlgItem("Dueling Dragons"))
+            .WithHasItem(A.RlgItem("Fennec"))
+            .WithWantsItem(A.Credits(550))
+            .WithWantsItem(A.Credits(350));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
-        var sellOffers = (await sut.GetTradeOffersPage(cancellationToken)).SellOffers.ToArray();
+        var offers = (await sut.GetTradeOffersPage(cancellationToken)).ToArray();
 
-        sellOffers.Length.Should().Be(2);
-        sellOffers[0].Item.Name.Should().Be("Dueling Dragons");
-        sellOffers[0].Price.Should().Be(550);
-        sellOffers[1].Item.Name.Should().Be("Fennec");
-        sellOffers[1].Price.Should().Be(350);
+        offers.Length.Should().Be(2);
+        offers[0].TradeOffer.OfferType.Should().Be(TradeOfferType.Sell);
+        offers[0].TradeOffer.Item.Name.Should().Be("Dueling Dragons");
+        offers[0].TradeOffer.Price.Should().Be(550);
+        offers[1].TradeOffer.OfferType.Should().Be(TradeOfferType.Sell);
+        offers[1].TradeOffer.Item.Name.Should().Be("Fennec");
+        offers[1].TradeOffer.Price.Should().Be(350);
     }
 
     [Test]
     public async Task ScrapPageAsync_should_combine_offers_from_multiple_trades()
     {
         var page = new RlgPageBuilder();
-
         page.AddTrade()
-            .WithHasItem(Build.Credits(60))
-            .WithHasItem(Build.Credits(100))
-            .WithWantsItem(Build.RlgItem("Supernova III"))
-            .WithWantsItem(Build.RlgItem("Hellfire"));
-
+            .WithHasItem(A.Credits(60))
+            .WithHasItem(A.Credits(100))
+            .WithWantsItem(A.RlgItem("Supernova III"))
+            .WithWantsItem(A.RlgItem("Hellfire"));
         page.AddTrade()
-            .WithHasItem(Build.RlgItem("Dueling Dragons"))
-            .WithHasItem(Build.RlgItem("Fennec"))
-            .WithWantsItem(Build.Credits(550))
-            .WithWantsItem(Build.Credits(350));
-
+            .WithHasItem(A.RlgItem("Dueling Dragons"))
+            .WithHasItem(A.RlgItem("Fennec"))
+            .WithWantsItem(A.Credits(550))
+            .WithWantsItem(A.Credits(350));
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
-        var offers = await sut.GetTradeOffersPage(cancellationToken);
-        var buyOffers = offers.BuyOffers.ToArray();
-        var sellOffers = offers.SellOffers.ToArray();
+        var offers = (await sut.GetTradeOffersPage(cancellationToken)).ToArray();
 
-        buyOffers.Length.Should().Be(2);
-        buyOffers[0].Item.Name.Should().Be("Supernova III");
-        buyOffers[0].Price.Should().Be(60);
-        buyOffers[1].Item.Name.Should().Be("Hellfire");
-        buyOffers[1].Price.Should().Be(100);
-        sellOffers.Length.Should().Be(2);
-        sellOffers[0].Item.Name.Should().Be("Dueling Dragons");
-        sellOffers[0].Price.Should().Be(550);
-        sellOffers[1].Item.Name.Should().Be("Fennec");
-        sellOffers[1].Price.Should().Be(350);
+        offers.Length.Should().Be(4);
+        offers[0].TradeOffer.OfferType.Should().Be(TradeOfferType.Buy);
+        offers[0].TradeOffer.Item.Name.Should().Be("Supernova III");
+        offers[0].TradeOffer.Price.Should().Be(60);
+        offers[1].TradeOffer.OfferType.Should().Be(TradeOfferType.Buy);
+        offers[1].TradeOffer.Item.Name.Should().Be("Hellfire");
+        offers[1].TradeOffer.Price.Should().Be(100);
+        offers[2].TradeOffer.OfferType.Should().Be(TradeOfferType.Sell);
+        offers[2].TradeOffer.Item.Name.Should().Be("Dueling Dragons");
+        offers[2].TradeOffer.Price.Should().Be(550);
+        offers[3].TradeOffer.OfferType.Should().Be(TradeOfferType.Sell);
+        offers[3].TradeOffer.Item.Name.Should().Be("Fennec");
+        offers[3].TradeOffer.Price.Should().Be(350);
+    }
+
+    [Test]
+    public async Task ScrapPageAsync_offers_from_multiple_trades_should_have_the_same_scraped_date()
+    {
+        var expectedDate = new DateTime(2022, 1, 1);
+        var page = new RlgPageBuilder();
+        page.AddTrade()
+            .WithHasItem(A.Credits(100))
+            .WithWantsItem(A.RlgItem("Hellfire"));
+        page.AddTrade()
+            .WithHasItem(A.RlgItem("Fennec"))
+            .WithWantsItem(A.Credits(300));
+        httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => page.Build());
+        dateTime.SetupGet(d => d.Now).Returns(expectedDate);
+        
+        var offers = (await sut.GetTradeOffersPage(cancellationToken)).ToArray();
+
+        offers[0].ScrapedDate.Should().Be(expectedDate);
+        offers[1].ScrapedDate.Should().Be(expectedDate);
     }
 
     [Test]
@@ -496,20 +536,20 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.Credits(300))
-            .WithHasItem(Build.Credits(300))
-            .WithWantsItem(Build.RlgItem("Fennec"))
-            .WithWantsItem(Build.RlgItem("Fennec"));
+            .WithHasItem(A.Credits(300))
+            .WithHasItem(A.Credits(300))
+            .WithWantsItem(A.RlgItem("Fennec"))
+            .WithWantsItem(A.RlgItem("Fennec"));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.SellOffers.Should().BeEmpty();
-        offers.BuyOffers.Count.Should().Be(1);
-        offers.BuyOffers.Single().Item.Name.Should().Be("Fennec");
-        offers.BuyOffers.Single().Price.Should().Be(300);
+        offers.Count.Should().Be(1);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Buy);
+        offers.Single().TradeOffer.Item.Name.Should().Be("Fennec");
+        offers.Single().TradeOffer.Price.Should().Be(300);
     }
 
     [Test]
@@ -518,20 +558,20 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.RlgItem("Fennec"))
-            .WithHasItem(Build.RlgItem("Fennec"))
-            .WithWantsItem(Build.Credits(350))
-            .WithWantsItem(Build.Credits(350));
+            .WithHasItem(A.RlgItem("Fennec"))
+            .WithHasItem(A.RlgItem("Fennec"))
+            .WithWantsItem(A.Credits(350))
+            .WithWantsItem(A.Credits(350));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Should().BeEmpty();
-        offers.SellOffers.Count.Should().Be(1);
-        offers.SellOffers.Single().Item.Name.Should().Be("Fennec");
-        offers.SellOffers.Single().Price.Should().Be(350);
+        offers.Count.Should().Be(1);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Sell);
+        offers.Single().TradeOffer.Item.Name.Should().Be("Fennec");
+        offers.Single().TradeOffer.Price.Should().Be(350);
     }
 
     [Test]
@@ -540,21 +580,21 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.RlgItem("Dueling Dragons"))
-            .WithHasItem(Build.Credits(60))
-            .WithHasItem(Build.RlgItem("Mainframe"))
-            .WithWantsItem(Build.RlgItem("Meteor Storm"))
-            .WithWantsItem(Build.RlgItem("Supernova III"))
-            .WithWantsItem(Build.RlgItem("Dissolver"));
+            .WithHasItem(A.RlgItem("Dueling Dragons"))
+            .WithHasItem(A.Credits(60))
+            .WithHasItem(A.RlgItem("Mainframe"))
+            .WithWantsItem(A.RlgItem("Meteor Storm"))
+            .WithWantsItem(A.RlgItem("Supernova III"))
+            .WithWantsItem(A.RlgItem("Dissolver"));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.SellOffers.Should().BeEmpty();
-        offers.BuyOffers.Single().Item.Name.Should().Be("Supernova III");
-        offers.BuyOffers.Single().Price.Should().Be(60);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Buy);
+        offers.Single().TradeOffer.Item.Name.Should().Be("Supernova III");
+        offers.Single().TradeOffer.Price.Should().Be(60);
     }
 
     [Test]
@@ -563,21 +603,21 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.RlgItem("Dueling Dragons"))
-            .WithHasItem(Build.RlgItem("Supernova III"))
-            .WithHasItem(Build.RlgItem("Mainframe"))
-            .WithWantsItem(Build.RlgItem("Meteor Storm"))
-            .WithWantsItem(Build.Credits(90))
-            .WithWantsItem(Build.RlgItem("Dissolver"));
+            .WithHasItem(A.RlgItem("Dueling Dragons"))
+            .WithHasItem(A.RlgItem("Supernova III"))
+            .WithHasItem(A.RlgItem("Mainframe"))
+            .WithWantsItem(A.RlgItem("Meteor Storm"))
+            .WithWantsItem(A.Credits(90))
+            .WithWantsItem(A.RlgItem("Dissolver"));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Should().BeEmpty();
-        offers.SellOffers.Single().Item.Name.Should().Be("Supernova III");
-        offers.SellOffers.Single().Price.Should().Be(90);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Sell);
+        offers.Single().TradeOffer.Item.Name.Should().Be("Supernova III");
+        offers.Single().TradeOffer.Price.Should().Be(90);
     }
 
     [Test]
@@ -586,17 +626,16 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.Credits(800))
-            .WithWantsItem(Build.RlgItem("Dueling Dragons"))
-            .WithWantsItem(Build.RlgItem("Fennec"));
+            .WithHasItem(A.Credits(800))
+            .WithWantsItem(A.RlgItem("Dueling Dragons"))
+            .WithWantsItem(A.RlgItem("Fennec"));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Should().BeEmpty();
-        offers.SellOffers.Should().BeEmpty();
+        offers.Should().BeEmpty();
     }
 
     [Test]
@@ -605,17 +644,16 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.RlgItem("Dueling Dragons"))
-            .WithHasItem(Build.RlgItem("Fennec"))
-            .WithWantsItem(Build.Credits(800));
+            .WithHasItem(A.RlgItem("Dueling Dragons"))
+            .WithHasItem(A.RlgItem("Fennec"))
+            .WithWantsItem(A.Credits(800));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Should().BeEmpty();
-        offers.SellOffers.Should().BeEmpty();
+        offers.Should().BeEmpty();
     }
 
     [Test]
@@ -624,20 +662,20 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.Credits(300))
-            .WithHasItem(Build.Credits(100))
-            .WithWantsItem(Build.RlgItems("Fennec", 2))
-            .WithWantsItem(Build.RlgItem("Hellfire"));
+            .WithHasItem(A.Credits(300))
+            .WithHasItem(A.Credits(100))
+            .WithWantsItem(A.RlgItems("Fennec", 2))
+            .WithWantsItem(A.RlgItem("Hellfire"));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.SellOffers.Should().BeEmpty();
-        offers.BuyOffers.Count.Should().Be(1);
-        offers.BuyOffers.Single().Item.Name.Should().Be("Hellfire");
-        offers.BuyOffers.Single().Price.Should().Be(100);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Buy);
+        offers.Count.Should().Be(1);
+        offers.Single().TradeOffer.Item.Name.Should().Be("Hellfire");
+        offers.Single().TradeOffer.Price.Should().Be(100);
     }
 
     [Test]
@@ -646,20 +684,20 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.RlgItems("Fennec", 2))
-            .WithHasItem(Build.RlgItem("Hellfire"))
-            .WithWantsItem(Build.Credits(350))
-            .WithWantsItem(Build.Credits(150));
+            .WithHasItem(A.RlgItems("Fennec", 2))
+            .WithHasItem(A.RlgItem("Hellfire"))
+            .WithWantsItem(A.Credits(350))
+            .WithWantsItem(A.Credits(150));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Should().BeEmpty();
-        offers.SellOffers.Count.Should().Be(1);
-        offers.SellOffers.Single().Item.Name.Should().Be("Hellfire");
-        offers.SellOffers.Single().Price.Should().Be(150);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Sell);
+        offers.Count.Should().Be(1);
+        offers.Single().TradeOffer.Item.Name.Should().Be("Hellfire");
+        offers.Single().TradeOffer.Price.Should().Be(150);
     }
 
     [Test]
@@ -668,16 +706,15 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.RlgItem("Mainframe Blueprint").WithColor("Titanium White"))
-            .WithWantsItem(Build.Credits(6500));
+            .WithHasItem(A.RlgItem("Mainframe Blueprint").WithColor("Titanium White"))
+            .WithWantsItem(A.Credits(6500));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Should().BeEmpty();
-        offers.SellOffers.Should().BeEmpty();
+        offers.Should().BeEmpty();
     }
 
     [Test]
@@ -686,16 +723,15 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.Credits(6500))
-            .WithWantsItem(Build.RlgItem("Mainframe Blueprint").WithColor("Titanium White"));
+            .WithHasItem(A.Credits(6500))
+            .WithWantsItem(A.RlgItem("Mainframe Blueprint").WithColor("Titanium White"));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Should().BeEmpty();
-        offers.SellOffers.Should().BeEmpty();
+        offers.Should().BeEmpty();
     }
 
     [Test]
@@ -704,16 +740,15 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.RlgItem("Grimalkin").WithColor("Painted set"))
-            .WithWantsItem(Build.Credits(6000));
+            .WithHasItem(A.RlgItem("Grimalkin").WithColor("Painted set"))
+            .WithWantsItem(A.Credits(6000));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Should().BeEmpty();
-        offers.SellOffers.Should().BeEmpty();
+        offers.Should().BeEmpty();
     }
 
     [Test]
@@ -722,16 +757,15 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.Credits(5500))
-            .WithWantsItem(Build.RlgItem("Grimalkin").WithColor("Painted set"));
+            .WithHasItem(A.Credits(5500))
+            .WithWantsItem(A.RlgItem("Grimalkin").WithColor("Painted set"));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Should().BeEmpty();
-        offers.SellOffers.Should().BeEmpty();
+        offers.Should().BeEmpty();
     }
 
     [TestCase("Offer")]
@@ -744,20 +778,20 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.Credits(1000))
-            .WithHasItem(Build.Credits(300))
-            .WithWantsItem(Build.RlgItem(offerItemName))
-            .WithWantsItem(Build.RlgItem("Fennec"));
+            .WithHasItem(A.Credits(1000))
+            .WithHasItem(A.Credits(300))
+            .WithWantsItem(A.RlgItem(offerItemName))
+            .WithWantsItem(A.RlgItem("Fennec"));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.SellOffers.Should().BeEmpty();
-        offers.BuyOffers.Count.Should().Be(1);
-        offers.BuyOffers.Single().Item.Name.Should().Be("Fennec");
-        offers.BuyOffers.Single().Price.Should().Be(300);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Buy);
+        offers.Count.Should().Be(1);
+        offers.Single().TradeOffer.Item.Name.Should().Be("Fennec");
+        offers.Single().TradeOffer.Price.Should().Be(300);
     }
 
     [TestCase("Offer")]
@@ -770,20 +804,20 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.RlgItem(offerItemName))
-            .WithHasItem(Build.RlgItem("Fennec"))
-            .WithWantsItem(Build.Credits(1000))
-            .WithWantsItem(Build.Credits(350));
+            .WithHasItem(A.RlgItem(offerItemName))
+            .WithHasItem(A.RlgItem("Fennec"))
+            .WithWantsItem(A.Credits(1000))
+            .WithWantsItem(A.Credits(350));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Should().BeEmpty();
-        offers.SellOffers.Count.Should().Be(1);
-        offers.SellOffers.Single().Item.Name.Should().Be("Fennec");
-        offers.SellOffers.Single().Price.Should().Be(350);
+        offers.Single().TradeOffer.OfferType.Should().Be(TradeOfferType.Sell);
+        offers.Count.Should().Be(1);
+        offers.Single().TradeOffer.Item.Name.Should().Be("Fennec");
+        offers.Single().TradeOffer.Price.Should().Be(350);
     }
 
     [Test]
@@ -792,16 +826,15 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.Credits(0))
-            .WithWantsItem(Build.RlgItem("Supernova III"));
+            .WithHasItem(A.Credits(0))
+            .WithWantsItem(A.RlgItem("Supernova III"));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Should().BeEmpty();
-        offers.SellOffers.Should().BeEmpty();
+        offers.Should().BeEmpty();
     }
 
     [Test]
@@ -810,16 +843,15 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.RlgItem("Supernova III"))
-            .WithWantsItem(Build.Credits(0));
+            .WithHasItem(A.RlgItem("Supernova III"))
+            .WithWantsItem(A.Credits(0));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Should().BeEmpty();
-        offers.SellOffers.Should().BeEmpty();
+        offers.Should().BeEmpty();
     }
 
     [Test]
@@ -828,20 +860,19 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.RlgItem("Fennec"))
-            .WithHasItem(Build.RlgItem("OR"))
-            .WithHasItem(Build.RlgItem("Meteor Storm"))
-            .WithWantsItem(Build.Credits(350))
-            .WithWantsItem(Build.RlgItem("OR"))
-            .WithWantsItem(Build.RlgItem("Dingo"));
+            .WithHasItem(A.RlgItem("Fennec"))
+            .WithHasItem(A.RlgItem("OR"))
+            .WithHasItem(A.RlgItem("Meteor Storm"))
+            .WithWantsItem(A.Credits(350))
+            .WithWantsItem(A.RlgItem("OR"))
+            .WithWantsItem(A.RlgItem("Dingo"));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Should().BeEmpty();
-        offers.SellOffers.Should().BeEmpty();
+        offers.Should().BeEmpty();
     }
 
     [Test]
@@ -850,19 +881,18 @@ public class RlgDataSourceTests
         var page = new RlgPageBuilder();
 
         page.AddTrade()
-            .WithHasItem(Build.Credits(300))
-            .WithHasItem(Build.RlgItem("OR"))
-            .WithHasItem(Build.RlgItem("Dingo"))
-            .WithWantsItem(Build.RlgItem("Fennec"))
-            .WithWantsItem(Build.RlgItem("OR"))
-            .WithWantsItem(Build.RlgItem("Meteor Storm"));
+            .WithHasItem(A.Credits(300))
+            .WithHasItem(A.RlgItem("OR"))
+            .WithHasItem(A.RlgItem("Dingo"))
+            .WithWantsItem(A.RlgItem("Fennec"))
+            .WithWantsItem(A.RlgItem("OR"))
+            .WithWantsItem(A.RlgItem("Meteor Storm"));
 
         httpClient.Setup(c => c.GetStringAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => page.Build());
 
         var offers = await sut.GetTradeOffersPage(cancellationToken);
 
-        offers.BuyOffers.Should().BeEmpty();
-        offers.SellOffers.Should().BeEmpty();
+        offers.Should().BeEmpty();
     }
 }

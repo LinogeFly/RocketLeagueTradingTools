@@ -1,39 +1,59 @@
--- Trending items with price range and price differences
-SELECT Name, Color, ItemType, count(1) [Total], min(Price) || '-' || max(price) PriceRange, max(Price) - min(Price) PriceDif
+-- Trending items
+SELECT ItemName, Color, ItemType, count(1) [Total], min(Price) || '-' || max(price) PriceRange, max(Price) - min(Price) PriceDif
 FROM (
 	-- Unique offers of all items
 	SELECT
-		Name, ItemType, Color, Price, ItemType, SourceId
-	FROM SellOffers
+		ItemName, ItemType, Color, Price, ItemType, Link
+	FROM TradeOffers
 	WHERE
 		ScrapedDate > datetime('now', '-3 days')
+		AND OfferType = "Sell"
 	GROUP BY
-		Name, ItemType, Color, Price, ItemType, SourceId
+		ItemName, ItemType, Color, Price, ItemType, Link
 ) ofr
 GROUP BY
-	Name, Color, ItemType
+	ItemName, Color, ItemType
 ORDER BY [Total] DESC
 LIMIT 100
 
 
+-- Offers summary of a certain item
+SELECT Price, count(1) Amount
+FROM (
+	-- Unique offers of a certain item
+	SELECT
+		ItemName, Color, Price, OfferType, ItemType, Link
+	FROM TradeOffers
+	WHERE
+		ScrapedDate > datetime('now', '-3 days')
+		AND OfferType = "Sell"
+		AND ItemName = "Hellfire"
+		AND Color = ""
+	GROUP BY
+		ItemName, Color, Price, OfferType, ItemType, Link
+	ORDER BY
+		Price
+)
+GROUP BY
+	Price
+ORDER BY
+	Price
+
+	
 -- Unique offers of a certain item
 SELECT
-	Name, Color, Price, ItemType, SourceId
-FROM SellOffers
+	ItemName, Color, Price, OfferType, ItemType, Link
+FROM TradeOffers
 WHERE
-	ScrapedDate > datetime('now', '-5 days')
-	AND Name = "Hellfire"
-	--AND Color = "Lime"
-	--AND ItemType = "Goal Explosion"
+	ScrapedDate > datetime('now', '-3 days')
+	AND OfferType = "Sell"
+	AND ItemName = "Hellfire"
+	AND Color = ""
 GROUP BY
-	Name, Color, Price, ItemType, SourceId
+	ItemName, Color, Price, OfferType, ItemType, Link
 ORDER BY
 	Price
 
 	
 -- Total amount of buy and sell offers
-SELECT sum(cnt) as offers_count FROM (
-	SELECT COUNT(1) as cnt FROM BuyOffers
-	UNION
-	SELECT COUNT(1) as cnt FROM SellOffers
-)
+SELECT COUNT(1) as cnt FROM TradeOffers

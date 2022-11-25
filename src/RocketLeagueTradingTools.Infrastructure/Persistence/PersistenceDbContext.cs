@@ -5,8 +5,7 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence;
 
 public class PersistenceDbContext : DbContext
 {
-    public DbSet<PersistedBuyOffer> BuyOffers { get; set; } = null!;
-    public DbSet<PersistedSellOffer> SellOffers { get; set; } = null!;
+    public DbSet<PersistedTradeOffer> TradeOffers { get; set; } = null!;
     public DbSet<PersistedAlert> Alerts { get; set; } = null!;
     public DbSet<PersistedNotification> Notifications { get; set; } = null!;
     public DbSet<PersistedBlacklistedTrader> BlacklistedTraders { get; set; } = null!;
@@ -17,16 +16,11 @@ public class PersistenceDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<PersistedBuyOffer>().ToTable("BuyOffers");
-        modelBuilder.Entity<PersistedBuyOffer>().HasIndex(o => o.ItemName);
-        modelBuilder.Entity<PersistedBuyOffer>().HasIndex(o => o.ScrapedDate);
-        modelBuilder.Entity<PersistedBuyOffer>().HasIndex(o => o.Price);
-
-        modelBuilder.Entity<PersistedSellOffer>().ToTable("SellOffers");
-        modelBuilder.Entity<PersistedSellOffer>().HasIndex(o => o.ItemName);
-        modelBuilder.Entity<PersistedSellOffer>().HasIndex(o => o.ScrapedDate);
-        modelBuilder.Entity<PersistedSellOffer>().HasIndex(o => o.Price);
-
+        modelBuilder.Entity<PersistedTradeOffer>().ToTable("TradeOffers");
+        modelBuilder.Entity<PersistedTradeOffer>().HasIndex(o => o.ItemName);
+        modelBuilder.Entity<PersistedTradeOffer>().HasIndex(o => o.ScrapedDate);
+        modelBuilder.Entity<PersistedTradeOffer>().HasIndex(o => o.Price);
+        
         modelBuilder.Entity<PersistedAlert>().ToTable("Alerts");
         modelBuilder.Entity<PersistedAlert>().HasIndex(a => a.ItemName);
         modelBuilder.Entity<PersistedAlert>().HasIndex(p => p.PriceFrom);
@@ -34,7 +28,7 @@ public class PersistenceDbContext : DbContext
 
         modelBuilder.Entity<PersistedNotification>().ToTable("Notifications");
         modelBuilder.Entity<PersistedNotification>().HasIndex(n => n.CreatedDate);
-        modelBuilder.Entity<PersistedNotification>().HasIndex(n => n.TradeOfferScrapedDate);
+        modelBuilder.Entity<PersistedNotification>().HasOne(n => n.TradeOffer);
 
         modelBuilder.Entity<PersistedBlacklistedTrader>().ToTable("Blacklist")
             .HasIndex(b => new { b.TradingSite, b.TraderName })

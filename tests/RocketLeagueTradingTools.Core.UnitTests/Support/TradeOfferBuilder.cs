@@ -1,20 +1,26 @@
-using RocketLeagueTradingTools.Core.Domain.Entities;
 using RocketLeagueTradingTools.Core.Domain.Enumerations;
+using RocketLeagueTradingTools.Core.Domain.ValueObjects;
 
 namespace RocketLeagueTradingTools.Core.UnitTests.Support;
 
-class TradeOfferBuilder
+internal class TradeOfferBuilder
 {
-    private TradeItem tradeItem = null!;
+    private TradeOfferType offerType;
+    private TradeItemBuilder tradeItemBuilder = null!;
     private int price;
-    private DateTime scrapedDate;
     private string link = "";
-    private TradingSite tradingSite;
-
-    public TradeOfferBuilder WithTradeItem(TradeItem tradeItem)
+    private Trader trader = null!;
+    
+    public TradeOfferBuilder WithType(TradeOfferType offerType)
     {
-        this.tradeItem = tradeItem;
-        this.scrapedDate = DateTime.UtcNow;
+        this.offerType = offerType;
+
+        return this;
+    }
+
+    public TradeOfferBuilder WithItem(TradeItemBuilder tradeItemBuilder)
+    {
+        this.tradeItemBuilder = tradeItemBuilder;
 
         return this;
     }
@@ -26,31 +32,32 @@ class TradeOfferBuilder
         return this;
     }
 
-    public TradeOfferBuilder WithScrapedDate(DateTime scrapedDate)
+    public TradeOfferBuilder WithLink(string link)
     {
-        this.scrapedDate = scrapedDate;
+        this.link = link;
 
         return this;
     }
-
-    public TradeOfferBuilder WithRlgId(string sourceId)
+    
+    public TradeOfferBuilder WithTrader(TradingSite site, string name)
     {
-        this.link = $"https://rocket-league.com/trade/{sourceId}";
-        this.tradingSite = TradingSite.RocketLeagueGarage;
+        this.trader = new Trader(site, name);
 
         return this;
     }
 
     public TradeOffer Build()
     {
+        if (tradeItemBuilder is null)
+            throw new ArgumentException("The field is required.", nameof(tradeItemBuilder));
+        
         return new TradeOffer
         (
-            tradeItem,
+            offerType,
+            tradeItemBuilder.Build(),
             price,
-            scrapedDate,
             link,
-            tradingSite,
-            nameof(TradeOfferBuilder)
+            trader
         );
     }
 }

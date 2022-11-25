@@ -1,12 +1,12 @@
 using RocketLeagueTradingTools.Core.Domain.Entities;
+using RocketLeagueTradingTools.Core.Domain.ValueObjects;
 
 namespace RocketLeagueTradingTools.Core.Application.Interfaces;
 
 public interface IPersistenceRepository
 {
-    Task AddBuyOffers(IList<TradeOffer> offers);
-    Task AddSellOffers(IList<TradeOffer> offers);
-    Task<IList<TradeOffer>> FindAlertMatchingOffers(TimeSpan alertOfferMaxAge);
+    Task AddTradeOffers(IList<ScrapedTradeOffer> offers);
+    Task<IList<ScrapedTradeOffer>> FindAlertMatchingOffers(TimeSpan alertOfferMaxAge);
     Task DeleteOldOffers(TimeSpan maxAge);
 
     Task<IList<Alert>> GetAlerts();
@@ -22,7 +22,7 @@ public interface IPersistenceRepository
     Task MarkAllNotificationAsSeen();
     Task DeleteOldNotifications(TimeSpan maxAge);
     
-    Task<IList<BlacklistedTrader>> GetBlacklistedTraders();
-    Task AddBlacklistedTrader(BlacklistedTrader trader);
+    Task<IList<Trader>> GetBlacklistedTraders();
+    Task AddBlacklistedTrader(Trader trader);
     Task DeleteBlacklistedTrader(int id);
 }

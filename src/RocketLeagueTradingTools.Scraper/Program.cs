@@ -12,6 +12,7 @@ var token = tokenSource.Token;
 // Waiting for exit button keypress in a separate background thread. Once the exit button is pressed,
 // the thread will initiate the cancellation request to the cancellation token.
 // The thread is a background thread and will be terminated automatically once the main thread finishes.
+// ReSharper disable once UnusedVariable
 var waitForExitKeyPressTask = Task.Run(() =>
 {
     // ReSharper disable once AccessToDisposedClosure

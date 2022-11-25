@@ -19,13 +19,15 @@ public class DomainToDtoProfile : Profile
         CreateMap<Alert, AlertDto>();
 
         CreateMap<Notification, NotificationDto>()
-            .ForMember(dest => dest.ItemName, opt => opt.MapFrom(src => src.TradeOffer.Item.Name))
-            .ForMember(dest => dest.ItemPrice, opt => opt.MapFrom(src => src.TradeOffer.Price))
-            .ForMember(dest => dest.IsNew, opt => opt.MapFrom(src => src.SeenDate == null))
-            .ForMember(dest => dest.TradeOfferAge, opt => opt.MapFrom<TradeOfferAgeResolver>());
+            .ForMember(dest => dest.ItemName, opt => opt.MapFrom(src => src.ScrapedTradeOffer.TradeOffer.Item.Name))
+            .ForMember(dest => dest.ItemPrice, opt => opt.MapFrom(src => src.ScrapedTradeOffer.TradeOffer.Price))
+            .ForMember(dest => dest.TradeOfferLink, opt => opt.MapFrom(src => src.ScrapedTradeOffer.TradeOffer.Link))
+            .ForMember(dest => dest.TradeOfferAge, opt => opt.MapFrom<TradeOfferAgeResolver>())
+            .ForMember(dest => dest.IsNew, opt => opt.MapFrom(src => src.SeenDate == null));
 
-        CreateMap<BlacklistedTrader, BlacklistedTraderDto>()
-            .ForMember(dest => dest.TradingSite, opt => opt.MapFrom(src => Map(src.TradingSite)));
+        CreateMap<Trader, BlacklistedTraderDto>()
+            .ForMember(dest => dest.TradingSite, opt => opt.MapFrom(src => Map(src.TradingSite)))
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name));
     }
 
     private string Map(TradingSite tradingSite)
@@ -50,7 +52,7 @@ public class DomainToDtoProfile : Profile
 
         public string Resolve(Notification source, NotificationDto dest, string destMember, ResolutionContext context)
         {
-            var age = dateTime.Now - source.TradeOffer.ScrapedDate;
+            var age = dateTime.Now - source.ScrapedTradeOffer.ScrapedDate;
 
             if (age.Hours > 1)
                 return $"{age.Hours} hours";
