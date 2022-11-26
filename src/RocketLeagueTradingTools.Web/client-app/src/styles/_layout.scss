@@ -1,0 +1,11 @@
+@import "../../node_modules/bootstrap/scss/_mixins.scss";
+
+.rltt-page {
+  padding-top: 1rem;
+  padding-bottom: 2rem;
+}
+
+.rltt-container {
+  @include make-container();
+  max-width: 564px;
+}

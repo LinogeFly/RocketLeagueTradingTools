@@ -1,0 +1,7 @@
+@import "../../node_modules/bootstrap/scss/_variables.scss";
+
+a.disabled {
+  pointer-events: none;
+  color: $btn-link-disabled-color;
+  opacity: $btn-disabled-opacity;
+}

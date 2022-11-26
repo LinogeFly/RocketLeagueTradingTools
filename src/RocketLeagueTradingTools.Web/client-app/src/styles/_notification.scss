@@ -1,0 +1,49 @@
+@import "../../node_modules/bootstrap/scss/_variables.scss";
+
+.rltt-notification {
+  background-color: $white;
+  margin-bottom: $spacer * 0.25;
+
+  &__content {
+    border: $border-width solid rgba($black, .125);
+    padding: $spacer * 0.5 $spacer $spacer * 0.5 $spacer;
+  }
+
+  &__text {
+    margin-bottom: $spacer * 0.5;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: $font-size-sm;
+  }
+  
+  &:hover {
+    cursor: pointer;
+    background-color: $gray-100;
+  }
+
+  &__mark-as-seen {
+    display: none;
+  }
+
+  &:hover &__mark-as-seen {
+    display: block;
+  }
+
+  &--new {
+    background-color: rgba($blue-100, .5);
+    border: 0;
+    border-left: 5px solid $blue;
+  }
+
+  &--new:hover {
+    background-color: $blue-100;
+  }
+
+  &--new &__content {
+    border-left: 0;
+    padding-left: $spacer * 0.75;
+  }
+}

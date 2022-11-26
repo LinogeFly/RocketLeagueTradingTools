@@ -15,8 +15,6 @@
 - Remove AutoMapper usage.
 - Move API classes to a separate namespace called Contracts with Requests and Responses child namespaces. Use record
   type for API model, instead of classes.
-- Show offer type in notification boxes.
-- Custom CSS component for notification items.
 - Implement paging or infinite scroll for notifications.
 
 ### Projects to check out for inspiration/learning

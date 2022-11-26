@@ -142,8 +142,8 @@ function NotificationsPage() {
             })
         );
     }
-
-    const handleMarkAsSeenClick = (id: number) => {
+    
+    const markNotificationAsSeen = (id: number) => {
         // Mark the notification as seen in the view model
         setNotificationStatus(id, NotificationStatus.PendingMarkAsSeen);
 
@@ -154,10 +154,17 @@ function NotificationsPage() {
             .catch(error => {
                 if (axios.isCancel(error))
                     return;
-                
+
                 setNotificationStatus(id, NotificationStatus.New);
                 logError(error);
             });
+    }
+
+    const handleMarkAsSeenClick = (event: React.MouseEvent, id: number) => {
+        // Not letting the event to be bubbled to the notification item as it's clickable as well.
+        event.stopPropagation();
+
+        markNotificationAsSeen(id);
     }
 
     const handleMarkAllAsSeenClick = () => {
@@ -175,6 +182,11 @@ function NotificationsPage() {
                 setNotificationsStatus(n => n.status === NotificationStatus.PendingMarkAsSeen, NotificationStatus.New);
                 logError(error);
             });
+    }
+    
+    const handleNotificationClick = (notification: Notification) => {
+        markNotificationAsSeen(notification.id);
+        window.open(notification.tradeOfferLink, "_blank", "noreferrer");
     }
 
     return (
@@ -198,29 +210,32 @@ function NotificationsPage() {
                 Unable to load notifications. Try again later.
             </div>}
 
-            <ol className="list-group">
-                {notifications?.map(notification => {
-                    const isNewClass = isNew(notification) ? 'list-group-item-primary' : '';
+            {notifications?.map(notification => {
+                const isNewClass = isNew(notification) ? 'rltt-notification--new' : '';
 
-                    return (
-                        <li className={`list-group-item mb-2 ${isNewClass}`} key={notification.id}>
-                            <div className="d-flex mb-2">
-                                <div className="me-auto"><strong>{notification.itemName}</strong> for {notification.itemPrice} credits is matching a trade offer alert.</div>
-                                <div className="ms-4"><small className="text-nowrap">{notification.tradeOfferAge} ago</small></div>
+                return (
+                    <div className={`rltt-notification ${isNewClass}`}
+                         key={notification.id}
+                         onClick={() => handleNotificationClick(notification)}>
+                        <div className="rltt-notification__content">
+                            <div className="rltt-notification__text">
+                                <strong>{notification.itemName}</strong> for {notification.itemPrice} credits is matching a trade offer alert.
                             </div>
-                            <div>
-                                <a href={notification.tradeOfferLink} target="_blank" rel="noreferrer">Trade details</a>
-                                <span className="px-2">•</span>
-                                <Link to=""
-                                    className={isNew(notification) ? '' : 'disabled'}
-                                    onClick={() => handleMarkAsSeenClick(notification.id)}>
-                                    Mark as seen
-                                </Link>
+                            
+                            <div className="rltt-notification__footer">
+                                <div className="rltt-notification__age">{notification.tradeOfferAge} ago</div>
+                                {isNew(notification) && <div className="rltt-notification__mark-as-seen">
+                                     <Link to=""
+                                          onClick={(e) => handleMarkAsSeenClick(e, notification.id)}>
+                                        Mark as seen
+                                    </Link>
+                                </div>}
                             </div>
-                        </li>
-                    )
-                })}
-            </ol>
+                        </div>
+                    </div>
+                )
+            })}
+            
             <audio ref={notificationAudioRef} src={config.notificationSoundEffectSource} preload="none"></audio>
         </>
     );

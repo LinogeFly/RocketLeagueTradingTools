@@ -1,0 +1,23 @@
+/* Bootstrap variable overrides start */
+
+$body-bg: #F7F7F7;
+$border-radius: 0;
+
+$spacer: 1rem;
+$spacers: (
+        0: 0,
+        1: $spacer * .25,
+        2: $spacer * .5,
+        3: $spacer,
+        4: $spacer * 2
+);
+
+$headings-margin-bottom: $spacer * 1;
+
+/* Bootstrap variable overrides end */
+
+@import "../../node_modules/bootstrap/scss/bootstrap";
+
+@import "./bootstrap-overrides";
+@import "./layout";
+@import "./notification";
