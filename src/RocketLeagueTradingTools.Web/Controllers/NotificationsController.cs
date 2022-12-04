@@ -21,13 +21,19 @@ public class NotificationsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IList<NotificationDto>>> Get(int pageSize = 20)
+    public async Task<ActionResult<NotificationsResponse>> Get(int pageSize = 20)
     {
         await app.RefreshNotifications();
 
+        var total = await app.GetNotificationsCount();
         var notifications = await app.GetNotifications(pageSize);
+        var result = new NotificationsResponse
+        {
+            Items = mapper.Map<List<NotificationDto>>(notifications),
+            Total = total
+        };
 
-        return Ok(mapper.Map<List<NotificationDto>>(notifications));
+        return Ok(result);
     }
 
     [HttpPatch("{id:int}")]

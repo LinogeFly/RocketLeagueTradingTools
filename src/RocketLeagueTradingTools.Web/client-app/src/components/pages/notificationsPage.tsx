@@ -1,12 +1,17 @@
 import React, {useEffect, useRef, useState} from "react";
 import axios from 'axios';
-import {NotificationDto} from "../../models/api/notification";
+import {NotificationDto, NotificationsResponse} from "../../models/api/notification";
 import {logError} from "../../services/logger";
 import {config} from "../../services/config";
 import {useQuery} from '@tanstack/react-query'
 import {Link} from "react-router-dom";
 
 // Page view model
+interface Notifications {
+    items: Notification[],
+    total: number
+}
+//
 interface Notification {
     id: number,
     itemName: string,
@@ -15,7 +20,7 @@ interface Notification {
     tradeOfferLink: string,
     status: NotificationStatus
 }
-
+//
 enum NotificationStatus {
     New,
     Seen,
@@ -52,7 +57,9 @@ const playNotificationSound = (audioRef: React.RefObject<HTMLAudioElement>) => {
 
 function NotificationsPage() {
     const [fetchingEnabled, setFetchingEnabled] = useState<boolean>(false);
-    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [notifications, setNotifications] = useState<Notifications>({items: [], total: 0});
+    const [numberOfPagesToShow, setNumberOfPagesToShow] = useState<number>(1);
+    const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
     const notificationAudioRef = useRef<HTMLAudioElement>(null);
 
     useEffect(() => {
@@ -61,8 +68,11 @@ function NotificationsPage() {
             .catch((reason) => console.error(reason));
     }, []);
 
-    const { status } = useQuery(["notifications"], (context) => {
-        return axios.get<NotificationDto[]>(`/api/notifications?pageSize=${config.notificationsPageSize}`, { signal: context.signal })
+    const { status } = useQuery(["notifications", numberOfPagesToShow], (context) => {
+        const url = `/api/notifications?pageSize=${config.notificationsPageSize * numberOfPagesToShow}`;
+        
+        return axios
+            .get<NotificationsResponse>(url, { signal: context.signal })
             .then(response => response.data);
     }, {
         enabled: fetchingEnabled,
@@ -70,10 +80,10 @@ function NotificationsPage() {
         refetchIntervalInBackground: true,
         refetchOnWindowFocus: false,
         refetchInterval: config.notificationsRefreshInterval,
-        onSuccess: (data: NotificationDto[]) => {
-            const newNotifications = data
+        onSuccess: (data: NotificationsResponse) => {
+            const newNotifications = data.items
                 .filter(d => d.isNew)
-                .filter(d => !notifications.some(c => c.id === d.id));
+                .filter(d => !notifications.items.some(c => c.id === d.id));
 
             if (newNotifications.length > 0) {
                 showNotificationPopup();
@@ -82,31 +92,39 @@ function NotificationsPage() {
 
             setNotifications(current => {
                 const mapStatus = (notification: NotificationDto) => {
-                    const status = current.find(n => n.id === notification.id)?.status;
+                    const status = current.items.find(n => n.id === notification.id)?.status;
                     
                     if (status === NotificationStatus.PendingMarkAsSeen)
                         return NotificationStatus.PendingMarkAsSeen;
 
                     return notification.isNew ? NotificationStatus.New : NotificationStatus.Seen;
                 };
-               
-                return data.map(n => ({
-                    id: n.id,
-                    itemName: n.itemName,
-                    itemPrice: n.itemPrice,
-                    tradeOfferAge: n.tradeOfferAge,
-                    tradeOfferLink: n.tradeOfferLink,
-                    status: mapStatus(n)
-                }));
+                
+                return {
+                    items: data.items.map(n => ({
+                        id: n.id,
+                        itemName: n.itemName,
+                        itemPrice: n.itemPrice,
+                        tradeOfferAge: n.tradeOfferAge,
+                        tradeOfferLink: n.tradeOfferLink,
+                        status: mapStatus(n)
+                    })),
+                    total: data.total
+                }
             });
         },
         onError: () => {
-            setNotifications([]);
+            setNotifications({items: [], total: 0});
+        },
+        onSettled: () => {
+            if (isLoadingMore) {
+                setIsLoadingMore(false);
+            }
         }
     });
 
     useEffect(() => {
-        const newNotificationsCount = notifications.filter(n => isNew(n)).length;
+        const newNotificationsCount = notifications.items.filter(n => isNew(n)).length;
 
         if (newNotificationsCount > 0)
             document.title = `(${newNotificationsCount}) ${config.defaultTitle}`;
@@ -116,31 +134,33 @@ function NotificationsPage() {
     }, [notifications]);
 
     const hasNewNotifications = () => {
-        return notifications.filter(n => isNew(n)).length > 0;
+        return notifications.items.filter(n => isNew(n)).length > 0;
     }
 
     const setNotificationStatus = (id: number, status: NotificationStatus) => {
-        setNotifications(current => 
-            current.map(item => {
+        setNotifications(current => ({
+            items: current.items.map(item => {
                 if (item.id === id) {
-                    return { ...item, status: status }
+                    return {...item, status: status}
                 }
 
                 return item;
-            })
-        );
+            }),
+            total: current.total 
+        }));
     }
     
     const setNotificationsStatus = (predicate: (n: Notification) => boolean, status: NotificationStatus) => {
-        setNotifications(current =>
-            current.map(item => {
+        setNotifications(current => ({
+            items: current.items.map(item => {
                 if (predicate(item)) {
                     return {...item, status: status}
                 }
 
                 return item;
-            })
-        );
+            }),
+            total: current.total
+        }));
     }
     
     const markNotificationAsSeen = (id: number) => {
@@ -189,11 +209,26 @@ function NotificationsPage() {
         window.open(notification.tradeOfferLink, "_blank", "noreferrer");
     }
 
+    const handleLoadMoreClick = () => {
+        setNumberOfPagesToShow(current => {
+            return current + 1;
+        });
+        
+        setIsLoadingMore(true);
+    }
+    
+    const shouldShowMarkAllAsSeen = ():boolean => {
+        if (notifications.items.length === 0)
+            return false;
+        
+        return status === 'success' || isLoadingMore;
+    }
+    
     return (
         <>
             <div className="mb-3 d-flex align-items-end">
                 <h2 className="m-0 flex-fill">Notifications</h2>
-                {status === 'success' && notifications.length > 0 && <div>
+                {shouldShowMarkAllAsSeen() && <div>
                     <Link to=""
                           className={hasNewNotifications() ? '' : 'disabled'}
                           onClick={handleMarkAllAsSeenClick}>
@@ -202,7 +237,7 @@ function NotificationsPage() {
                 </div>}
             </div>
 
-            {status === 'loading' && <div>
+            {status === 'loading' && !isLoadingMore && <div>
                 Loading...
             </div>}
 
@@ -210,7 +245,11 @@ function NotificationsPage() {
                 Unable to load notifications. Try again later.
             </div>}
 
-            {notifications?.map(notification => {
+            {status === 'success' && !notifications.items.length && <div>
+                Nothing to see here just yet.
+            </div>}
+
+            {notifications.items.map(notification => {
                 const isNewClass = isNew(notification) ? 'rltt-notification--new' : '';
 
                 return (
@@ -235,6 +274,12 @@ function NotificationsPage() {
                     </div>
                 )
             })}
+
+            {notifications.total > notifications.items.length && <div className="my-3 primary text-center">
+                {isLoadingMore
+                    ? <>Loading...</>
+                    : <Link to="" onClick={handleLoadMoreClick}>Show more</Link>}                    
+            </div>}
             
             <audio ref={notificationAudioRef} src={config.notificationSoundEffectSource} preload="none"></audio>
         </>

@@ -150,6 +150,18 @@ public class PersistenceRepositoryTests
     }
     
     [Test]
+    public async Task GetNotificationsCount_should_return_total_notifications_count()
+    {
+        var dbContext = await dbContextFactory.CreateDbContextAsync();
+        dbContext.AddRange(A.Notification(), A.Notification());
+        await dbContext.SaveChangesAsync();
+    
+        var count = await sut.GetNotificationsCount();
+    
+        count.Should().Be(2);
+    }
+    
+    [Test]
     public async Task FindAlertMatchingOffers_should_return_offer_matches_with_ScrapedDate_mapped()
     {
         var expected = DateTime.UtcNow;

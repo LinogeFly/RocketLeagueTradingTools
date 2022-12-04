@@ -17,6 +17,7 @@ public interface IPersistenceRepository
 
     Task<IList<Notification>> GetNotifications(int pageSize);
     Task<IList<Notification>> GetNotifications(TimeSpan notOlderThan);
+    Task<int> GetNotificationsCount();
     Task AddNotifications(IList<Notification> notifications);
     Task MarkNotificationAsSeen(int id);
     Task MarkAllNotificationAsSeen();

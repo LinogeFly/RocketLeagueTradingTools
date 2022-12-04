@@ -20,6 +20,11 @@ public class NotificationApplication
     {
         return await persistence.GetNotifications(pageSize);
     }
+    
+    public async Task<int> GetNotificationsCount()
+    {
+        return await persistence.GetNotificationsCount();
+    }
 
     public async Task RefreshNotifications()
     {

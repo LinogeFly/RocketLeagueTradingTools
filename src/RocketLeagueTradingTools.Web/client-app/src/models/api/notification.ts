@@ -1,3 +1,8 @@
+export interface NotificationsResponse {
+    total: number,
+    items: NotificationDto[]
+}
+
 export interface NotificationDto {
     id: number,
     itemName: string,

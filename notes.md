@@ -2,8 +2,13 @@
 
 ## To-do
 
+### Known issues
+
+- Notifications age hours are not shown properly if the age is more than 24 hours.
+
 ### Core
 
+- Should not delete offers that have notifications related to them.
 - Add more unit tests for persistence repository mapping.
 - Split `PersistenceRepository` into smaller, application specific repositories.
 - Add DI for tests. Wrap the DI container into `Given` and `Then` classes. Check MyPages for inspiration.
@@ -15,7 +20,7 @@
 - Remove AutoMapper usage.
 - Move API classes to a separate namespace called Contracts with Requests and Responses child namespaces. Use record
   type for API model, instead of classes.
-- Implement paging or infinite scroll for notifications.
+- Try to make tests for Notifications page component. There is plenty scenarios to test, would be a good exercise.
 
 ### Projects to check out for inspiration/learning
 

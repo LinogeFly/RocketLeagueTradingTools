@@ -151,6 +151,13 @@ public class PersistenceRepository : IPersistenceRepository
         return items.Select(Map).ToList();
     }
 
+    public async Task<int> GetNotificationsCount()
+    {
+        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+        return await dbContext.Notifications.CountAsync();
+    }
+
     public async Task AddNotifications(IList<Notification> notifications)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync();
