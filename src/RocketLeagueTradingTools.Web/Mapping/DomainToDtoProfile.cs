@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using RocketLeagueTradingTools.Common;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Core.Domain.Entities;
 using RocketLeagueTradingTools.Core.Domain.Enumerations;
@@ -53,20 +54,8 @@ public class DomainToDtoProfile : Profile
         public string Resolve(Notification source, NotificationDto dest, string destMember, ResolutionContext context)
         {
             var age = dateTime.Now - source.ScrapedTradeOffer.ScrapedDate;
-
-            if (age.Hours > 1)
-                return $"{age.Hours} hours";
-            if (age.Hours == 1)
-                return $"{age.Hours} hour";
-            if (age.Minutes > 1)
-                return $"{age.Minutes} minutes";
-            if (age.Minutes == 1)
-                return $"{age.Minutes} minute";
-            if (age.Seconds > 1)
-                return $"{age.Seconds} seconds";
-
-            // Combining one and less than one into "1 second", as we don't want to have "0 seconds" age.
-            return "1 second";
+            
+            return age.ToHumanReadableString();
         }
     }
 }

@@ -1,10 +1,8 @@
 # Notes
 
+## Known issues
+
 ## To-do
-
-### Known issues
-
-- Notifications age hours are not shown properly if the age is more than 24 hours.
 
 ### Core
 
@@ -45,8 +43,6 @@ Ideas:
 - Alert (configuration rules)
 - Alert notification (in the database)
 - Notification pop-up (in the browser)
-
-## Known issues
 
 ## Technical notes
 

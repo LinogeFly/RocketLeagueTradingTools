@@ -23,6 +23,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RocketLeagueTradingTools.We
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RocketLeagueTradingTools.Common", "src\RocketLeagueTradingTools.Common\RocketLeagueTradingTools.Common.csproj", "{453E117A-6483-420D-9036-3C3F5E239C80}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RocketLeagueTradingTools.Common.UnitTests", "tests\RocketLeagueTradingTools.Common.UnitTests\RocketLeagueTradingTools.Common.UnitTests.csproj", "{0DA95AC0-DF31-49C1-A5C9-253AE223B1C5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +63,10 @@ Global
 		{453E117A-6483-420D-9036-3C3F5E239C80}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{453E117A-6483-420D-9036-3C3F5E239C80}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{453E117A-6483-420D-9036-3C3F5E239C80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0DA95AC0-DF31-49C1-A5C9-253AE223B1C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0DA95AC0-DF31-49C1-A5C9-253AE223B1C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0DA95AC0-DF31-49C1-A5C9-253AE223B1C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0DA95AC0-DF31-49C1-A5C9-253AE223B1C5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -74,6 +80,7 @@ Global
 		{E0076B4C-DEA7-494A-8D51-07B2FCA86987} = {EB8BB5A4-F53D-427D-BCCC-B98FD31377A8}
 		{7F2165CD-8EAD-4515-8A48-236C43EAF81D} = {16ABC5ED-950D-43AF-85A5-E7A82C643417}
 		{453E117A-6483-420D-9036-3C3F5E239C80} = {16ABC5ED-950D-43AF-85A5-E7A82C643417}
+		{0DA95AC0-DF31-49C1-A5C9-253AE223B1C5} = {EB8BB5A4-F53D-427D-BCCC-B98FD31377A8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {22F53B5A-81CF-4883-999B-E833A69E8654}
