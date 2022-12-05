@@ -83,8 +83,7 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                         name: "FK_Notifications_TradeOffers_TradeOfferId",
                         column: x => x.TradeOfferId,
                         principalTable: "TradeOffers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(

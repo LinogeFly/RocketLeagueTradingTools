@@ -173,7 +173,7 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                     b.HasOne("RocketLeagueTradingTools.Infrastructure.Persistence.Models.PersistedTradeOffer", "TradeOffer")
                         .WithMany()
                         .HasForeignKey("TradeOfferId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("TradeOffer");

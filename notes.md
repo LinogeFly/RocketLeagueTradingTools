@@ -8,7 +8,6 @@
 
 ### Core
 
-- Should not delete offers that have notifications related to them.
 - Add more unit tests for persistence repository mapping.
 - Split `PersistenceRepository` into smaller, application specific repositories.
 - Add DI for tests. Wrap the DI container into `Given` and `Then` classes. Check MyPages for inspiration.

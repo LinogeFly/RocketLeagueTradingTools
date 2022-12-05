@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RocketLeagueTradingTools.Common;
 using RocketLeagueTradingTools.Core.Application;
+using RocketLeagueTradingTools.Core.Application.DataRetention;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Core.Application.Scraping;
 using RocketLeagueTradingTools.Infrastructure.Common;
@@ -30,6 +31,7 @@ internal static class HostConfiguration
                 services.AddSingleton<IHttp, Http>();
                 services.AddSingleton<IDateTime, SystemDateTime>();
                 services.AddSingleton<IScrapApplicationSettings, ScrapApplicationSettings>();
+                services.AddSingleton<IDataRetentionApplicationSettings, DataRetentionApplicationSettings>();
 
                 services.AddScoped<ScrapApplication>();
                 services.AddScoped<DataRetentionApplication>();

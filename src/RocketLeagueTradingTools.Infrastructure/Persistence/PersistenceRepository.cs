@@ -29,7 +29,7 @@ public class PersistenceRepository : IPersistenceRepository
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task<IList<ScrapedTradeOffer>> FindAlertMatchingOffers(TimeSpan alertOfferMaxAge)
+    public async Task<IList<ScrapedTradeOffer>> FindAlertMatchingTradeOffers(TimeSpan alertOfferMaxAge)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync();
 
@@ -38,11 +38,17 @@ public class PersistenceRepository : IPersistenceRepository
         return offers.Select(Map).ToList();
     }
 
-    public async Task DeleteOldOffers(TimeSpan maxAge)
+    public async Task DeleteOldTradeOffers(TimeSpan maxAge)
     {
         await using var dbContext = await dbContextFactory.CreateDbContextAsync();
 
-        var offersToDelete = dbContext.TradeOffers.Where(o => o.ScrapedDate < dateTime.Now.Add(-maxAge));
+        var offersToDelete =
+            from o in dbContext.TradeOffers
+            from n in dbContext.Notifications.Where(n => n.TradeOffer.Id == o.Id).DefaultIfEmpty()
+            where
+                o.ScrapedDate < dateTime.Now.Add(-maxAge) &&
+                n.TradeOffer == null
+            select o;
 
         dbContext.TradeOffers.RemoveRange(offersToDelete);
 

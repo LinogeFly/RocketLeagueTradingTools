@@ -50,7 +50,7 @@ public class NotificationApplicationTests
                     .WithOffer(A.TradeOffer().WithPrice(300)))
                 .Build()
         });
-        persistence.Setup(p => p.FindAlertMatchingOffers(It.IsAny<TimeSpan>())).ReturnsAsync(new[]
+        persistence.Setup(p => p.FindAlertMatchingTradeOffers(It.IsAny<TimeSpan>())).ReturnsAsync(new[]
         {
             A.ScrapedOffer()
                 .WithScrapedDate(scrapDate.AddMinutes(1))
@@ -73,7 +73,7 @@ public class NotificationApplicationTests
                 .WithScrapedOffer(A.ScrapedOffer().WithScrapedDate(scrapDate))
                 .Build()
         });
-        persistence.Setup(p => p.FindAlertMatchingOffers(It.IsAny<TimeSpan>())).ReturnsAsync(new[]
+        persistence.Setup(p => p.FindAlertMatchingTradeOffers(It.IsAny<TimeSpan>())).ReturnsAsync(new[]
         {
             A.ScrapedOffer()
                 .WithScrapedDate(scrapDate.AddMinutes(1))

@@ -6,8 +6,8 @@ namespace RocketLeagueTradingTools.Core.Application.Interfaces;
 public interface IPersistenceRepository
 {
     Task AddTradeOffers(IList<ScrapedTradeOffer> offers);
-    Task<IList<ScrapedTradeOffer>> FindAlertMatchingOffers(TimeSpan alertOfferMaxAge);
-    Task DeleteOldOffers(TimeSpan maxAge);
+    Task<IList<ScrapedTradeOffer>> FindAlertMatchingTradeOffers(TimeSpan alertOfferMaxAge);
+    Task DeleteOldTradeOffers(TimeSpan maxAge);
 
     Task<IList<Alert>> GetAlerts();
     Task<Alert?> GetAlert(int id);

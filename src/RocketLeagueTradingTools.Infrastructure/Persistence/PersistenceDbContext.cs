@@ -28,7 +28,8 @@ public class PersistenceDbContext : DbContext
 
         modelBuilder.Entity<PersistedNotification>().ToTable("Notifications");
         modelBuilder.Entity<PersistedNotification>().HasIndex(n => n.CreatedDate);
-        modelBuilder.Entity<PersistedNotification>().HasOne(n => n.TradeOffer);
+        modelBuilder.Entity<PersistedNotification>().HasOne(n => n.TradeOffer).WithMany()
+            .OnDelete(DeleteBehavior.NoAction);
 
         modelBuilder.Entity<PersistedBlacklistedTrader>().ToTable("Blacklist")
             .HasIndex(b => new { b.TradingSite, b.TraderName })

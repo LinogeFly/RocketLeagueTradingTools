@@ -11,7 +11,7 @@ using RocketLeagueTradingTools.Infrastructure.Persistence;
 namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(PersistenceDbContext))]
-    [Migration("20221117153901_InitialCreate")]
+    [Migration("20221204120000_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -175,7 +175,7 @@ namespace RocketLeagueTradingTools.Infrastructure.Persistence.Migrations
                     b.HasOne("RocketLeagueTradingTools.Infrastructure.Persistence.Models.PersistedTradeOffer", "TradeOffer")
                         .WithMany()
                         .HasForeignKey("TradeOfferId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("TradeOffer");

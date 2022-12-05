@@ -7,4 +7,5 @@ public static class StringExtensions
     public static bool IsNotEmpty(this string? text) => !text.IsEmpty();
 
     public static TimeSpan ToTimeSpan(this string input) => TimeSpan.ParseExact(input, "c", null);
+    public static TimeSpan? ToTimeSpanOrNull(this string input) => input.IsEmpty() ? null : ToTimeSpan(input);
 }

@@ -162,7 +162,7 @@ public class PersistenceRepositoryTests
     }
     
     [Test]
-    public async Task FindAlertMatchingOffers_should_return_offer_matches_with_ScrapedDate_mapped()
+    public async Task FindAlertMatchingTradeOffers_should_return_offer_matches_with_ScrapedDate_mapped()
     {
         var expected = DateTime.UtcNow;
         var dbContext = await dbContextFactory.CreateDbContextAsync();
@@ -173,14 +173,14 @@ public class PersistenceRepositoryTests
         }));
         await dbContext.SaveChangesAsync();
     
-        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
+        var offers = await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(20));
     
         offers.Single().ScrapedDate.Should().Be(expected);
     }
     
     [TestCase("Buy", TradeOfferType.Buy)]
     [TestCase("Sell", TradeOfferType.Sell)]
-    public async Task FindAlertMatchingOffers_should_return_offer_matches_with_TradeOffer_OfferType_mapped(string offerType, TradeOfferType expected)
+    public async Task FindAlertMatchingTradeOffers_should_return_offer_matches_with_TradeOffer_OfferType_mapped(string offerType, TradeOfferType expected)
     {
         var dbContext = await dbContextFactory.CreateDbContextAsync();
         dbContext.AddRange(An.Alert().With(a =>
@@ -193,13 +193,13 @@ public class PersistenceRepositoryTests
         }));
         await dbContext.SaveChangesAsync();
     
-        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
+        var offers = await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(20));
     
         offers.Single().TradeOffer.OfferType.Should().Be(expected);
     }
     
     [Test]
-    public async Task FindAlertMatchingOffers_should_return_offer_matches_with_TradeOffer_Link_mapped()
+    public async Task FindAlertMatchingTradeOffers_should_return_offer_matches_with_TradeOffer_Link_mapped()
     {
         const string expected = "https://rocket-league.com/trade/1";
     
@@ -211,13 +211,13 @@ public class PersistenceRepositoryTests
         }));
         await dbContext.SaveChangesAsync();
     
-        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
+        var offers = await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(20));
     
         offers.Single().TradeOffer.Link.Should().Be(expected);
     }
     
     [Test]
-    public async Task FindAlertMatchingOffers_should_return_offer_matches_with_TradeOffer_Price_mapped()
+    public async Task FindAlertMatchingTradeOffers_should_return_offer_matches_with_TradeOffer_Price_mapped()
     {
         const int expected = 300;
     
@@ -232,13 +232,13 @@ public class PersistenceRepositoryTests
         }));
         await dbContext.SaveChangesAsync();
     
-        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
+        var offers = await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(20));
     
         offers.Single().TradeOffer.Price.Should().Be(expected);
     }
     
     [Test]
-    public async Task FindAlertMatchingOffers_should_return_offer_matches_with_TradeOffer_Item_Name_mapped()
+    public async Task FindAlertMatchingTradeOffers_should_return_offer_matches_with_TradeOffer_Item_Name_mapped()
     {
         const string expected = "Fennec";
     
@@ -253,13 +253,13 @@ public class PersistenceRepositoryTests
         }));
         await dbContext.SaveChangesAsync();
     
-        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
+        var offers = await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(20));
     
         offers.Single().TradeOffer.Item.Name.Should().Be(expected);
     }
     
     [Test]
-    public async Task FindAlertMatchingOffers_should_return_offer_matches_with_TradeOffer_Item_Color_mapped()
+    public async Task FindAlertMatchingTradeOffers_should_return_offer_matches_with_TradeOffer_Item_Color_mapped()
     {
         const string expected = "Grey";
     
@@ -271,13 +271,13 @@ public class PersistenceRepositoryTests
         }));
         await dbContext.SaveChangesAsync();
     
-        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
+        var offers = await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(20));
     
         offers.Single().TradeOffer.Item.Color.Should().Be(expected);
     }
     
     [Test]
-    public async Task FindAlertMatchingOffers_should_return_offer_matches_with_TradeOffer_Item_Certification_mapped()
+    public async Task FindAlertMatchingTradeOffers_should_return_offer_matches_with_TradeOffer_Item_Certification_mapped()
     {
         const string expected = "Aviator";
     
@@ -289,7 +289,7 @@ public class PersistenceRepositoryTests
         }));
         await dbContext.SaveChangesAsync();
     
-        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
+        var offers = await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(20));
     
         offers.Single().TradeOffer.Item.Certification.Should().Be(expected);
     }
@@ -305,7 +305,7 @@ public class PersistenceRepositoryTests
     [TestCase("Trail", TradeItemType.Trail)]
     [TestCase("Banner", TradeItemType.Banner)]
     [TestCase("Avatar Border", TradeItemType.AvatarBorder)]
-    public async Task FindAlertMatchingOffers_should_return_offer_matches_with_TradeOffer_Item_ItemType_mapped(string itemType, TradeItemType expected)
+    public async Task FindAlertMatchingTradeOffers_should_return_offer_matches_with_TradeOffer_Item_ItemType_mapped(string itemType, TradeItemType expected)
     {
         var dbContext = await dbContextFactory.CreateDbContextAsync();
         dbContext.AddRange(An.Alert());
@@ -315,13 +315,13 @@ public class PersistenceRepositoryTests
         }));
         await dbContext.SaveChangesAsync();
     
-        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
+        var offers = await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(20));
     
         offers.Single().TradeOffer.Item.ItemType.Should().Be(expected);
     }
     
     [TestCase("RLG", TradingSite.RocketLeagueGarage)]
-    public async Task FindAlertMatchingOffers_should_return_offer_matches_with_TradeOffer_Trader_TradingSite_mapped(string tradingSite, TradingSite expected)
+    public async Task FindAlertMatchingTradeOffers_should_return_offer_matches_with_TradeOffer_Trader_TradingSite_mapped(string tradingSite, TradingSite expected)
     {
         var dbContext = await dbContextFactory.CreateDbContextAsync();
         dbContext.AddRange(An.Alert());
@@ -331,13 +331,13 @@ public class PersistenceRepositoryTests
         }));
         await dbContext.SaveChangesAsync();
     
-        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
+        var offers = await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(20));
     
         offers.Single().TradeOffer.Trader.TradingSite.Should().Be(expected);
     }
     
     [Test]
-    public async Task FindAlertMatchingOffers_should_return_offer_matches_with_TradeOffer_Trader_Name_mapped()
+    public async Task FindAlertMatchingTradeOffers_should_return_offer_matches_with_TradeOffer_Trader_Name_mapped()
     {
         const string expected = "RLTrader69";
     
@@ -349,14 +349,14 @@ public class PersistenceRepositoryTests
         }));
         await dbContext.SaveChangesAsync();
     
-        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
+        var offers = await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(20));
     
         offers.Single().TradeOffer.Trader.Name.Should().Be(expected);
     }
     
     [TestCase("Buy", "Buy", true)]
     [TestCase("Buy", "Sell", false)]
-    public async Task FindAlertMatchingOffers_should_return_offers_matching_by_offer_type(string alertOfferType, string tradeOfferType, bool expected)
+    public async Task FindAlertMatchingTradeOffers_should_return_offers_matching_by_offer_type(string alertOfferType, string tradeOfferType, bool expected)
     {
         var dbContext = await dbContextFactory.CreateDbContextAsync();
         dbContext.AddRange(An.Alert().With(a =>
@@ -369,7 +369,7 @@ public class PersistenceRepositoryTests
         }));
         await dbContext.SaveChangesAsync();
     
-        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
+        var offers = await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(20));
     
         offers.Count.Should().Be(expected ? 1 : 0);
     }
@@ -379,7 +379,7 @@ public class PersistenceRepositoryTests
     [TestCase("hellfire", "Hellfire", true)]
     [TestCase("Hellfire", "Fennec", false)]
     [TestCase("Hell", "Hellfire", false)]
-    public async Task FindAlertMatchingOffers_should_return_offers_matching_by_item_name(string alertItemName, string offerName, bool expected)
+    public async Task FindAlertMatchingTradeOffers_should_return_offers_matching_by_item_name(string alertItemName, string offerName, bool expected)
     {
         var dbContext = await dbContextFactory.CreateDbContextAsync();
         dbContext.AddRange(An.Alert().With(a =>
@@ -392,7 +392,7 @@ public class PersistenceRepositoryTests
         }));
         await dbContext.SaveChangesAsync();
     
-        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
+        var offers = await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(20));
     
         offers.Count.Should().Be(expected ? 1 : 0);
     }
@@ -401,7 +401,7 @@ public class PersistenceRepositoryTests
     [TestCase(150, 200, 160, true)]
     [TestCase(150, 200, 140, false)]
     [TestCase(150, 200, 210, false)]
-    public async Task FindAlertMatchingOffers_should_return_offers_matching_by_price(int alertPriceFrom, int alertPriceTo, int offerPrice, bool expected)
+    public async Task FindAlertMatchingTradeOffers_should_return_offers_matching_by_price(int alertPriceFrom, int alertPriceTo, int offerPrice, bool expected)
     {
         var dbContext = await dbContextFactory.CreateDbContextAsync();
         dbContext.AddRange(An.Alert().With(a =>
@@ -415,7 +415,7 @@ public class PersistenceRepositoryTests
         }));
         await dbContext.SaveChangesAsync();
     
-        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
+        var offers = await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(20));
     
         offers.Count.Should().Be(expected ? 1 : 0);
     }
@@ -429,7 +429,7 @@ public class PersistenceRepositoryTests
     [TestCase("Goal Explosion", "Wheels", false)]
     [TestCase("Goal Explosion", "", false)]
     [TestCase("", "Goal explosion", false)]
-    public async Task FindAlertMatchingOffers_should_return_offers_matching_by_item_type(string alertItemType, string offerItemType, bool expected)
+    public async Task FindAlertMatchingTradeOffers_should_return_offers_matching_by_item_type(string alertItemType, string offerItemType, bool expected)
     {
         var dbContext = await dbContextFactory.CreateDbContextAsync();
         dbContext.AddRange(An.Alert().With(a =>
@@ -442,7 +442,7 @@ public class PersistenceRepositoryTests
         }));
         await dbContext.SaveChangesAsync();
     
-        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
+        var offers = await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(20));
     
         offers.Count.Should().Be(expected ? 1 : 0);
     }
@@ -458,7 +458,7 @@ public class PersistenceRepositoryTests
     [TestCase("Sky", "Sky Blue", false)]
     [TestCase("", "Sky Blue", false)]
     [TestCase("+", "", false)]
-    public async Task FindAlertMatchingOffers_should_return_offers_matching_by_color(string alertColor, string offerColor, bool expected)
+    public async Task FindAlertMatchingTradeOffers_should_return_offers_matching_by_color(string alertColor, string offerColor, bool expected)
     {
         var dbContext = await dbContextFactory.CreateDbContextAsync();
         dbContext.AddRange(An.Alert().With(a =>
@@ -471,7 +471,7 @@ public class PersistenceRepositoryTests
         }));
         await dbContext.SaveChangesAsync();
     
-        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
+        var offers = await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(20));
     
         offers.Count.Should().Be(expected ? 1 : 0);
     }
@@ -487,7 +487,7 @@ public class PersistenceRepositoryTests
     [TestCase("Guard", "Guardian", false)]
     [TestCase("", "Guardian", false)]
     [TestCase("+", "", false)]
-    public async Task FindAlertMatchingOffers_should_return_offers_matching_by_certification(string alertCertification, string offerCertification, bool expected)
+    public async Task FindAlertMatchingTradeOffers_should_return_offers_matching_by_certification(string alertCertification, string offerCertification, bool expected)
     {
         var dbContext = await dbContextFactory.CreateDbContextAsync();
         dbContext.AddRange(An.Alert().With(a =>
@@ -500,13 +500,13 @@ public class PersistenceRepositoryTests
         }));
         await dbContext.SaveChangesAsync();
     
-        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
+        var offers = await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(20));
     
         offers.Count.Should().Be(expected ? 1 : 0);
     }
     
     [Test]
-    public async Task FindAlertMatchingOffers_should_not_return_old_offers()
+    public async Task FindAlertMatchingTradeOffers_should_not_return_old_offers()
     {
         var now = new DateTime(2022, 1, 1);
         var dbContext = await dbContextFactory.CreateDbContextAsync();
@@ -518,13 +518,13 @@ public class PersistenceRepositoryTests
         }));
         await dbContext.SaveChangesAsync();
     
-        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
+        var offers = await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(20));
     
         offers.Count.Should().Be(0);
     }
     
     [Test]
-    public async Task FindAlertMatchingOffers_should_not_return_matching_offers_for_disabled_alerts()
+    public async Task FindAlertMatchingTradeOffers_should_not_return_matching_offers_for_disabled_alerts()
     {
         var dbContext = await dbContextFactory.CreateDbContextAsync();
         dbContext.AddRange(An.Alert().With(a =>
@@ -534,14 +534,14 @@ public class PersistenceRepositoryTests
         dbContext.AddRange(A.TradeOffer());
         await dbContext.SaveChangesAsync();
     
-        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
+        var offers = await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(20));
     
         offers.Count.Should().Be(0);
     }
     
     [TestCase("AnnoyingSpammer", "AnnoyingSpammer")]
     [TestCase("annoyingSpammer", "AnnoyingSpammer")]
-    public async Task FindAlertMatchingOffers_should_not_return_matching_offer_from_blacklisted_traders(string offerTrader, string blacklistedTrader)
+    public async Task FindAlertMatchingTradeOffers_should_not_return_matching_offer_from_blacklisted_traders(string offerTrader, string blacklistedTrader)
     {
         var dbContext = await dbContextFactory.CreateDbContextAsync();
         dbContext.AddRange(An.Alert());
@@ -555,57 +555,58 @@ public class PersistenceRepositoryTests
         }));
         await dbContext.SaveChangesAsync();
         
-        var offers = await sut.FindAlertMatchingOffers(TimeSpan.FromMinutes(20));
+        var offers = await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(20));
     
         offers.Count.Should().Be(0);
     }
     
     [Test]
-    public async Task DeleteOldOffers_should_delete_old_offers_and_related_notifications()
+    public async Task DeleteOldOffers_should_delete_only_old_offers_that_do_not_have_related_notifications()
     {
-        // Arrange
-        var offer = A.TradeOffer().With(o =>
+        var offer1 = A.TradeOffer().With(o =>
         {
-            o.ScrapedDate = DateTime.UtcNow.AddDays(-7);
+            o.ItemName = "Fennec";
+            o.ScrapedDate = DateTime.UtcNow.AddDays(-6);
         });
-        var notification = A.Notification().With(n =>
+        var offer2 = A.TradeOffer().With(o =>
         {
-            n.CreatedDate = DateTime.UtcNow.AddDays(-7);
-            n.TradeOffer = offer;
+            o.ItemName = "Supernova III";
+            o.ScrapedDate = DateTime.UtcNow.AddDays(-6);
+        });
+        var notificationForOffer1 = A.Notification().With(n =>
+        {
+            n.CreatedDate = DateTime.UtcNow.AddDays(-6);
+            n.TradeOffer = offer1;
         });
         var dbContext = await dbContextFactory.CreateDbContextAsync();
-        dbContext.AddRange(offer, notification);
+        dbContext.AddRange(offer1, offer2, notificationForOffer1);
         await dbContext.SaveChangesAsync();
     
-        // Act
-        await sut.DeleteOldOffers(TimeSpan.FromDays(5));
+        await sut.DeleteOldTradeOffers(TimeSpan.FromDays(5));
     
-        // Assert
-        dbContext.TradeOffers.Count().Should().Be(0);
-        dbContext.Notifications.Count().Should().Be(0);
+        dbContext.TradeOffers.Count().Should().Be(1);
+        dbContext.TradeOffers.Single().ItemName.Should().Be("Fennec");
+        dbContext.Notifications.Count().Should().Be(1);
     }
     
     [Test]
     public async Task DeleteOldNotifications_should_delete_old_notifications_but_keep_related_offers()
     {
-        // Arrange
         var offer = A.TradeOffer().With(o =>
         {
-            o.ScrapedDate = DateTime.UtcNow.AddDays(-7);
+            o.ScrapedDate = DateTime.UtcNow.AddDays(-6);
         });
         var notification = A.Notification().With(n =>
         {
-            n.CreatedDate = DateTime.UtcNow.AddDays(-7);
+            n.CreatedDate = DateTime.UtcNow.AddDays(-6);
             n.TradeOffer = offer;
         });
         var dbContext = await dbContextFactory.CreateDbContextAsync();
         dbContext.AddRange(offer, notification);
         await dbContext.SaveChangesAsync();
     
-        // Act
         await sut.DeleteOldNotifications(TimeSpan.FromDays(5));
     
-        // Assert
         dbContext.Notifications.Count().Should().Be(0);
         dbContext.TradeOffers.Count().Should().Be(1);
     }
