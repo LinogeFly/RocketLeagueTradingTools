@@ -1,12 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RocketLeagueTradingTools.Common;
-using RocketLeagueTradingTools.Core.Application;
 using RocketLeagueTradingTools.Core.Application.DataRetention;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
-using RocketLeagueTradingTools.Core.Application.Scraping;
+using RocketLeagueTradingTools.Core.Application.Interfaces.Persistence;
+using RocketLeagueTradingTools.Core.Application.Scrap;
 using RocketLeagueTradingTools.Infrastructure.Common;
 using RocketLeagueTradingTools.Infrastructure.Persistence;
-using RocketLeagueTradingTools.Infrastructure.TradeOffers;
+using RocketLeagueTradingTools.Infrastructure.Persistence.Repositories;
+using RocketLeagueTradingTools.Infrastructure.TradeOfferSource;
 using RocketLeagueTradingTools.Scraper.Infrastructure;
 
 namespace RocketLeagueTradingTools.Scraper;
@@ -37,7 +38,8 @@ internal static class HostConfiguration
                 services.AddScoped<DataRetentionApplication>();
                 services.AddScoped<RlgDataSource>();
                 services.AddScoped<ITradeOfferRepository, TradeOfferRepository>();
-                services.AddScoped<IPersistenceRepository, PersistenceRepository>();
+                services.AddScoped<INotificationPersistenceRepository, NotificationPersistenceRepository>();
+                services.AddScoped<ITradeOfferPersistenceRepository, TradeOfferPersistenceRepository>();
             })
             .ConfigureLogging(logBuilder =>
             {

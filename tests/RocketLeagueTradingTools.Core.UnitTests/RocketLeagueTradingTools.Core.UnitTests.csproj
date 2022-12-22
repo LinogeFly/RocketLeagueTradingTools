@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\RocketLeagueTradingTools.Core\RocketLeagueTradingTools.Core.csproj" />
+    <ProjectReference Include="..\RocketLeagueTradingTools.Test\RocketLeagueTradingTools.Test.csproj" />
   </ItemGroup>
 
 </Project>

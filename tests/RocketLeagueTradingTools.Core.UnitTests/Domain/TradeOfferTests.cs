@@ -1,6 +1,6 @@
 using FluentAssertions;
 using RocketLeagueTradingTools.Core.Domain.Enumerations;
-using RocketLeagueTradingTools.Core.UnitTests.Support;
+using RocketLeagueTradingTools.Test;
 
 namespace RocketLeagueTradingTools.Core.UnitTests.Domain;
 
@@ -60,8 +60,8 @@ public class TradeOfferTests
     [Test]
     public void Equals_should_return_false_when_two_objects_have_different_Trader_property_value()
     {
-        var offer1 = A.TradeOffer().WithTrader(TradingSite.RocketLeagueGarage, "Trader1").Build();
-        var offer2 = A.TradeOffer().WithTrader(TradingSite.RocketLeagueGarage, "Trader2").Build();
+        var offer1 = A.TradeOffer().WithTrader(A.Trader().WithName("Trader1")).Build();
+        var offer2 = A.TradeOffer().WithTrader(A.Trader().WithName("Trader2")).Build();
 
         offer1.Should().NotBeEquivalentTo(offer2);
         (offer1 != offer2).Should().Be(true);

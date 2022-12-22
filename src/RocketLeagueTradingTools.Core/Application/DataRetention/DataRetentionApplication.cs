@@ -1,25 +1,28 @@
-using RocketLeagueTradingTools.Core.Application.Interfaces;
+using RocketLeagueTradingTools.Core.Application.Interfaces.Persistence;
 
 namespace RocketLeagueTradingTools.Core.Application.DataRetention;
 
 public class DataRetentionApplication
 {
-    private readonly IPersistenceRepository persistence;
+    private readonly ITradeOfferPersistenceRepository tradeOfferPersistence;
+    private readonly INotificationPersistenceRepository notificationPersistence;
     private readonly IDataRetentionApplicationSettings config;
 
     public DataRetentionApplication(
-        IPersistenceRepository persistence,
+        INotificationPersistenceRepository notificationPersistence,
+        ITradeOfferPersistenceRepository tradeOfferPersistence,
         IDataRetentionApplicationSettings config)
     {
-        this.persistence = persistence;
+        this.tradeOfferPersistence = tradeOfferPersistence;
+        this.notificationPersistence = notificationPersistence;
         this.config = config;
     }
     
     public async Task DeleteOldData()
     {
         if (config.NotificationsMaxAge != null)
-            await persistence.DeleteOldNotifications(config.NotificationsMaxAge.Value);
+            await notificationPersistence.DeleteOldNotifications(config.NotificationsMaxAge.Value);
         
-        await persistence.DeleteOldTradeOffers(config.TradeOffersMaxAge);
+        await tradeOfferPersistence.DeleteOldTradeOffers(config.TradeOffersMaxAge);
     }
 }

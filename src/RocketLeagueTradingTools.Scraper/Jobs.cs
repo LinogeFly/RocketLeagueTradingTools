@@ -1,8 +1,5 @@
-using RocketLeagueTradingTools.Common;
-using RocketLeagueTradingTools.Core.Application;
 using RocketLeagueTradingTools.Core.Application.DataRetention;
-using RocketLeagueTradingTools.Core.Application.Scraping;
-using RocketLeagueTradingTools.Infrastructure.Common;
+using RocketLeagueTradingTools.Core.Application.Scrap;
 
 namespace RocketLeagueTradingTools.Scraper;
 

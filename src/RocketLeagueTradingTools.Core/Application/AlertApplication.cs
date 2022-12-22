@@ -1,13 +1,13 @@
-﻿using RocketLeagueTradingTools.Core.Application.Interfaces;
+﻿using RocketLeagueTradingTools.Core.Application.Interfaces.Persistence;
 using RocketLeagueTradingTools.Core.Domain.Entities;
 
 namespace RocketLeagueTradingTools.Core.Application;
 
 public class AlertApplication
 {
-    private readonly IPersistenceRepository persistence;
+    private readonly IAlertPersistenceRepository persistence;
 
-    public AlertApplication(IPersistenceRepository persistence)
+    public AlertApplication(IAlertPersistenceRepository persistence)
     {
         this.persistence = persistence;
     }

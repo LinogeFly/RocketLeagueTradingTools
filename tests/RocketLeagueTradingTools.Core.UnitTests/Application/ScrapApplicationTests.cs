@@ -2,8 +2,10 @@ using FluentAssertions;
 using FluentAssertions.Extensions;
 using Moq;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
-using RocketLeagueTradingTools.Core.Application.Scraping;
+using RocketLeagueTradingTools.Core.Application.Interfaces.Persistence;
+using RocketLeagueTradingTools.Core.Application.Scrap;
 using RocketLeagueTradingTools.Core.UnitTests.Support;
+using RocketLeagueTradingTools.Test;
 
 namespace RocketLeagueTradingTools.Core.UnitTests.Application;
 
@@ -11,26 +13,29 @@ namespace RocketLeagueTradingTools.Core.UnitTests.Application;
 public class ScrapApplicationTests
 {
     private ScrapApplication sut = null!;
+    private TestContainer testContainer = null!;
     private CancellationToken cancellationToken;
     private Mock<IScrapApplicationSettings> config = null!;
     private Mock<ILog> log = null!;
     private Mock<ITradeOfferRepository> repository = null!;
-    private Mock<IPersistenceRepository> persistence = null!;
+    private Mock<ITradeOfferPersistenceRepository> tradeOfferPersistence = null!;
 
     [SetUp]
     public void Setup()
     {
+        testContainer = TestContainer.Create();
+        
         cancellationToken = new CancellationToken();
-        log = new Mock<ILog>();
-        repository = new Mock<ITradeOfferRepository>();
-        persistence = new Mock<IPersistenceRepository>();
+        log = testContainer.MockOf<ILog>();
+        repository = testContainer.MockOf<ITradeOfferRepository>();
+        tradeOfferPersistence = testContainer.MockOf<ITradeOfferPersistenceRepository>();
 
-        config = new Mock<IScrapApplicationSettings>();
+        config = testContainer.MockOf<IScrapApplicationSettings>();
         config.Setup(c => c.RetryMaxAttempts).Returns(0);
         config.Setup(c => c.DelayMin).Returns(TimeSpan.Zero);
         config.Setup(c => c.DelayMax).Returns(TimeSpan.Zero);
 
-        sut = new ScrapApplication(repository.Object, persistence.Object, log.Object, config.Object);
+        sut = testContainer.GetService<ScrapApplication>();
     }
 
     [Test]
@@ -69,7 +74,7 @@ public class ScrapApplicationTests
         repository.Setup(r => r.GetTradeOffersPage(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new HttpRequestException());
 
-        var act = () => { sut = new ScrapApplication(repository.Object, persistence.Object, log.Object, config.Object); };
+        var act = () => { var _ = testContainer.GetService<ScrapApplication>(); };
 
         act.Should().Throw<InvalidOperationException>();
     }
@@ -94,21 +99,21 @@ public class ScrapApplicationTests
         var firstScrapDate = new DateTime(2022, 1, 1);
         var secondScrapDate = firstScrapDate.AddSeconds(10);
         var scrap1Offer1 = A.ScrapedOffer()
-            .WithOffer(A.SellOffer()
+            .WithOffer(A.TradeOffer()
                 .WithLink("1")
                 .WithItem(A.TradeItem().WithName("Fennec"))
                 .WithPrice(300))
             .WithScrapedDate(firstScrapDate)
             .Build();
         var scrap2Offer1 = A.ScrapedOffer()
-            .WithOffer(A.SellOffer()
+            .WithOffer(A.TradeOffer()
                 .WithLink("1")
                 .WithItem(A.TradeItem().WithName("Fennec"))
                 .WithPrice(300))
             .WithScrapedDate(secondScrapDate)
             .Build();
         var scrap2Offer2 = A.ScrapedOffer()
-            .WithOffer(A.SellOffer()
+            .WithOffer(A.TradeOffer()
                 .WithLink("2")
                 .WithItem(A.TradeItem().WithName("Hellfire"))
                 .WithPrice(100))
@@ -121,9 +126,9 @@ public class ScrapApplicationTests
 
         await sut.InfiniteScrap(cancellationToken);
 
-        persistence.Verify(p => p.AddTradeOffers(new[] { scrap1Offer1 }), Times.Once);
-        persistence.Verify(p => p.AddTradeOffers(new[] { scrap2Offer2 }), Times.Once);
-        persistence.Verify(p => p.AddTradeOffers(new[] { scrap2Offer1, scrap2Offer2 }), Times.Never);
+        tradeOfferPersistence.Verify(p => p.AddTradeOffers(new[] { scrap1Offer1 }), Times.Once);
+        tradeOfferPersistence.Verify(p => p.AddTradeOffers(new[] { scrap2Offer2 }), Times.Once);
+        tradeOfferPersistence.Verify(p => p.AddTradeOffers(new[] { scrap2Offer1, scrap2Offer2 }), Times.Never);
     }
 
     [Test]
@@ -135,7 +140,7 @@ public class ScrapApplicationTests
             .ReturnsAsync(new[]
             {
                 A.ScrapedOffer()
-                    .WithOffer(A.SellOffer()
+                    .WithOffer(A.TradeOffer()
                         .WithLink("1")
                         .WithItem(A.TradeItem().WithName("Fennec"))
                         .WithPrice(300))
@@ -145,7 +150,7 @@ public class ScrapApplicationTests
             .ReturnsAsync(new[]
             {
                 A.ScrapedOffer()
-                    .WithOffer(A.SellOffer()
+                    .WithOffer(A.TradeOffer()
                         .WithLink("2")
                         .WithItem(A.TradeItem().WithName("Hellfire"))
                         .WithPrice(100))
@@ -168,7 +173,7 @@ public class ScrapApplicationTests
             .ReturnsAsync(new[]
             {
                 A.ScrapedOffer()
-                    .WithOffer(A.SellOffer()
+                    .WithOffer(A.TradeOffer()
                         .WithLink("1")
                         .WithItem(A.TradeItem().WithName("Fennec"))
                         .WithPrice(300))
@@ -178,7 +183,7 @@ public class ScrapApplicationTests
             .ReturnsAsync(new[]
             {
                 A.ScrapedOffer()
-                    .WithOffer(A.SellOffer()
+                    .WithOffer(A.TradeOffer()
                         .WithLink("1")
                         .WithItem(A.TradeItem().WithName("Fennec"))
                         .WithPrice(300))
@@ -202,7 +207,7 @@ public class ScrapApplicationTests
             .ReturnsAsync(new[]
             {
                 A.ScrapedOffer()
-                    .WithOffer(A.SellOffer()
+                    .WithOffer(A.TradeOffer()
                         .WithLink("1")
                         .WithItem(A.TradeItem().WithName("Fennec"))
                         .WithPrice(300))
@@ -213,7 +218,7 @@ public class ScrapApplicationTests
             .ReturnsAsync(new[]
             {
                 A.ScrapedOffer()
-                    .WithOffer(A.SellOffer()
+                    .WithOffer(A.TradeOffer()
                         .WithLink("2")
                         .WithItem(A.TradeItem().WithName("Hellfire"))
                         .WithPrice(100))

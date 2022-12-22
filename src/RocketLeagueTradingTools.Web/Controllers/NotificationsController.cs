@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using AutoMapper;
-using RocketLeagueTradingTools.Web.Models.Notification;
-using RocketLeagueTradingTools.Core.Application.Notifications;
+using RocketLeagueTradingTools.Core.Application.Notification;
+using RocketLeagueTradingTools.Web.Contracts.Notification;
+using RocketLeagueTradingTools.Web.Mapping;
 
 namespace RocketLeagueTradingTools.Web.Controllers;
 
@@ -10,11 +10,11 @@ namespace RocketLeagueTradingTools.Web.Controllers;
 public class NotificationsController : ControllerBase
 {
     private readonly NotificationApplication app;
-    private readonly IMapper mapper;
+    private readonly DomainToDtoMapper mapper;
 
     public NotificationsController(
         NotificationApplication app,
-        IMapper mapper)
+        DomainToDtoMapper mapper)
     {
         this.app = app;
         this.mapper = mapper;
@@ -29,7 +29,7 @@ public class NotificationsController : ControllerBase
         var notifications = await app.GetNotifications(pageSize);
         var result = new NotificationsResponse
         {
-            Items = mapper.Map<List<NotificationDto>>(notifications),
+            Items = mapper.Map(notifications),
             Total = total
         };
 

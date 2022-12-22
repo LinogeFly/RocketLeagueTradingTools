@@ -10,6 +10,7 @@ public class TimeSpanExtensionsTests
         time.ToHumanReadableString().Should().Be(expected);
     }
     
+    // ReSharper disable once InconsistentNaming
     private static object[] ToHumanReadableString_ForGivenTimeSpan_ReturnsCorrespondingText_TestCases =
     {
         new object[] { TimeSpan.FromSeconds(0), "1 second" },

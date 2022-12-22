@@ -2,10 +2,12 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using RocketLeagueTradingTools.Core.Application;
-using RocketLeagueTradingTools.Core.Application.Notifications;
+using RocketLeagueTradingTools.Core.Application.Notification;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
+using RocketLeagueTradingTools.Core.Application.Interfaces.Persistence;
 using RocketLeagueTradingTools.Infrastructure.Common;
 using RocketLeagueTradingTools.Infrastructure.Persistence;
+using RocketLeagueTradingTools.Infrastructure.Persistence.Repositories;
 using RocketLeagueTradingTools.Web.Mapping;
 using RocketLeagueTradingTools.Web.Infrastructure;
 
@@ -35,7 +37,10 @@ builder.Services.AddSingletonSqliteDbContext(builder.Configuration); // Created 
 builder.Services.AddSingleton(typeof(ILogger), typeof(Logger<Program>));
 builder.Services.AddSingleton<ILog, Log>();
 builder.Services.AddSingleton<IDateTime, SystemDateTime>();
-builder.Services.AddScoped<IPersistenceRepository, PersistenceRepository>();
+builder.Services.AddScoped<INotificationPersistenceRepository, NotificationPersistenceRepository>();
+builder.Services.AddScoped<ITradeOfferPersistenceRepository, TradeOfferPersistenceRepository>();
+builder.Services.AddScoped<IAlertPersistenceRepository, AlertPersistenceRepository>();
+builder.Services.AddScoped<IBlacklistPersistenceRepository, BlacklistPersistenceRepository>();
 
 // Applications
 builder.Services.AddScoped<AlertApplication>();
@@ -43,9 +48,8 @@ builder.Services.AddScoped<NotificationApplication>();
 builder.Services.AddSingleton<INotificationApplicationSettings, NotificationApplicationSettings>();
 builder.Services.AddScoped<BlacklistApplication>();
 
-// AutoMapper
-builder.Services.AddSingleton<DomainToDtoProfile.TradeOfferAgeResolver>();
-builder.Services.AddAutoMapper(typeof(Program));
+// Mapping
+builder.Services.AddSingleton<DomainToDtoMapper>();
 
 var app = builder.Build();
 

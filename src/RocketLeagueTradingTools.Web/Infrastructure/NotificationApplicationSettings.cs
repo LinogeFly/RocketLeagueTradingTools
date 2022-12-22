@@ -3,7 +3,7 @@ using RocketLeagueTradingTools.Infrastructure.Common;
 
 namespace RocketLeagueTradingTools.Web.Infrastructure;
 
-class NotificationApplicationSettings : Core.Application.Notifications.INotificationApplicationSettings
+class NotificationApplicationSettings : Core.Application.Notification.INotificationApplicationSettings
 {
     private readonly IConfiguration config;
 

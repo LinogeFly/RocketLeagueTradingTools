@@ -21,10 +21,8 @@ public sealed class TradeOffer : ValueObject
         if (price <= 0)
             throw new ArgumentException($"{nameof(price)} has to be more than 0.");
         
-        
         if (link.IsEmpty())
             throw new ArgumentException("The field is required.", nameof(link));
-
 
         OfferType = offerType;
         Item = item;

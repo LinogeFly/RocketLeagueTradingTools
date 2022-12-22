@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using AutoMapper;
 using RocketLeagueTradingTools.Core.Application;
-using RocketLeagueTradingTools.Core.Domain.Entities;
-using RocketLeagueTradingTools.Web.Models.Alert;
+using RocketLeagueTradingTools.Web.Contracts.Alert;
+using RocketLeagueTradingTools.Web.Mapping;
 
 namespace RocketLeagueTradingTools.Web.Controllers;
 
@@ -11,28 +10,25 @@ namespace RocketLeagueTradingTools.Web.Controllers;
 public class AlertsController : ControllerBase
 {
     private readonly AlertApplication app;
-    private readonly IMapper mapper;
 
-    public AlertsController(
-        AlertApplication app,
-        IMapper mapper)
+    public AlertsController(AlertApplication app)
     {
         this.app = app;
-        this.mapper = mapper;
     }
 
     [HttpGet]
-    public async Task<ActionResult<IList<AlertDto>>> Get()
+    public async Task<ActionResult<IList<AlertResponse>>> Get()
     {
         var alerts = await app.GetAlerts();
+        var response = alerts.Select(DomainToDtoMapper.Map);
 
-        return Ok(mapper.Map<List<AlertDto>>(alerts));
+        return Ok(response);
     }
 
     [HttpPost]
-    public async Task<ActionResult> Post(AlertRequest alertRequest)
+    public async Task<ActionResult> Post(AlertUpsertRequest request)
     {
-        var alert = mapper.Map<Alert>(alertRequest);
+        var alert = DtoToDomainMapper.Map(request);
 
         await app.AddAlert(alert);
 
@@ -40,9 +36,9 @@ public class AlertsController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
-    public async Task<ActionResult> Put(int id, AlertRequest alertRequest)
+    public async Task<ActionResult> Put(int id, AlertUpsertRequest request)
     {
-        var alert = mapper.Map<Alert>(alertRequest);
+        var alert = DtoToDomainMapper.Map(request);
         alert.Id = id;
 
         await app.UpdateAlert(alert);

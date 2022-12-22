@@ -1,9 +1,7 @@
 using FluentAssertions;
 using Moq;
 using RocketLeagueTradingTools.Core.Application.DataRetention;
-using RocketLeagueTradingTools.Core.Application.Interfaces;
-using RocketLeagueTradingTools.Core.Application.Notifications;
-using RocketLeagueTradingTools.Core.Domain.Entities;
+using RocketLeagueTradingTools.Core.Application.Interfaces.Persistence;
 using RocketLeagueTradingTools.Core.UnitTests.Support;
 
 namespace RocketLeagueTradingTools.Core.UnitTests.Application;
@@ -12,17 +10,21 @@ namespace RocketLeagueTradingTools.Core.UnitTests.Application;
 public class DataRetentionApplicationTests
 {
     private DataRetentionApplication sut = null!;
-    private Mock<IPersistenceRepository> persistence = null!;
+    private TestContainer testContainer = null!;
+    private Mock<INotificationPersistenceRepository> notificationPersistence = null!;
+    private Mock<ITradeOfferPersistenceRepository> tradeOfferPersistence = null!;
     private Mock<IDataRetentionApplicationSettings> config = null!;
 
     [SetUp]
     public void Setup()
     {
-        persistence = new Mock<IPersistenceRepository>();
+        testContainer = TestContainer.Create();
+        
+        notificationPersistence = testContainer.MockOf<INotificationPersistenceRepository>();
+        tradeOfferPersistence = testContainer.MockOf<ITradeOfferPersistenceRepository>();
+        config = testContainer.MockOf<IDataRetentionApplicationSettings>();
 
-        config = new Mock<IDataRetentionApplicationSettings>();
-
-        sut = new DataRetentionApplication(persistence.Object, config.Object);
+        sut = testContainer.GetService<DataRetentionApplication>();
     }
     
     [Test]
@@ -31,8 +33,8 @@ public class DataRetentionApplicationTests
         var deleteCalls = new List<string>();
         config.SetupGet(c => c.NotificationsMaxAge).Returns(TimeSpan.FromDays(30));
         config.SetupGet(c => c.TradeOffersMaxAge).Returns(TimeSpan.FromDays(5));
-        persistence.Setup(p => p.DeleteOldNotifications(It.IsAny<TimeSpan>())).Callback(() => deleteCalls.Add("notifications"));
-        persistence.Setup(p => p.DeleteOldTradeOffers(It.IsAny<TimeSpan>())).Callback(() => deleteCalls.Add("tradeOffers"));
+        notificationPersistence.Setup(p => p.DeleteOldNotifications(It.IsAny<TimeSpan>())).Callback(() => deleteCalls.Add("notifications"));
+        tradeOfferPersistence.Setup(p => p.DeleteOldTradeOffers(It.IsAny<TimeSpan>())).Callback(() => deleteCalls.Add("tradeOffers"));
 
         await sut.DeleteOldData();
 
@@ -48,6 +50,6 @@ public class DataRetentionApplicationTests
         
         await sut.DeleteOldData();
         
-        persistence.Verify(p => p.DeleteOldNotifications(It.IsAny<TimeSpan>()), Times.Never);
+        notificationPersistence.Verify(p => p.DeleteOldNotifications(It.IsAny<TimeSpan>()), Times.Never);
     }
 }

@@ -1,18 +1,19 @@
-﻿using RocketLeagueTradingTools.Core.Application.Interfaces;
+﻿using RocketLeagueTradingTools.Core.Application.Interfaces.Persistence;
+using RocketLeagueTradingTools.Core.Domain.Entities;
 using RocketLeagueTradingTools.Core.Domain.ValueObjects;
 
 namespace RocketLeagueTradingTools.Core.Application;
 
 public class BlacklistApplication
 {
-    private readonly IPersistenceRepository persistence;
+    private readonly IBlacklistPersistenceRepository persistence;
 
-    public BlacklistApplication(IPersistenceRepository persistence)
+    public BlacklistApplication(IBlacklistPersistenceRepository persistence)
     {
         this.persistence = persistence;
     }
 
-    public async Task<IList<Trader>> GetTraders()
+    public async Task<IList<BlacklistedTrader>> GetTraders()
     {
         return await persistence.GetBlacklistedTraders();
     }

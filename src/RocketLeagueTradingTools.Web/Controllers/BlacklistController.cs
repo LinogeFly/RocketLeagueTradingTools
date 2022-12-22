@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using AutoMapper;
 using RocketLeagueTradingTools.Core.Application;
-using RocketLeagueTradingTools.Core.Domain.ValueObjects;
-using RocketLeagueTradingTools.Web.Models.Blacklist;
+using RocketLeagueTradingTools.Web.Contracts.Blacklist;
+using RocketLeagueTradingTools.Web.Mapping;
 
 namespace RocketLeagueTradingTools.Web.Controllers;
 
@@ -11,28 +10,25 @@ namespace RocketLeagueTradingTools.Web.Controllers;
 public class BlacklistController : ControllerBase
 {
     private readonly BlacklistApplication app;
-    private readonly IMapper mapper;
 
-    public BlacklistController(
-        BlacklistApplication app,
-        IMapper mapper)
+    public BlacklistController(BlacklistApplication app)
     {
         this.app = app;
-        this.mapper = mapper;
     }
 
     [HttpGet]
-    public async Task<ActionResult<IList<BlacklistedTraderDto>>> GetBlacklistedTraders()
+    public async Task<ActionResult<IList<BlacklistedTraderResponse>>> GetBlacklistedTraders()
     {
         var traders = await app.GetTraders();
+        var response = traders.Select(DomainToDtoMapper.Map);
 
-        return Ok(mapper.Map<List<BlacklistedTraderDto>>(traders));
+        return Ok(response);
     }
 
     [HttpPost]
     public async Task<ActionResult> AddBlacklistedTrader(BlacklistedTraderRequest blacklistedTraderRequest)
     {
-        var trader = mapper.Map<Trader>(blacklistedTraderRequest);
+        var trader = DtoToDomainMapper.Map(blacklistedTraderRequest);
 
         await app.AddTrader(trader);
 
