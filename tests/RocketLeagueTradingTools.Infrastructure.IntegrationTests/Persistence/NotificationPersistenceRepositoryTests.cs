@@ -554,38 +554,6 @@ public class NotificationPersistenceRepositoryTests
         result.Count(n => n.SeenDate == fakeNow).Should().Be(3);
     }
 
-    [Test]
-    public async Task DeleteOldNotifications_should_delete_old_notifications_but_keep_related_offers()
-    {
-        // Arrange
-        var fakeNow = new DateTime(2022, 1, 1);
-        await offerRepository.AddTradeOffers(new[]
-        {
-            A.ScrapedOffer().WithOffer(
-                A.TradeOffer().WithItem(
-                    A.TradeItem().WithName("Fennec")
-                ).WithPrice(300).WithType(TradeOfferType.Sell)
-            ).Build()
-        });
-        await alertRepository.AddAlert(An.Alert().WithItemName("Fennec").WithPrice(0, 300).WithType(TradeOfferType.Sell).Build());
-        var offer = (await offerRepository.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(1))).Single();
-        testContainer.NowIs(fakeNow.AddMinutes(-10));
-        await sut.AddNotifications(new[]
-        {
-            A.Notification().WithScrapedOffer(offer).Build()
-        });
-
-        // Act
-        testContainer.NowIs(fakeNow);
-        await sut.DeleteOldNotifications(TimeSpan.FromMinutes(9));
-
-        // Assert
-        var notifications = await sut.GetNotifications(10);
-        var offers = await offerRepository.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(1));
-        notifications.Count.Should().Be(0);
-        offers.Count.Should().Be(1);
-    }
-
     private static IEnumerable<Func<NotificationPersistenceRepository, Task<IList<Notification>>>> GetNotificationsActionsSource()
     {
         yield return sut => sut.GetNotifications(10);

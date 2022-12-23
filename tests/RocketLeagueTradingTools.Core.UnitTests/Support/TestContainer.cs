@@ -49,6 +49,7 @@ internal class TestContainer
         serviceCollection.AddSingleton(Mock.Of<INotificationPersistenceRepository>());
         serviceCollection.AddSingleton(Mock.Of<INotificationApplicationSettings>());
         serviceCollection.AddSingleton(Mock.Of<ITradeOfferPersistenceRepository>());
+        serviceCollection.AddSingleton(Mock.Of<IDataRetentionPersistenceRepository>());
         serviceCollection.AddSingleton(Mock.Of<IDataRetentionApplicationSettings>());
         serviceCollection.AddSingleton(Mock.Of<ITradeOfferRepository>());
         serviceCollection.AddSingleton(Mock.Of<IScrapApplicationSettings>());

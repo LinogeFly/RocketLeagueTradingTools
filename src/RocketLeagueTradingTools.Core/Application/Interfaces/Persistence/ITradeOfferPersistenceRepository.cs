@@ -6,5 +6,4 @@ public interface ITradeOfferPersistenceRepository
 {
     Task AddTradeOffers(IList<ScrapedTradeOffer> offers);
     Task<IList<ScrapedTradeOffer>> FindAlertMatchingTradeOffers(TimeSpan alertOfferMaxAge);
-    Task DeleteOldTradeOffers(TimeSpan maxAge);
 }

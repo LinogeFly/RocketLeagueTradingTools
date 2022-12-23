@@ -6,7 +6,6 @@
 
 ### Core
 
-- Perform `VACUUM` SQL command upon cleaning old data to shrink the database.
 - Implement incremental notifications refresh, instead of doing full refresh every time.
 
 ### Web

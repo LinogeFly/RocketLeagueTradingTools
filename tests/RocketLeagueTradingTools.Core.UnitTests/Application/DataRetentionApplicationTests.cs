@@ -11,8 +11,7 @@ public class DataRetentionApplicationTests
 {
     private DataRetentionApplication sut = null!;
     private TestContainer testContainer = null!;
-    private Mock<INotificationPersistenceRepository> notificationPersistence = null!;
-    private Mock<ITradeOfferPersistenceRepository> tradeOfferPersistence = null!;
+    private Mock<IDataRetentionPersistenceRepository> repository = null!;
     private Mock<IDataRetentionApplicationSettings> config = null!;
 
     [SetUp]
@@ -20,8 +19,7 @@ public class DataRetentionApplicationTests
     {
         testContainer = TestContainer.Create();
         
-        notificationPersistence = testContainer.MockOf<INotificationPersistenceRepository>();
-        tradeOfferPersistence = testContainer.MockOf<ITradeOfferPersistenceRepository>();
+        repository = testContainer.MockOf<IDataRetentionPersistenceRepository>();
         config = testContainer.MockOf<IDataRetentionApplicationSettings>();
 
         sut = testContainer.GetService<DataRetentionApplication>();
@@ -30,16 +28,18 @@ public class DataRetentionApplicationTests
     [Test]
     public async Task DeleteOldData_should_delete_items_in_correct_order()
     {
-        var deleteCalls = new List<string>();
+        var calls = new List<string>();
         config.SetupGet(c => c.NotificationsMaxAge).Returns(TimeSpan.FromDays(30));
         config.SetupGet(c => c.TradeOffersMaxAge).Returns(TimeSpan.FromDays(5));
-        notificationPersistence.Setup(p => p.DeleteOldNotifications(It.IsAny<TimeSpan>())).Callback(() => deleteCalls.Add("notifications"));
-        tradeOfferPersistence.Setup(p => p.DeleteOldTradeOffers(It.IsAny<TimeSpan>())).Callback(() => deleteCalls.Add("tradeOffers"));
+        repository.Setup(p => p.DeleteOldNotifications(It.IsAny<TimeSpan>())).Callback(() => calls.Add("notifications"));
+        repository.Setup(p => p.DeleteOldTradeOffers(It.IsAny<TimeSpan>())).Callback(() => calls.Add("tradeOffers"));
+        repository.Setup(p => p.Vacuum()).Callback(() => calls.Add("vacuum"));
 
         await sut.DeleteOldData();
 
-        deleteCalls[0].Should().Be("notifications");
-        deleteCalls[1].Should().Be("tradeOffers");
+        calls[0].Should().Be("notifications");
+        calls[1].Should().Be("tradeOffers");
+        calls[2].Should().Be("vacuum");
     }
 
     [Test]
@@ -50,6 +50,6 @@ public class DataRetentionApplicationTests
         
         await sut.DeleteOldData();
         
-        notificationPersistence.Verify(p => p.DeleteOldNotifications(It.IsAny<TimeSpan>()), Times.Never);
+        repository.Verify(p => p.DeleteOldNotifications(It.IsAny<TimeSpan>()), Times.Never);
     }
 }

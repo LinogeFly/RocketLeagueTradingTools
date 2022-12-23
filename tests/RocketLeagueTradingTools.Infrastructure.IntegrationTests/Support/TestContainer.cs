@@ -66,6 +66,7 @@ internal class TestContainer
         serviceCollection.AddScoped<TradeOfferPersistenceRepository>();
         serviceCollection.AddScoped<AlertPersistenceRepository>();
         serviceCollection.AddScoped<BlacklistPersistenceRepository>();
+        serviceCollection.AddScoped<DataRetentionPersistenceRepository>();
         serviceCollection.AddDbContextFactory<PersistenceDbContext>(opt => opt.UseSqlite("Data Source=RocketLeagueTradingTools-test.sqlite.db;"));
     }
 

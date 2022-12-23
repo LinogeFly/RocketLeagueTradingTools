@@ -38,24 +38,6 @@ public class TradeOfferPersistenceRepository : ITradeOfferPersistenceRepository
         return offers.Select(PersistenceMapper.Map).ToList();
     }
 
-    public async Task DeleteOldTradeOffers(TimeSpan maxAge)
-    {
-        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
-
-        var offersToDelete =
-            from o in dbContext.TradeOffers
-            // ReSharper disable once AccessToDisposedClosure
-            from n in dbContext.Notifications.Where(n => n.TradeOffer.Id == o.Id).DefaultIfEmpty()
-            where
-                o.ScrapedDate < dateTime.Now.Add(-maxAge) &&
-                n.TradeOffer == null
-            select o;
-
-        dbContext.TradeOffers.RemoveRange(offersToDelete);
-
-        await dbContext.SaveChangesAsync();
-    }
-
     private IQueryable<PersistedTradeOffer> GetAlertMatchingOffersQuery(PersistenceDbContext dbContext, TimeSpan alertOfferMaxAge)
     {
         return

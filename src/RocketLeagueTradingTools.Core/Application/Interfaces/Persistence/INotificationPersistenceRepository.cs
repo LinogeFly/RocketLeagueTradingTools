@@ -8,5 +8,4 @@ public interface INotificationPersistenceRepository
     Task AddNotifications(IList<Domain.Entities.Notification> notifications);
     Task MarkNotificationAsSeen(int id);
     Task MarkAllNotificationAsSeen();
-    Task DeleteOldNotifications(TimeSpan maxAge);
 }

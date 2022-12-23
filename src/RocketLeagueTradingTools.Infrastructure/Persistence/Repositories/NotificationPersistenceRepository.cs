@@ -94,15 +94,4 @@ public class NotificationPersistenceRepository : INotificationPersistenceReposit
 
         await dbContext.SaveChangesAsync();
     }
-
-    public async Task DeleteOldNotifications(TimeSpan maxAge)
-    {
-        await using var dbContext = await dbContextFactory.CreateDbContextAsync();
-
-        var notificationsToDelete = dbContext.Notifications.Where(o => o.CreatedDate < dateTime.Now.Add(-maxAge));
-
-        dbContext.Notifications.RemoveRange(notificationsToDelete);
-
-        await dbContext.SaveChangesAsync();
-    }
 }

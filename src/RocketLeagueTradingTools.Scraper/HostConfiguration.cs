@@ -40,6 +40,7 @@ internal static class HostConfiguration
                 services.AddScoped<ITradeOfferRepository, TradeOfferRepository>();
                 services.AddScoped<INotificationPersistenceRepository, NotificationPersistenceRepository>();
                 services.AddScoped<ITradeOfferPersistenceRepository, TradeOfferPersistenceRepository>();
+                services.AddScoped<IDataRetentionPersistenceRepository, DataRetentionPersistenceRepository>();
             })
             .ConfigureLogging(logBuilder =>
             {

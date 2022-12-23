@@ -13,7 +13,6 @@ public class TradeOfferPersistenceRepositoryTests
     private TradeOfferPersistenceRepository sut = null!;
     private AlertPersistenceRepository alertRepository = null!;
     private BlacklistPersistenceRepository blacklistRepository = null!;
-    private NotificationPersistenceRepository notificationRepository = null!;
     private TestContainer testContainer = null!;
     
     [SetUp]
@@ -24,7 +23,6 @@ public class TradeOfferPersistenceRepositoryTests
         
         alertRepository = testContainer.GetService<AlertPersistenceRepository>();
         blacklistRepository = testContainer.GetService<BlacklistPersistenceRepository>();
-        notificationRepository = testContainer.GetService<NotificationPersistenceRepository>();
         sut = testContainer.GetService<TradeOfferPersistenceRepository>();
     }
     
@@ -512,45 +510,5 @@ public class TradeOfferPersistenceRepositoryTests
 
         // Assert
         result.Count.Should().Be(0);
-    }
-
-    [Test]
-    public async Task DeleteOldOffers_should_delete_only_old_offers_that_do_not_have_related_notifications()
-    {
-        // Arrange
-        var fakeNow = new DateTime(2022, 1, 1);
-        testContainer.NowIs(fakeNow);
-        await sut.AddTradeOffers(new[]
-        {
-            A.ScrapedOffer().WithOffer(
-                A.TradeOffer().WithItem(
-                    A.TradeItem().WithName("Fennec")
-                ).WithPrice(300).WithType(TradeOfferType.Sell)
-            ).WithScrapedDate(fakeNow.AddMinutes(-10)).Build(),
-            A.ScrapedOffer().WithOffer(
-                A.TradeOffer().WithItem(
-                    A.TradeItem().WithName("Dueling Dragons")
-                ).WithPrice(400).WithType(TradeOfferType.Sell)
-            ).WithScrapedDate(fakeNow.AddMinutes(-10)).Build()
-        });
-        await alertRepository.AddAlert(An.Alert().WithItemName("Fennec").WithPrice(0, 300).WithType(TradeOfferType.Sell).Build());
-        await alertRepository.AddAlert(An.Alert().WithItemName("Dueling Dragons").WithPrice(0, 400).WithType(TradeOfferType.Sell).Build());
-        var fennecOffer = (await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(11))).Single(o => o.TradeOffer.Item.Name == "Fennec");
-        // Add notification only for Fennec trade offer, but not for Dueling Dragons. 
-        await notificationRepository.AddNotifications(new[]
-        {
-            A.Notification().WithScrapedOffer(fennecOffer).Build()
-        });
-
-        // Act
-        await sut.DeleteOldTradeOffers(TimeSpan.FromMinutes(9));
-
-        // Assert
-        var offers = await sut.FindAlertMatchingTradeOffers(TimeSpan.FromMinutes(11));
-        var fennecOfferAfterAct = offers.SingleOrDefault(o => o.TradeOffer.Item.Name == "Fennec");
-        var dragonsOfferAfterAct = offers.SingleOrDefault(o => o.TradeOffer.Item.Name == "Dueling Dragons");
-        //
-        fennecOfferAfterAct.Should().NotBeNull();
-        dragonsOfferAfterAct.Should().BeNull();
     }
 }
