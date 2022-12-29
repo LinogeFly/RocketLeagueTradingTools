@@ -246,7 +246,7 @@ function NotificationsPage() {
             </div>}
 
             {status === 'success' && !notifications.items.length && <div>
-                Nothing to see here just yet.
+                Nothing to see here.
             </div>}
 
             {notifications.items.map(notification => {

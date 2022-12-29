@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using RocketLeagueTradingTools.Core.Application;
+using RocketLeagueTradingTools.Core.Application.Alert;
 using RocketLeagueTradingTools.Web.Contracts.Alert;
 using RocketLeagueTradingTools.Web.Mapping;
 

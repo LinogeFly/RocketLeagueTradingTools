@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using RocketLeagueTradingTools.Core.Application;
+using RocketLeagueTradingTools.Core.Application.Blacklist;
 using RocketLeagueTradingTools.Web.Contracts.Blacklist;
 using RocketLeagueTradingTools.Web.Mapping;
 

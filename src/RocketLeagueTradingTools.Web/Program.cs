@@ -1,7 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
-using RocketLeagueTradingTools.Core.Application;
+using RocketLeagueTradingTools.Core.Application.Alert;
+using RocketLeagueTradingTools.Core.Application.Blacklist;
 using RocketLeagueTradingTools.Core.Application.Notification;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Core.Application.Interfaces.Persistence;
@@ -33,10 +35,12 @@ builder.Services
         );
     });
 
-builder.Services.AddSingletonSqliteDbContext(builder.Configuration); // Created as a singleton internally
+builder.Services.AddSingletonSqliteDbContext(builder.Configuration);
+builder.Services.AddMediatR(typeof(AlertUpdateEvent));
 builder.Services.AddSingleton(typeof(ILogger), typeof(Logger<Program>));
 builder.Services.AddSingleton<ILog, Log>();
 builder.Services.AddSingleton<IDateTime, SystemDateTime>();
+builder.Services.AddSingleton<INotificationSessionStorage, NotificationSessionStorage>();
 builder.Services.AddScoped<INotificationPersistenceRepository, NotificationPersistenceRepository>();
 builder.Services.AddScoped<ITradeOfferPersistenceRepository, TradeOfferPersistenceRepository>();
 builder.Services.AddScoped<IAlertPersistenceRepository, AlertPersistenceRepository>();

@@ -2,7 +2,7 @@
 using RocketLeagueTradingTools.Core.Domain.Entities;
 using RocketLeagueTradingTools.Core.Domain.ValueObjects;
 
-namespace RocketLeagueTradingTools.Core.Application;
+namespace RocketLeagueTradingTools.Core.Application.Blacklist;
 
 public class BlacklistApplication
 {

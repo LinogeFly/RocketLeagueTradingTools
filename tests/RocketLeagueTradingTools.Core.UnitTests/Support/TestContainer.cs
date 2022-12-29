@@ -1,5 +1,7 @@
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using RocketLeagueTradingTools.Core.Application.Alert;
 using RocketLeagueTradingTools.Core.Application.DataRetention;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Core.Application.Interfaces.Persistence;
@@ -17,7 +19,8 @@ internal class TestContainer
         var serviceCollection = new ServiceCollection();
 
         AddServicesToBeTested(serviceCollection);
-        AddServicesToBeMocked(serviceCollection);
+        AddMockServices(serviceCollection);
+        AddDependencyServices(serviceCollection);
 
         serviceProvider = serviceCollection.BuildServiceProvider();
     }
@@ -38,20 +41,29 @@ internal class TestContainer
 
     private static void AddServicesToBeTested(IServiceCollection serviceCollection)
     {
-        serviceCollection.AddSingleton<NotificationApplication>();
-        serviceCollection.AddSingleton<DataRetentionApplication>();
+        serviceCollection.AddTransient<NotificationApplication>();
+        serviceCollection.AddTransient<DataRetentionApplication>();
         serviceCollection.AddTransient<ScrapApplication>();
+        serviceCollection.AddTransient<AlertApplication>();
     }
 
-    private static void AddServicesToBeMocked(IServiceCollection serviceCollection)
+    private static void AddMockServices(IServiceCollection serviceCollection)
     {
         serviceCollection.AddSingleton(Mock.Of<ILog>());
+        serviceCollection.AddSingleton(Mock.Of<IDateTime>());
         serviceCollection.AddSingleton(Mock.Of<INotificationPersistenceRepository>());
         serviceCollection.AddSingleton(Mock.Of<INotificationApplicationSettings>());
         serviceCollection.AddSingleton(Mock.Of<ITradeOfferPersistenceRepository>());
         serviceCollection.AddSingleton(Mock.Of<IDataRetentionPersistenceRepository>());
         serviceCollection.AddSingleton(Mock.Of<IDataRetentionApplicationSettings>());
         serviceCollection.AddSingleton(Mock.Of<ITradeOfferRepository>());
+        serviceCollection.AddSingleton(Mock.Of<IAlertPersistenceRepository>());
         serviceCollection.AddSingleton(Mock.Of<IScrapApplicationSettings>());
+        serviceCollection.AddSingleton(Mock.Of<INotificationSessionStorage>());
+    }
+    
+    private static void AddDependencyServices(IServiceCollection serviceCollection)
+    {
+        serviceCollection.AddMediatR(typeof(AlertUpdateEvent));
     }
 }

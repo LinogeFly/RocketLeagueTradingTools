@@ -6,12 +6,14 @@
 
 ### Core
 
-- Implement incremental notifications refresh, instead of doing full refresh every time.
+- Notifications refresh should not be done every time notifications are requested with GET action. Instead, the refresh
+  should be performed in a background running  task. <https://learn.microsoft.com/en-us/aspnet/core/fundamentals/host/hosted-services>
+  could be a way to implement this.
 
 ### Web
 
 - Add test for Web API controllers.
-- Try to make UI tests for Notifications page component. There is plenty scenarios to test, will be a good exercise.
+- Add React tests for Notifications page component. There is plenty scenarios to test, will be a good exercise.
 
 ### Refactoring
 

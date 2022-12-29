@@ -3,9 +3,12 @@ using RocketLeagueTradingTools.Core.Domain.Entities;
 using RocketLeagueTradingTools.Core.Application.Interfaces;
 using RocketLeagueTradingTools.Common;
 using RocketLeagueTradingTools.Common.Exceptions;
+using RocketLeagueTradingTools.Core.Application.DataRetention;
 using RocketLeagueTradingTools.Core.Application.Interfaces.Persistence;
+using RocketLeagueTradingTools.Core.Application.Notification;
 using RocketLeagueTradingTools.Core.Domain.Enumerations;
 using RocketLeagueTradingTools.Core.Domain.ValueObjects;
+using RocketLeagueTradingTools.Infrastructure.Persistence.Repositories;
 using RocketLeagueTradingTools.Web.Contracts.Common;
 using RocketLeagueTradingTools.Web.Contracts.Testing;
 using RocketLeagueTradingTools.Web.Mapping;
@@ -18,6 +21,7 @@ public class TestingController : ControllerBase
 {
     private readonly ITradeOfferPersistenceRepository tradeOfferPersistence;
     private readonly IAlertPersistenceRepository alertPersistence;
+    private readonly NotificationApplication notificationApplication;
     private readonly IBlacklistPersistenceRepository blacklistPersistence;
     private readonly IDateTime dateTime;
 
@@ -25,12 +29,14 @@ public class TestingController : ControllerBase
         ITradeOfferPersistenceRepository tradeOfferPersistence,
         IBlacklistPersistenceRepository blacklistPersistence,
         IAlertPersistenceRepository alertPersistence,
+        NotificationApplication notificationApplication,
         IDateTime dateTime)
     {
         this.tradeOfferPersistence = tradeOfferPersistence;
         this.dateTime = dateTime;
         this.blacklistPersistence = blacklistPersistence;
         this.alertPersistence = alertPersistence;
+        this.notificationApplication = notificationApplication;
     }
 
     [HttpPost("offers/clone")]
@@ -65,33 +71,33 @@ public class TestingController : ControllerBase
     {
         var alerts = new List<Alert>
         {
-            new(TradeOfferType.Sell, "Fennec", 300) { Certification = "*" },
-            new(TradeOfferType.Sell, "Hellfire", 90) { Certification = "*" },
-            new(TradeOfferType.Sell, "Dueling Dragons", 450) { Certification = "*" },
-            new(TradeOfferType.Sell, "Dingo", 150) { Certification = "*" },
-            new(TradeOfferType.Sell, "Gravity Bomb", 600) { Certification = "*" },
-            new(TradeOfferType.Sell, "20xx", 200) { Certification = "*" },
-            new(TradeOfferType.Sell, "Supernova III", 60) { Certification = "*" },
-            new(TradeOfferType.Sell, "Mainframe", 500) { Certification = "*" },
-            new(TradeOfferType.Sell, "Neuro-Agitator", 50) { Certification = "*" },
-            new(TradeOfferType.Sell, "Shattered", 60) { Certification = "*", ItemType = AlertItemType.GoalExplosion },
-            new(TradeOfferType.Sell, "Encryption", 600) { Certification = "*" },
-            new(TradeOfferType.Sell, "Carbonator", 600) { Certification = "*" },
-            new(TradeOfferType.Sell, "Dissolver", 500) { Certification = "*" },
-            new(TradeOfferType.Sell, "Sub-Zero", 60) { Certification = "*" },
-            new(TradeOfferType.Sell, "Singularity", 50) { Certification = "*" },
-            new(TradeOfferType.Sell, "Buffy-Sugo", 1100) { Certification = "*" },
-            new(TradeOfferType.Sell, "Heatwave", 290) { Certification = "*" },
-            new(TradeOfferType.Sell, "Beach Party", 400) { Certification = "*" },
-            new(TradeOfferType.Sell, "Nomster", 50) { Certification = "*", Color = "Sky Blue", ItemType = AlertItemType.GoalExplosion },
-            new(TradeOfferType.Sell, "Ion", 300) { Certification = "*", Color = "Titanium White" },
-            new(TradeOfferType.Sell, "Ion", 110) { Certification = "*", Color = "Lime" },
-            new(TradeOfferType.Sell, "Ion", 100) { Certification = "*", Color = "+" },
-            new(TradeOfferType.Sell, "Ninja Star", 40) { Certification = "*", Color = "+" },
-            new(TradeOfferType.Sell, "Fennec", 1400) { Certification = "*", Color = "Titanium White" },
-            new(TradeOfferType.Sell, "Merc", 60) { Certification = "*", Color = "Titanium White" },
-            new(TradeOfferType.Sell, "Endo", 200) { Certification = "*", Color = "Titanium White" },
-            new(TradeOfferType.Sell, "OEM", 500) { Certification = "*", Color = "Black" }
+            new(TradeOfferType.Sell, "Fennec", 300) {Certification = "*"},
+            new(TradeOfferType.Sell, "Hellfire", 90) {Certification = "*"},
+            new(TradeOfferType.Sell, "Dueling Dragons", 450) {Certification = "*"},
+            new(TradeOfferType.Sell, "Dingo", 150) {Certification = "*"},
+            new(TradeOfferType.Sell, "Gravity Bomb", 600) {Certification = "*"},
+            new(TradeOfferType.Sell, "20xx", 200) {Certification = "*"},
+            new(TradeOfferType.Sell, "Supernova III", 60) {Certification = "*"},
+            new(TradeOfferType.Sell, "Mainframe", 500) {Certification = "*"},
+            new(TradeOfferType.Sell, "Neuro-Agitator", 50) {Certification = "*"},
+            new(TradeOfferType.Sell, "Shattered", 60) {Certification = "*", ItemType = AlertItemType.GoalExplosion},
+            new(TradeOfferType.Sell, "Encryption", 600) {Certification = "*"},
+            new(TradeOfferType.Sell, "Carbonator", 600) {Certification = "*"},
+            new(TradeOfferType.Sell, "Dissolver", 500) {Certification = "*"},
+            new(TradeOfferType.Sell, "Sub-Zero", 60) {Certification = "*"},
+            new(TradeOfferType.Sell, "Singularity", 50) {Certification = "*"},
+            new(TradeOfferType.Sell, "Buffy-Sugo", 1100) {Certification = "*"},
+            new(TradeOfferType.Sell, "Heatwave", 290) {Certification = "*"},
+            new(TradeOfferType.Sell, "Beach Party", 400) {Certification = "*"},
+            new(TradeOfferType.Sell, "Nomster", 50) {Certification = "*", Color = "Sky Blue", ItemType = AlertItemType.GoalExplosion},
+            new(TradeOfferType.Sell, "Ion", 300) {Certification = "*", Color = "Titanium White"},
+            new(TradeOfferType.Sell, "Ion", 110) {Certification = "*", Color = "Lime"},
+            new(TradeOfferType.Sell, "Ion", 100) {Certification = "*", Color = "+"},
+            new(TradeOfferType.Sell, "Ninja Star", 40) {Certification = "*", Color = "+"},
+            new(TradeOfferType.Sell, "Fennec", 1400) {Certification = "*", Color = "Titanium White"},
+            new(TradeOfferType.Sell, "Merc", 60) {Certification = "*", Color = "Titanium White"},
+            new(TradeOfferType.Sell, "Endo", 200) {Certification = "*", Color = "Titanium White"},
+            new(TradeOfferType.Sell, "OEM", 500) {Certification = "*", Color = "Black"}
         };
 
         foreach (var alert in alerts)
@@ -115,6 +121,26 @@ public class TestingController : ControllerBase
 
             await blacklistPersistence.AddBlacklistedTrader(trader);
         }
+
+        return Ok();
+    }
+
+    [HttpPost("notifications/refresh")]
+    public ActionResult RefreshNotifications()
+    {
+        var refreshAction = new Func<Task>(() => notificationApplication.RefreshNotifications());
+        var addOfferAction = new Func<Task>(async () =>
+        {
+            await Task.Delay(10);
+
+            var offer = new ScrapedTradeOffer(new TradeOffer(
+                TradeOfferType.Sell, new TradeItem("Fennec"), 300, Guid.NewGuid().ToString(), new Trader(TradingSite.RocketLeagueGarage, "Chappi")
+            ), DateTime.UtcNow);
+
+            await tradeOfferPersistence.AddTradeOffers(new[] {offer});
+        });
+
+        Task.WaitAll(Task.Run(refreshAction), Task.Run(addOfferAction));
 
         return Ok();
     }
