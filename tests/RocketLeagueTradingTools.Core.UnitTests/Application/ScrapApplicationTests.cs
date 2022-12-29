@@ -14,7 +14,7 @@ public class ScrapApplicationTests
 {
     private ScrapApplication sut = null!;
     private TestContainer testContainer = null!;
-    private CancellationToken cancellationToken;
+    private readonly CancellationToken cancellationToken = default;
     private Mock<IScrapApplicationSettings> config = null!;
     private Mock<ILog> log = null!;
     private Mock<ITradeOfferRepository> repository = null!;
@@ -25,7 +25,6 @@ public class ScrapApplicationTests
     {
         testContainer = TestContainer.Create();
         
-        cancellationToken = new CancellationToken();
         log = testContainer.MockOf<ILog>();
         repository = testContainer.MockOf<ITradeOfferRepository>();
         tradeOfferPersistence = testContainer.MockOf<ITradeOfferPersistenceRepository>();

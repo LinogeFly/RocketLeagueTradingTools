@@ -11,7 +11,7 @@ namespace RocketLeagueTradingTools.Infrastructure.IntegrationTests.TradeOfferSou
 public class RlgDataSourceTests
 {
     private RlgDataSource sut = null!;
-    private CancellationToken cancellationToken;
+    private readonly CancellationToken cancellationToken = default;
     private IHttp http = null!;
     private Mock<ILog> log = null!;
     private Mock<IDateTime> dateTime = null!;
@@ -28,7 +28,6 @@ public class RlgDataSourceTests
             DefaultRequestUserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
         };
 
-        cancellationToken = new CancellationToken();
         log = new Mock<ILog>();
 
         sut = new RlgDataSource(http, log.Object, dateTime.Object);

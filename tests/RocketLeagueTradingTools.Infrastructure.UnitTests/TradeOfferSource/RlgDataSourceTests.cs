@@ -16,13 +16,12 @@ public class RlgDataSourceTests
     private TestContainer testContainer = null!;
     private Mock<IHttp> httpClient = null!;
     private Mock<IDateTime> dateTime = null!;
-    private CancellationToken cancellationToken;
-
+    private readonly CancellationToken cancellationToken = default;
+    
     [SetUp]
     public void Setup()
     {
         testContainer = TestContainer.Create();
-        cancellationToken = new CancellationToken();
         httpClient = testContainer.MockOf<IHttp>();
         dateTime = testContainer.MockOf<IDateTime>();
         sut = testContainer.GetService<RlgDataSource>();

@@ -45,29 +45,31 @@ internal static class HostConfiguration
             .ConfigureLogging(logBuilder =>
             {
                 logBuilder.ClearProviders();
-                logBuilder.AddSimpleConsole(opt =>
-                {
-                    opt.TimestampFormat = "HH:mm:ss ";
-                });
+                logBuilder.AddSimpleConsole(opt => { opt.TimestampFormat = "HH:mm:ss "; });
             })
             .UseConsoleLifetime()
             .Build();
 
-        var config = host.Services.GetRequiredService<IConfiguration>();
+        ConfigureHttpClient(host);
+        ApplyEntityFrameworkMigrations(host);
 
-        // Configure HTTP client
+        return host;
+    }
+
+    private static void ConfigureHttpClient(IHost host)
+    {
+        var config = host.Services.GetRequiredService<IConfiguration>();
         var http = host.Services.GetRequiredService<IHttp>();
+
         http.Timeout = config.GetRequiredValue<string>("HttpSettings:Timeout").ToTimeSpan();
         http.DefaultRequestUserAgent = config.GetRequiredValue<string>("HttpSettings:DefaultRequestUserAgent");
         http.DefaultRequestCookie = config.GetValue("HttpSettings:DefaultRequestCookie", "");
+    }
 
-        // Apply Entity Framework migrations
-        using (var scope = host.Services.CreateScope())
-        {
-            var context = scope.ServiceProvider.GetRequiredService<PersistenceDbContext>();
-            context.Database.Migrate();
-        }
-
-        return host;
+    private static void ApplyEntityFrameworkMigrations(this IHost host)
+    {
+        using var scope = host.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<PersistenceDbContext>();
+        context.Database.Migrate();
     }
 }
